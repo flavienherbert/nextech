@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  background-color: #0a0f1a;
+  color: #eef3fa;
+  overscroll-behavior: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Lenis */
+html.lenis {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.text-stroke {
+  -webkit-text-stroke: 1px rgba(238, 243, 250, 0.14);
+  color: transparent;
+}
