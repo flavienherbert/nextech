@@ -46,35 +46,33 @@ Légende « API officielle » : *oui* = l'éditeur du modèle vend l'API ; *reve
 
 Décision : **pas de lip-sync en V1.** Kling 2.6/3.0 savent générer l'audio, mais à +50 % / +100 % du prix, avec des voix non reproductibles d'un clip à l'autre ; un endpoint « Kling LipSync » séparé existe, ce que ta règle exclut. Le personnage est un fruit : narration en voix off + sous-titres + plans où la bouche n'est pas le sujet. Si la bouche animée devient indispensable, ce sera un chantier à part.
 
-## Stack V1 recommandée
+## Stack V1 retenue (mise à jour après tes réponses : fal + ElevenLabs, scénarios écrits à la main, vidéos de 65 à 75 s)
 
 | Brique | Choix | Alternative interchangeable |
 |---|---|---|
-| Scénario | OpenAI (petit modèle texte, ≈ 0,02 $/scénario) ou fichier JSON | — |
-| Images | **FLUX.1 Kontext [pro] sur fal.ai**, 0,04 $ | gpt-image-1 (medium, 0,063 $) |
-| Vidéo | **Runway gen4_turbo** (API officielle, 0,05 $/s facturé à la seconde, 2–10 s) | Hailuo-02 Standard puis Kling 2.5 Turbo, via fal.ai |
-| Voix | **ElevenLabs Multilingual**, ≈ 0,10 $/vidéo | OpenAI TTS (≈ 0,015 $/min) |
+| Scénario | écrit à la main (`examples/script_*.json`), pas d'OpenAI | `--llm` (NON TESTÉ) |
+| Images | **FLUX.1 Kontext [pro] sur fal.ai**, ≈ 0,04 $ | gpt-image-1 (medium, 0,063 $) |
+| Vidéo | **Hailuo-02 Standard sur fal** par défaut ; **Kling 2.5 Turbo Pro sur fal** pour le comparatif | Runway gen4_turbo, seulement si tu veux le tester |
+| Voix | **ElevenLabs Multilingual**, ≈ 0,10 $ pour 1 000 caractères | OpenAI TTS (≈ 0,015 $/min) |
 
-**Pourquoi Runway plutôt que Kling : le prix, pas la qualité.** Kling ne génère que des clips de 5 s ou 10 s. Un plan de 6 à 9 s (la norme dès qu'on a deux répliques) est donc facturé 10 s. Runway facture à la seconde exacte. Je n'ai **aucune preuve** que Runway anime mieux ou plus mal des fruits 3D : je ne peux pas générer d'image ici. Le choix se tranchera au Jalon 3 sur un seul plan par fournisseur (≈ 1,3 $ au total). Le code est écrit pour changer en une ligne.
+**Pourquoi Hailuo par défaut : le prix, pas la qualité.** Kling ne génère que des clips de 5 s ou 10 s : un plan de 6 à 7 s est facturé 10 s. Hailuo propose 6 s ou 10 s, et nos plans (≤ 6,2 s de durée voulue) tiennent dans 6 s. Je n'ai **aucune preuve** que Hailuo anime mieux ou plus mal des fruits 3D : le comparatif Kling / Hailuo au Jalon 3 sur un seul plan chacun (≈ 0,6 $) tranchera.
 
-Deux clés suffisent : fal.ai (images) et Runway (vidéo), plus ElevenLabs pour la voix.
+## Coût d'une vidéo de ≈ 70 s (USD) — calculé par le code sur `script_1` (15 plans)
 
-## Coût estimé d'une vidéo de 51 s (USD) — calculé par le code sur le scénario d'exemple
+Calcul : `estimate_script_cost` sur les **vraies durées de plans** du dry-run. Inclus : 15 images de plans + 2 références (0,68 $), voix ElevenLabs (≈ 0,09 $). Le LLM n'est plus compté.
 
-Le calcul vient de `estimate_script_cost` appliqué aux **vraies durées de plans** du dry-run (8 plans de 4,4 à 9,1 s, 675 caractères de dialogue, 2 images de référence). Fixe commun : images 0,40 + voix 0,07 + LLM 0,02 = 0,49.
+| Pile vidéo | Secondes facturées | Total sans relance | Avec 35 % de relances (images + vidéo) |
+|---|---|---|---|
+| Runway gen4_turbo (optionnel) | 68 | **4,17** | ≈ 5,6 |
+| **Hailuo-02 Standard (6/10 s)** | 90 | **4,82** | ≈ 6,5 |
+| Kling 2.5 Turbo Pro (5/10 s) | 90 | **7,07** | ≈ 9,5 |
 
-| Pile vidéo | Secondes facturées | Vidéo | Total sans relance | Total avec 35 % de relances (images + vidéo) |
-|---|---|---|---|---|
-| **Runway gen4_turbo** | 50 | 2,50 | **2,99** | **≈ 4,0** |
-| Hailuo-02 Standard (6/10 s) | 64 | 2,88 | 3,37 | ≈ 4,5 |
-| Kling 2.5 Turbo Pro (5/10 s) | 65 | 4,55 | 5,04 | ≈ 6,8 |
+**Conséquence sur ton plafond de 10 $.** Jalon 2 ≈ 0,23 $ (5 images, marge incluse) + comparatif d'un plan ≈ 0,7 $ + **une** vidéo complète. Avec Hailuo, le total reste ≈ 7,5 $ avec relances. Avec Kling, une seule vidéo complète consomme presque tout le plafond et ne laisse aucune relance. Les scénarios 2 et 3 ne pourront pas tous être rendus en vidéo dans ce budget.
 
-Soit **3 à 7 $ par vidéo** (≈ 2,7 à 6,1 € à 0,9 €/$, taux à ajuster). La vidéo représente 80–90 % du coût. La voix est négligeable : inutile d'économiser dessus.
-
-Leviers d'économie, par ordre d'efficacité : (1) écrire des plans courts (≤ 5 s de parole) pour tomber dans la première tranche de durée ; (2) remplacer certains plans par une image fixe animée par FFmpeg (zoom, gratuit) ; (3) valider les images avant de payer la vidéo (c'est le Jalon 2).
+Leviers d'économie : (1) plans ≤ 6 s pour rester dans la première tranche de durée ; (2) plans fixes animés par FFmpeg (gratuit) pour les moments sans action ; (3) valider les images avant de payer les clips (Jalon 2).
 
 ## Points qui contredisent ton cahier des charges
 
-1. **« 3 clips » au Jalon 3 ne font pas 60 s.** Un clip image-to-video dure 5–10 s : 3 clips = 15–30 s. Je modélise donc *scène = plusieurs plans* (le scénario d'exemple : 3 scènes, 8 plans, 51 s), un clip par plan.
+1. **« 3 clips » au Jalon 3 ne font pas 60 s.** Un clip image-to-video dure 5–10 s : 3 clips = 15–30 s. Je modélise donc *scène = plusieurs plans* (`script_1` : 3 scènes, 15 plans, ≈ 70 s), un clip par plan.
 2. **Coût réel.** Le coût dépend surtout du taux de relance. Fixe un plafond par vidéo, pas seulement global.
-3. **Risque produit, hors technique (à vérifier côté TikTok).** Les contenus générés par IA doivent être étiquetés comme tels, et la production en série de contenu peu original est typiquement exclue de la monétisation. Si la monétisation est l'objectif, ces deux points pèsent plus que le choix du fournisseur vidéo. TikTok exige aussi souvent plus de 60 s pour le programme de rémunération : ta fourchette 45–60 s est peut-être trop courte.
+3. **Risque produit, hors technique (à vérifier côté TikTok).** Les contenus générés par IA doivent être étiquetés comme tels, et la production en série de contenu peu original est typiquement exclue de la monétisation. Si la monétisation est l'objectif, ces deux points pèsent plus que le choix du fournisseur vidéo. TikTok exige aussi souvent plus de 60 s pour le programme de rémunération : la cible est donc passée à 65–75 s.

@@ -14,7 +14,13 @@
       "usd_per_image": 0.04,
       "paid": true,
       "source": "https://fal.ai/models/fal-ai/flux-pro/kontext",
-      "verified": false
+      "verified": false,
+      "endpoints": {
+        "text": "fal-ai/flux-pro/kontext/text-to-image",
+        "single": "fal-ai/flux-pro/kontext",
+        "multi": "fal-ai/flux-pro/kontext/multi"
+      },
+      "endpoints_verified": false
     },
     "openai-gpt-image-1-medium": {
       "usd_per_image": 0.063,
@@ -106,19 +112,19 @@
     "v1-kling": {
       "image": "fal-flux-kontext-pro",
       "voice": "elevenlabs-multilingual",
-      "llm": "openai-script",
+      "llm": "none",
       "video": "fal-kling-2.5-turbo-pro"
     },
     "v1-hailuo": {
       "image": "fal-flux-kontext-pro",
       "voice": "elevenlabs-multilingual",
-      "llm": "openai-script",
+      "llm": "none",
       "video": "fal-hailuo-02-standard"
     },
     "v1-runway": {
       "image": "fal-flux-kontext-pro",
       "voice": "elevenlabs-multilingual",
-      "llm": "openai-script",
+      "llm": "none",
       "video": "runway-gen4-turbo"
     }
   }

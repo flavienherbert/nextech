@@ -1,0 +1,315 @@
+{
+  "title": "Le dernier témoin",
+  "language": "fr",
+  "style": "3D animated Pixar-like film, cinematic lighting, vertical 9:16",
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "Le couloir du tribunal",
+      "location": "tribunal hallway with marble floor, tall doors and a ticking clock",
+      "shots": [
+        {
+          "id": "s1_1",
+          "visual": "Citron sitting alone on a bench, checking an empty chair beside him",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Mon avocat est en retard. Évidemment.",
+              "emotion": "tristesse"
+            },
+            {
+              "speaker": "citron",
+              "text": "Il ne manquait plus que ça.",
+              "emotion": "sarcasme"
+            }
+          ]
+        },
+        {
+          "id": "s1_2",
+          "visual": "Citron whispering anxiously, glancing at the courtroom doors",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Et si c'était un piège ? Un coup monté ?",
+              "emotion": "peur"
+            },
+            {
+              "speaker": "citron",
+              "text": "Je n'ai pas dormi de la nuit.",
+              "emotion": "tristesse"
+            }
+          ]
+        },
+        {
+          "id": "s1_3",
+          "visual": "Judge Pastèque walking past, robe swishing, stopping next to Citron",
+          "motion": "slow tracking shot",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Citron. Un témoin s'est présenté ce matin.",
+              "emotion": "calme"
+            }
+          ]
+        },
+        {
+          "id": "s1_4",
+          "visual": "Citron jumping up from the bench, eyes huge",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Un témoin ? Qui ? Dites-moi qui !",
+              "emotion": "surprise"
+            }
+          ]
+        },
+        {
+          "id": "s1_5",
+          "visual": "Judge Pastèque's stern face in close-up, half in shadow",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Vous le saurez à l'audience. Pas avant.",
+              "emotion": "menace"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "La barre",
+      "location": "grand courtroom, packed benches, an empty witness stand with a small lamp on it",
+      "shots": [
+        {
+          "id": "s2_1",
+          "visual": "Judge Pastèque banging his gavel, the room falling silent",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Le témoin peut approcher de la barre.",
+              "emotion": "calme"
+            }
+          ]
+        },
+        {
+          "id": "s2_2",
+          "visual": "Citron staring in disbelief at a small cell lamp placed on the witness stand",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Mais... c'est ma lampe de cellule !",
+              "emotion": "surprise"
+            }
+          ]
+        },
+        {
+          "id": "s2_3",
+          "visual": "Judge Pastèque and Citron arguing, a clerk fruit typing frantically",
+          "motion": "slow push-in",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Greffier, la lampe est assermentée.",
+              "emotion": "calme"
+            },
+            {
+              "speaker": "citron",
+              "text": "C'est absurde ! Elle n'a même pas de bouche !",
+              "emotion": "colère"
+            }
+          ]
+        },
+        {
+          "id": "s2_4",
+          "visual": "Judge Pastèque and Citron arguing, the little lamp between them",
+          "motion": "pull back",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Elle a vu toute la nuit. Elle parlera.",
+              "emotion": "suspense"
+            },
+            {
+              "speaker": "citron",
+              "text": "Une lampe ne parle pas !",
+              "emotion": "colère"
+            }
+          ]
+        },
+        {
+          "id": "s2_5",
+          "visual": "Citron raising a finger, indignant, to a restless crowd",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Je demande une expertise de l'ampoule !",
+              "emotion": "colère"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Refusé. La lampe est incorruptible.",
+              "emotion": "sarcasme"
+            }
+          ]
+        },
+        {
+          "id": "s2_6",
+          "visual": "Judge Pastèque leaning toward the lamp with a half smile",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Clignotez une fois pour oui, deux pour non.",
+              "emotion": "sarcasme"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "La révélation",
+      "location": "courtroom, lights dimming, the lamp glowing at the center",
+      "shots": [
+        {
+          "id": "s3_1",
+          "visual": "the little lamp flickering once, bright light on the crowd",
+          "motion": "slow push-in",
+          "characters": [],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Un clignotement... Elle dit oui ?",
+              "emotion": "surprise"
+            }
+          ]
+        },
+        {
+          "id": "s3_2",
+          "visual": "Citron pointing across the courtroom, determined",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Elle dit que le coupable est dans la salle.",
+              "emotion": "suspense"
+            }
+          ]
+        },
+        {
+          "id": "s3_3",
+          "visual": "Judge Pastèque sweating, loosening his white collar",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Silence ! Cette séance est terminée !",
+              "emotion": "panique"
+            }
+          ]
+        },
+        {
+          "id": "s3_4",
+          "visual": "Judge Pastèque pointing at guards, panic in his eyes",
+          "motion": "fast push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Gardes, saisissez cette lampe ! Détruisez-la !",
+              "emotion": "panique"
+            }
+          ]
+        },
+        {
+          "id": "s3_5",
+          "visual": "Citron crossing his arms, calm, in front of the glowing lamp",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Vous avez peur d'une ampoule, Juge ?",
+              "emotion": "sarcasme"
+            }
+          ]
+        },
+        {
+          "id": "s3_6",
+          "visual": "Citron and Judge Pastèque, the lamp's red recording light blinking between them",
+          "motion": "pull back",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Trop tard, Juge. La lampe a tout filmé.",
+              "emotion": "sarcasme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Je vais finir en compote.",
+              "emotion": "tristesse"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

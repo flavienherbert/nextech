@@ -1,0 +1,298 @@
+{
+  "title": "Le procès de Citron",
+  "language": "fr",
+  "style": "3D animated Pixar-like film, cinematic lighting, vertical 9:16",
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "La cellule",
+      "location": "dim prison cell with a barred window and a single flickering lamp",
+      "shots": [
+        {
+          "id": "s1_1",
+          "visual": "close-up of Citron gripping the cell bars, sweat on his forehead",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Je suis innocent ! Je n'ai jamais volé cette corbeille !",
+              "emotion": "panique"
+            }
+          ]
+        },
+        {
+          "id": "s1_2",
+          "visual": "wide shot of the cell door opening, the long shadow of Judge Pastèque on the floor",
+          "motion": "pull back",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Silence, Citron. Le tribunal vous attend.",
+              "emotion": "menace"
+            },
+            {
+              "speaker": "citron",
+              "text": "Laissez-moi expliquer, Juge !",
+              "emotion": "peur"
+            }
+          ]
+        },
+        {
+          "id": "s1_3",
+          "visual": "Judge Pastèque reading a charge sheet in the corridor, Citron beside him",
+          "motion": "slow push-in",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "L'accusé est poursuivi pour vol de fruits en bande organisée.",
+              "emotion": "colère"
+            }
+          ]
+        },
+        {
+          "id": "s1_4",
+          "visual": "Citron escorted down a long dark corridor, torches on the walls",
+          "motion": "slow tracking shot",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "J'étais chez moi, devant la télé.",
+              "emotion": "tristesse"
+            },
+            {
+              "speaker": "citron",
+              "text": "Personne ne me croit.",
+              "emotion": "tristesse"
+            }
+          ]
+        },
+        {
+          "id": "s1_5",
+          "visual": "Judge Pastèque and Citron side by side facing a huge wooden door",
+          "motion": "slow push-in",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Avancez. Gardez vos excuses pour le jury.",
+              "emotion": "menace"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Le tribunal",
+      "location": "grand courtroom with wooden benches, high ceiling and a raised judge's bench",
+      "shots": [
+        {
+          "id": "s2_1",
+          "visual": "Judge Pastèque banging his gavel on the high bench, silence in the room",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "La séance est ouverte. Accusé, levez-vous.",
+              "emotion": "calme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Où étiez-vous cette nuit-là ?",
+              "emotion": "suspense"
+            }
+          ]
+        },
+        {
+          "id": "s2_2",
+          "visual": "Citron standing in the witness box, trembling, a crowd of fruits staring at him",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Je dormais, Votre Honneur ! Ma lampe peut en témoigner !",
+              "emotion": "panique"
+            }
+          ]
+        },
+        {
+          "id": "s2_3",
+          "visual": "Judge Pastèque raising a hand toward the courtroom door",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Huissier, faites entrer le premier témoin.",
+              "emotion": "calme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Et que personne ne bouge.",
+              "emotion": "menace"
+            }
+          ]
+        },
+        {
+          "id": "s2_4",
+          "visual": "Judge Pastèque leaning forward over his bench, stern, dramatic low angle",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Une lampe n'a jamais témoigné devant moi.",
+              "emotion": "sarcasme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Vos mensonges s'arrêtent ici.",
+              "emotion": "colère"
+            }
+          ]
+        },
+        {
+          "id": "s2_5",
+          "visual": "Citron and Judge Pastèque facing each other, a single beam of light between them",
+          "motion": "pull back",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Montrez vos preuves ! Je n'ai rien à cacher !",
+              "emotion": "colère"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Soit. Voici la pièce à conviction.",
+              "emotion": "menace"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "Le verdict",
+      "location": "courtroom at night, only the judge's lamp still lit",
+      "shots": [
+        {
+          "id": "s3_1",
+          "visual": "Judge Pastèque holding up an evidence bag with a small fingerprint card",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Cette corbeille portait une empreinte. La vôtre.",
+              "emotion": "menace"
+            }
+          ]
+        },
+        {
+          "id": "s3_2",
+          "visual": "Citron staring at his own hands in shock",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Impossible ! J'ai toujours porté des gants !",
+              "emotion": "surprise"
+            }
+          ]
+        },
+        {
+          "id": "s3_3",
+          "visual": "Judge Pastèque leaning back, sweating, dramatic low angle",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Je... je demande une suspension de séance.",
+              "emotion": "peur"
+            },
+            {
+              "speaker": "citron",
+              "text": "Déjà ?",
+              "emotion": "sarcasme"
+            }
+          ]
+        },
+        {
+          "id": "s3_4",
+          "visual": "Judge Pastèque slowly opens a drawer and finds a banana peel inside, eyes wide",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Cette peau de banane... dans mon propre tiroir ?",
+              "emotion": "surprise"
+            }
+          ]
+        },
+        {
+          "id": "s3_5",
+          "visual": "Citron smiling for the first time, the shadow of the judge looming behind him",
+          "motion": "slow push-in",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Je vous l'avais dit, Juge.",
+              "emotion": "sarcasme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Tout le monde dehors. Sauf toi.",
+              "emotion": "menace"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

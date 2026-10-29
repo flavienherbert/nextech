@@ -26,6 +26,9 @@ class Settings:
     # Taux indicatif USD -> EUR, à ajuster dans .env (USD_TO_EUR).
     usd_to_eur: float = 0.90
     openai_script_model: str = "gpt-4.1-mini"
+    # Plafond GLOBAL (tous projets confondus) : aucun appel payant ne peut le dépasser.
+    max_budget_usd: float = 10.0
+    fal_queue_base: str = "https://queue.fal.run"
 
     def with_size(self, width: int, height: int) -> "Settings":
         return replace(self, width=width, height=height)
@@ -47,4 +50,6 @@ def load_settings(root: Path | None = None) -> Settings:
         subtitle_font=env.get("SUBTITLE_FONT", "Arial"),
         usd_to_eur=float(env.get("USD_TO_EUR", "0.90")),
         openai_script_model=env.get("OPENAI_SCRIPT_MODEL", "gpt-4.1-mini"),
+        max_budget_usd=float(env.get("MAX_BUDGET_USD", "10")),
+        fal_queue_base=env.get("FAL_QUEUE_BASE", "https://queue.fal.run").rstrip("/"),
     )

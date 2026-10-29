@@ -7,38 +7,52 @@ from pathlib import Path
 from . import assemble
 from .config import Settings
 from .costs import CostGuard, CostLedger, estimate_script_cost, load_pricing
-from .errors import MediaVerificationError, StudioError
+from .errors import MediaVerificationError, ProviderNotAvailable, StudioError
 from .media import probe, verify_media
 from .models import Character, Script, dump_json
 from .providers.base import ImageRequest, VideoRequest, VoiceRequest
 from .providers.registry import ProviderSet
-from .state import ProjectState, file_hash, input_hash
+from .state import STEPS, ProjectState, file_hash, input_hash, now_iso
 from .subtitles import build_ass
 from .timeline import Timeline, TimelineConfig, build_timeline
 
 log = logging.getLogger(__name__)
 
-TARGET_MIN, TARGET_MAX = 45.0, 60.0
+TARGET_MIN, TARGET_MAX = 65.0, 75.0  # durée visée : marge au-dessus de 60 s
 
 
 class Pipeline:
     def __init__(self, settings: Settings, project_dir: Path, providers: ProviderSet, script: Script,
-                 characters: dict[str, Character], music: Path | None = None, approved_usd: float = 0.0,
-                 timeline_cfg: TimelineConfig = TimelineConfig()):
+                 characters: dict[str, Character], music: Path | None = None,
+                 timeline_cfg: TimelineConfig = TimelineConfig(), only_shots: set[str] | None = None,
+                 global_ledger: CostLedger | None = None):
         self.s = settings
         self.providers = providers
         self.script = script
         self.characters = characters
         self.music = music
         self.cfg = timeline_cfg
+        self.only_shots = only_shots
+        self.real = providers.stack != "dry-run"
         self.state = ProjectState.load_or_create(project_dir, mode=providers.stack)
         self.dir = self.state.dir
-        if approved_usd:
-            self.state.data["approval"]["max_usd"] = approved_usd
-            self.state.save()
         self.ledger = CostLedger(self.dir / "costs.jsonl")
-        self.guard = CostGuard(self.ledger, self.state.data["approval"]["max_usd"])
+        self.global_ledger = global_ledger
+        # Budget de cette exécution : 0 tant que l'utilisateur n'a pas validé (set_run_budget).
+        self.guard = CostGuard(self.ledger, self.ledger.total_usd(), global_ledger,
+                               settings.max_budget_usd if global_ledger else None)
         self.stats = {"generated": 0, "reused": 0}
+        self.planning = False
+        self.plan_items: list[dict] = []
+        # Références de personnages : partagées entre projets en mode réel (/characters/refs).
+        self.ref_dir = (settings.characters_dir / "refs") if self.real else (self.dir / "refs")
+
+    # --- budget -------------------------------------------------------------
+    def set_run_budget(self, usd: float) -> None:
+        """Valide `usd` de dépense supplémentaire pour cette exécution (jamais persisté : règle 1)."""
+        self.guard.approved_usd = self.ledger.total_usd() + usd
+        self.state.data["approval"] = {"last_run_usd": usd, "at": now_iso()}
+        self.state.save()
 
     # --- utilitaires --------------------------------------------------------
     def _reusable(self, key: str, in_hash: str, kind: str, **verify) -> bool:
@@ -53,8 +67,26 @@ class Pipeline:
             return False
 
     def _charge(self, provider, kind: str, label: str, result) -> None:
-        self.ledger.add(provider.name, kind, result.cost_usd, f"{label} [{result.engine}]",
-                        estimated=True)
+        detail = f"{label} [{result.engine}]"
+        self.ledger.add(provider.name, kind, result.cost_usd, detail, estimated=True)
+        if self.global_ledger is not None and result.cost_usd > 0:
+            self.global_ledger.add(provider.name, kind, result.cost_usd, f"{self.dir.name}: {detail}", estimated=True)
+
+    def _wanted(self, shot_id: str) -> bool:
+        return self.only_shots is None or shot_id in self.only_shots
+
+    def _needs_call(self, prov, kind: str, label: str, estimate: float) -> bool:
+        """En mode plan : enregistre l'appel prévu et renvoie False (on ne génère rien)."""
+        if self.planning:
+            self.plan_items.append({"kind": kind, "label": label, "provider": prov.name, "usd": estimate if prov.paid else 0.0})
+            return False
+        self.guard.check(prov.name, prov.paid, estimate)
+        return True
+
+    def _require(self, prov, what: str):
+        if prov is None:
+            raise ProviderNotAvailable(f"fournisseur « {what} » réel non implémenté avant le Jalon 3 (stack {self.providers.stack}).")
+        return prov
 
     def _chars_of(self, shot) -> list[Character]:
         ids = list(dict.fromkeys(shot.characters + [ln.speaker for ln in shot.lines]))
@@ -72,33 +104,54 @@ class Pipeline:
                 del self.state.data["artifacts"][key]
         self.state.reset_from("images")
 
+    def _done(self, step: str, **extra) -> None:
+        if not self.planning:
+            self.state.set_step(step, "done", **extra)
+
     # --- étapes -------------------------------------------------------------
     def step_script(self) -> None:
-        dump_json(self.dir / "script.json", self.script.model_dump())
-        self.state.set_step("script", "done", shots=len(self.script.shots()))
+        if not self.planning:
+            dump_json(self.dir / "script.json", self.script.model_dump())
+        self._done("script", shots=len(self.script.shots()))
+
+    def _shots_in_scope(self):
+        return [(sc, sh) for sc, sh in self.script.shots() if self._wanted(sh.id)]
 
     def step_images(self) -> None:
-        prov = self.providers.image
-        used = {c.id: c for _, sh in self.script.shots() for c in self._chars_of(sh)}
+        prov = self._require(self.providers.image, "image")
+        scope = self._shots_in_scope()
+        used = {c.id: c for _, sh in scope for c in self._chars_of(sh)}
         refs: dict[str, Path] = {}
-        # 1) image de référence de chaque personnage (une fois)
+        # 1) image de référence de chaque personnage, générée UNE fois
         for cid, ch in used.items():
-            out = self.dir / "refs" / f"{cid}.png"
-            prompt = f"Character reference sheet, full body, neutral pose, plain background. {ch.canonical_description()}"
+            out = self.ref_dir / f"{cid}.png"
+            prompt = (f"Character reference sheet, single character, full body, neutral pose, plain light background, "
+                      f"{self.script.style}. {ch.canonical_description()}")
             req = ImageRequest(prompt, self.s.width, self.s.height, f"Référence {ch.name}",
                                characters=[{"name": ch.name, "ui_color": ch.ui_color, "fruit": ch.fruit}])
-            h = input_hash(prompt, prov.name, self.s.width, self.s.height)
-            if self._reusable(f"ref:{cid}", h, "image"):
-                self.stats["reused"] += 1
-            else:
-                self.guard.check(prov.name, prov.paid, prov.estimate_cost(req))
-                res = prov.generate_image(req, out)
-                self._charge(prov, "image", req.label, res)
-                self.state.record_artifact(f"ref:{cid}", out, h, engine=res.engine)
-                self.stats["generated"] += 1
             refs[cid] = out
-        # 2) une image par plan, générée à partir des références + description canonique mot pour mot
-        for scene, shot in self.script.shots():
+            if self.real:
+                # Mode réel : une référence existante et valide (générée avant, ou fournie à la main) est conservée.
+                try:
+                    verify_media(self.s.ffprobe, out, "image")
+                    self.stats["reused"] += 1
+                    continue
+                except MediaVerificationError:
+                    pass
+            else:
+                h = input_hash(prompt, prov.name, self.s.width, self.s.height)
+                if self._reusable(f"ref:{cid}", h, "image"):
+                    self.stats["reused"] += 1
+                    continue
+            if not self._needs_call(prov, "image", req.label, prov.estimate_cost(req)):
+                continue
+            res = prov.generate_image(req, out)
+            self._charge(prov, "image", req.label, res)
+            if not self.real:
+                self.state.record_artifact(f"ref:{cid}", out, h, engine=res.engine)
+            self.stats["generated"] += 1
+        # 2) une image par plan : références + description canonique recopiée mot pour mot
+        for scene, shot in scope:
             chars = self._chars_of(shot)
             canon = " ".join(c.canonical_description() + "." for c in chars)
             prompt = f"{self.script.style}. Location: {scene.location}. {canon} {shot.visual}"
@@ -107,20 +160,22 @@ class Pipeline:
                                reference_images=ref_paths,
                                characters=[{"name": c.name, "ui_color": c.ui_color, "fruit": c.fruit} for c in chars])
             out = self.dir / "images" / f"{shot.id}.png"
-            h = input_hash(prompt, [file_hash(p) for p in ref_paths], prov.name, self.s.width, self.s.height)
+            h = input_hash(prompt, [file_hash(p) if p.exists() else "pending" for p in ref_paths], prov.name,
+                           self.s.width, self.s.height)
             if self._reusable(f"image:{shot.id}", h, "image"):
                 self.stats["reused"] += 1
                 continue
-            self.guard.check(prov.name, prov.paid, prov.estimate_cost(req))
+            if not self._needs_call(prov, "image", req.label, prov.estimate_cost(req)):
+                continue
             res = prov.generate_image(req, out)
             self._charge(prov, "image", req.label, res)
             self.state.record_artifact(f"image:{shot.id}", out, h, engine=res.engine)
             self.stats["generated"] += 1
-        self.state.set_step("images", "done")
+        self._done("images")
 
     def step_voices(self) -> None:
-        prov = self.providers.voice
-        for _, shot in self.script.shots():
+        prov = self._require(self.providers.voice, "voix")
+        for _, shot in self._shots_in_scope():
             for i, ln in enumerate(shot.lines):
                 voice = self.characters[ln.speaker].voice
                 req = VoiceRequest(ln.text, ln.emotion, voice, f"{shot.id}#{i}", self.script.language)
@@ -133,12 +188,13 @@ class Pipeline:
                 if not stale_fallback and self._reusable(key, h, "audio", min_duration=0.2):
                     self.stats["reused"] += 1
                     continue
-                self.guard.check(prov.name, prov.paid, prov.estimate_cost(req))
+                if not self._needs_call(prov, "voice", f"{req.label} ({len(ln.text)} car.)", prov.estimate_cost(req)):
+                    continue
                 res = prov.synthesize(req, out)
                 self._charge(prov, "voice", f"{req.label} ({len(ln.text)} car.)", res)
                 self.state.record_artifact(key, out, h, engine=res.engine, duration=round(res.info.duration, 3))
                 self.stats["generated"] += 1
-        self.state.set_step("voices", "done")
+        self._done("voices")
 
     def timeline(self) -> Timeline:
         durations = {}
@@ -148,7 +204,7 @@ class Pipeline:
         return build_timeline(self.script, durations, self.cfg)
 
     def step_videos(self) -> None:
-        prov = self.providers.video
+        prov = self._require(self.providers.video, "vidéo")
         tl = self.timeline()
         for idx, (scene, shot) in enumerate(self.script.shots()):
             wanted = tl.video_length(idx)
@@ -162,12 +218,13 @@ class Pipeline:
             if self._reusable(key, h, "video", min_duration=0.5):
                 self.stats["reused"] += 1
                 continue
-            self.guard.check(prov.name, prov.paid, prov.estimate_cost(req))
+            if not self._needs_call(prov, "video", f"{req.label} ({picked:.1f}s)", prov.estimate_cost(req)):
+                continue
             res = prov.generate_clip(req, out)
             self._charge(prov, "video", f"{req.label} ({picked:.1f}s)", res)
             self.state.record_artifact(key, out, h, engine=res.engine, duration=round(res.info.duration, 3))
             self.stats["generated"] += 1
-        self.state.set_step("videos", "done")
+        self._done("videos")
 
     def step_assemble(self) -> Path:
         tl = self.timeline()
@@ -212,18 +269,39 @@ class Pipeline:
         return final
 
     # --- exécution ----------------------------------------------------------
-    def run(self, from_step: str | None = None) -> dict:
+    def _steps(self):
+        return [("script", self.step_script), ("images", self.step_images), ("voices", self.step_voices),
+                ("videos", self.step_videos), ("assemble", self.step_assemble)]
+
+    def plan(self, until: str = "images") -> dict:
+        """Estimation GRATUITE : liste les appels qui seraient faits, sans rien générer."""
+        if until not in ("script", "images", "voices"):
+            raise StudioError("le plan des étapes vidéo/assemblage sera disponible au Jalon 3")
+        self.planning, self.plan_items = True, []
+        try:
+            for name, fn in self._steps():
+                fn()
+                if name == until:
+                    break
+        finally:
+            self.planning = False
+        total = round(sum(i["usd"] for i in self.plan_items), 4)
+        g = self.global_ledger.total_usd() if self.global_ledger else 0.0
+        return {"items": self.plan_items, "total_usd": total, "total_with_margin_usd": round(total * CostGuard.SAFETY, 4),
+                "spent_global_usd": g, "cap_usd": self.s.max_budget_usd,
+                "remaining_after_usd": round(self.s.max_budget_usd - g - total * CostGuard.SAFETY, 4)}
+
+    def run(self, from_step: str | None = None, until: str | None = None) -> dict:
+        if until and until not in STEPS:
+            raise StudioError(f"étape inconnue: {until}")
+        if self.only_shots and until not in ("script", "images"):
+            raise StudioError("--only-shots n'est utilisable que jusqu'à l'étape images (--until images)")
         if from_step:
             self.state.reset_from(from_step)
-        steps = [("script", self.step_script), ("images", self.step_images), ("voices", self.step_voices),
-                 ("videos", self.step_videos), ("assemble", self.step_assemble)]
         final: Path | None = None
-        for n, (name, fn) in enumerate(steps, 1):
+        for n, (name, fn) in enumerate(self._steps(), 1):
             before = dict(self.stats)
-            if self.state.step_status(name) == "done" and name != "assemble":
-                print(f"[{n}/5] {name}: déjà fait (vérification des fichiers...)")
-            else:
-                print(f"[{n}/5] {name}...")
+            print(f"[{n}/5] {name}...")
             try:
                 result = fn()
             except StudioError:
@@ -235,7 +313,24 @@ class Pipeline:
             reu = self.stats["reused"] - before["reused"]
             if name not in ("script", "assemble"):
                 print(f"      {gen} généré(s), {reu} repris de l'état précédent")
-        return self.report(final)
+            if until == name:
+                break
+        return self.report(final) if final else self.partial_report(until)
+
+    def partial_report(self, until: str) -> dict:
+        images = {k.split(":", 1)[1]: str(self.state.artifact_path(k)) for k in self.state.data["artifacts"]
+                  if k.startswith("image:")}
+        refs = sorted(str(p) for p in self.ref_dir.glob("*.png")) if self.ref_dir.exists() else []
+        rep = {
+            "project": self.dir.name, "mode": self.providers.stack, "stopped_after": until,
+            "references": refs, "images": images,
+            "cost_usd_this_project": self.ledger.total_usd(),
+            "cost_usd_global": self.global_ledger.total_usd() if self.global_ledger else None,
+            "cap_usd": self.s.max_budget_usd,
+            "note": "coûts = estimations issues de config/pricing.json ; vérifie le tableau de bord du fournisseur",
+        }
+        dump_json(self.dir / "report.json", rep)
+        return rep
 
     def report(self, final: Path) -> dict:
         info = probe(self.s.ffprobe, final)
@@ -251,6 +346,7 @@ class Pipeline:
             "audio_codec": info.audio_codec,
             "shots": len(tl.shots),
             "duration_in_target": TARGET_MIN <= info.duration <= TARGET_MAX,
+            "target_s": [TARGET_MIN, TARGET_MAX],
             "voices": sorted({self.state.artifact(k).get("engine") for k in self.state.data["artifacts"]
                               if k.startswith("voice:")}),
             "cost_usd_real_this_project": self.ledger.total_usd(),

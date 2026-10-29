@@ -28,3 +28,9 @@ def characters(settings):
 @pytest.fixture()
 def script(settings):
     return load_script(settings.root / "examples" / "sample_script.json")
+
+
+@pytest.fixture()
+def script1(settings):
+    """Scénario du Jalon 2/3 (15 plans, cible 65–75 s)."""
+    return load_script(settings.root / "examples" / "script_1.json")

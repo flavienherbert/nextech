@@ -44,21 +44,37 @@ class CostLedger:
 
 
 class CostGuard:
-    """Bloque tout appel payant qui dépasserait le budget validé explicitement."""
+    """Bloque tout appel payant qui dépasserait le budget validé OU le plafond global.
 
-    def __init__(self, ledger: CostLedger, approved_usd: float):
+    Les estimations sont multipliées par SAFETY : les prix ne sont pas vérifiés, on s'arrête avant le plafond.
+    """
+
+    SAFETY = 1.15
+
+    def __init__(self, ledger: CostLedger, approved_usd: float,
+                 global_ledger: CostLedger | None = None, global_cap_usd: float | None = None):
         self.ledger = ledger
         self.approved_usd = approved_usd
+        self.global_ledger = global_ledger
+        self.global_cap_usd = global_cap_usd
 
     def check(self, provider: str, paid: bool, estimated_usd: float) -> None:
         if not paid:
             return
-        projected = self.ledger.total_usd() + estimated_usd
+        est = estimated_usd * self.SAFETY
+        projected = self.ledger.total_usd() + est
         if projected > self.approved_usd + 1e-9:
             raise BudgetNotApproved(
-                f"{provider}: appel estimé {estimated_usd:.3f}$ -> total {projected:.3f}$ "
-                f"> budget validé {self.approved_usd:.3f}$. Valide un budget avec --approve-usd."
+                f"{provider}: appel estimé {estimated_usd:.3f}$ (marge incluse {est:.3f}$) -> total projet "
+                f"{projected:.3f}$ > budget validé {self.approved_usd:.3f}$. Relance et valide un budget."
             )
+        if self.global_ledger is not None and self.global_cap_usd is not None:
+            g = self.global_ledger.total_usd() + est
+            if g > self.global_cap_usd + 1e-9:
+                raise BudgetNotApproved(
+                    f"{provider}: PLAFOND GLOBAL atteint : dépensé {self.global_ledger.total_usd():.3f}$ + appel "
+                    f"{est:.3f}$ > plafond {self.global_cap_usd:.2f}$. Arrêt."
+                )
 
 
 def estimate_script_cost(script: Script, pricing: dict, stack: str, characters_without_ref: int = 0,

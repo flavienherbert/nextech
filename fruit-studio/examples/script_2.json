@@ -1,0 +1,301 @@
+{
+  "title": "La nuit de l'évasion",
+  "language": "fr",
+  "style": "3D animated Pixar-like film, cinematic lighting, vertical 9:16",
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "La cellule 404",
+      "location": "prison cell at night, moonlight through the bars, a half-dug tunnel behind the bed",
+      "shots": [
+        {
+          "id": "s1_1",
+          "visual": "Citron digging with a tiny spoon in the dark",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Trois ans que je creuse avec une cuillère...",
+              "emotion": "tristesse"
+            },
+            {
+              "speaker": "citron",
+              "text": "Ce soir, c'est la bonne.",
+              "emotion": "calme"
+            }
+          ]
+        },
+        {
+          "id": "s1_2",
+          "visual": "Citron freezing, ear against the cell door",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Chut, Citron. Pas un bruit.",
+              "emotion": "peur"
+            },
+            {
+              "speaker": "citron",
+              "text": "Le juge fait sa ronde à minuit.",
+              "emotion": "suspense"
+            }
+          ]
+        },
+        {
+          "id": "s1_3",
+          "visual": "close-up of the tiny spoon bending, a crack appearing",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Si la cuillère casse, je suis perdu.",
+              "emotion": "peur"
+            },
+            {
+              "speaker": "citron",
+              "text": "Allez, ma petite cuillère, tiens bon.",
+              "emotion": "calme"
+            }
+          ]
+        },
+        {
+          "id": "s1_4",
+          "visual": "Judge Pastèque's huge shadow passing slowly along the corridor wall",
+          "motion": "slow tracking shot",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Quelqu'un est debout dans ma prison ?",
+              "emotion": "suspense"
+            }
+          ]
+        },
+        {
+          "id": "s1_5",
+          "visual": "Citron's head popping out of the tunnel into the moonlight",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "La lune ! Je suis sauvé... enfin presque.",
+              "emotion": "joie"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Le couloir",
+      "location": "long prison corridor with flickering lights and heavy iron doors",
+      "shots": [
+        {
+          "id": "s2_1",
+          "visual": "Citron tiptoeing along the corridor, wide-eyed",
+          "motion": "slow tracking shot",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Tout droit, puis à gauche, puis... oh non.",
+              "emotion": "panique"
+            },
+            {
+              "speaker": "citron",
+              "text": "Pourvu que personne ne m'entende.",
+              "emotion": "peur"
+            }
+          ]
+        },
+        {
+          "id": "s2_2",
+          "visual": "Judge Pastèque at the end of the corridor, lantern raised, furious",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Citron ! Arrêtez-vous immédiatement !",
+              "emotion": "colère"
+            }
+          ]
+        },
+        {
+          "id": "s2_3",
+          "visual": "Judge Pastèque ringing an alarm bell, red lights flashing along the corridor",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Gardes ! Fermez toutes les portes de la prison !",
+              "emotion": "colère"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Il ne s'échappera pas !",
+              "emotion": "menace"
+            }
+          ]
+        },
+        {
+          "id": "s2_4",
+          "visual": "Citron running, Judge Pastèque chasing him down the corridor",
+          "motion": "fast tracking shot",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Jamais ! Je suis innocent !",
+              "emotion": "panique"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Un innocent ne court pas si vite !",
+              "emotion": "sarcasme"
+            }
+          ]
+        },
+        {
+          "id": "s2_5",
+          "visual": "Citron hiding in a laundry cart under a pile of striped uniforms",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Je suis une banane... une simple banane.",
+              "emotion": "peur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "Le toit",
+      "location": "prison rooftop at night, searchlights sweeping, a huge moon",
+      "shots": [
+        {
+          "id": "s3_1",
+          "visual": "Citron on the rooftop looking at the city lights",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Le ciel... La liberté... Elle est si haute.",
+              "emotion": "joie"
+            }
+          ]
+        },
+        {
+          "id": "s3_2",
+          "visual": "Citron smiling at a distant orange juice stand lit in the city below",
+          "motion": "slow push-in",
+          "characters": [
+            "citron"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Un jus d'orange frais m'attend de l'autre côté.",
+              "emotion": "joie"
+            },
+            {
+              "speaker": "citron",
+              "text": "Je le sens d'ici.",
+              "emotion": "joie"
+            }
+          ]
+        },
+        {
+          "id": "s3_3",
+          "visual": "Judge Pastèque stepping onto the roof, cape flapping in the wind",
+          "motion": "slow push-in",
+          "characters": [
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "pasteque",
+              "text": "Il n'y a plus d'issue, Citron.",
+              "emotion": "menace"
+            }
+          ]
+        },
+        {
+          "id": "s3_4",
+          "visual": "Citron and Judge Pastèque facing each other under the searchlight",
+          "motion": "pull back",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "Pourquoi me poursuivez-vous vraiment ?",
+              "emotion": "calme"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Vous avez vu mon visage cette nuit-là.",
+              "emotion": "menace"
+            }
+          ]
+        },
+        {
+          "id": "s3_5",
+          "visual": "Citron's eyes widening, the searchlight flaring behind the judge",
+          "motion": "slow push-in",
+          "characters": [
+            "citron",
+            "pasteque"
+          ],
+          "lines": [
+            {
+              "speaker": "citron",
+              "text": "C'est vous le voleur ! Je le savais !",
+              "emotion": "surprise"
+            },
+            {
+              "speaker": "pasteque",
+              "text": "Et personne ne vous croira.",
+              "emotion": "menace"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
