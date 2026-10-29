@@ -1,0 +1,12 @@
+{
+  "id": "pasteque",
+  "name": "Juge Pastèque",
+  "fruit": "watermelon",
+  "color": "dark green striped rind on the outside, red flesh visible on the face area",
+  "face": "narrow stern eyes, heavy gray eyebrows, a thick gray mustache, a downturned mouth",
+  "clothing": "black judge's robe with a white collar and a small white wig",
+  "morphology": "tall and wide, imposing, thick arms",
+  "personality": "severe, slow-spoken, hides a secret",
+  "ui_color": "#7CFF8A",
+  "voice": {"edge": "fr-FR-HenriNeural", "pitch": "-12Hz", "rate": "-8%", "babble_f0": 105}
+}

@@ -1,0 +1,12 @@
+{
+  "id": "citron",
+  "name": "Citron",
+  "fruit": "lemon",
+  "color": "bright yellow with a slightly rough peel and a small green leaf on top",
+  "face": "large round white eyes with small black pupils, thick worried eyebrows, a tiny nervous mouth",
+  "clothing": "orange prison jumpsuit with the number 404 on the chest",
+  "morphology": "short and round, small stubby arms and legs",
+  "personality": "anxious, talkative, claims to be innocent",
+  "ui_color": "#FFE14D",
+  "voice": {"edge": "fr-FR-EloiseNeural", "pitch": "+8Hz", "rate": "+6%", "babble_f0": 260}
+}
