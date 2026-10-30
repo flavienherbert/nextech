@@ -1,0 +1,68 @@
+prospect_id,nom,telephone,variante,message,nb_lignes,alertes,statut,source,date_preparation
+FICTIF_007,Plomberie Démo 07,00 00 00 00 07,A,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,5/5 est bonne.
+En revanche, vous avez 6 avis Google alors que le leader de votre zone en compte 212.
+Souhaitez-vous recevoir gratuitement un audit d'une page de votre fiche, oui ou non ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_014,Plomberie Démo 14,00 00 00 00 14,B,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,5/5 est bonne.
+En revanche, vous avez 8 avis Google alors que le leader de votre zone en compte 212.
+Ce manque est-il un sujet sur lequel vous avez déjà travaillé ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_012,Plomberie Démo 12,00 00 00 00 12,C,"Bonjour,
+J'ai regardé votre fiche Google : vos clients vous notent 4,9/5 sur 11 avis.
+En revanche, vous avez 11 avis Google alors que le leader de votre zone en compte 212.
+Les appels qui viennent de Google comptent-ils pour votre activité ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_013,Plomberie Démo 13,00 00 00 00 13,A,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,2/5 est bonne.
+En revanche, vous avez 11 avis Google alors que le leader de votre zone en compte 212.
+Souhaitez-vous recevoir gratuitement un audit d'une page de votre fiche, oui ou non ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_011,Plomberie Démo 11,00 00 00 00 11,B,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,4/5 est bonne.
+En revanche, vous avez 15 avis Google alors que le leader de votre zone en compte 212.
+Ce manque est-il un sujet sur lequel vous avez déjà travaillé ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_017,Plomberie Démo 17,00 00 00 00 17,C,"Bonjour,
+J'ai regardé votre fiche Google : vos clients vous notent 4,7/5 sur 15 avis.
+En revanche, vous avez 15 avis Google alors que le leader de votre zone en compte 212.
+Les appels qui viennent de Google comptent-ils pour votre activité ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_018,Plomberie Démo 18,00 00 00 00 18,A,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,1/5 est bonne.
+En revanche, vous avez 15 avis Google alors que le leader de votre zone en compte 212.
+Souhaitez-vous recevoir gratuitement un audit d'une page de votre fiche, oui ou non ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_022,Plomberie Démo 22,00 00 00 00 22,B,"Bonjour,
+J'ai regardé votre fiche Google : votre site web est bien renseigné sur la fiche.
+En revanche, vous avez 15 avis Google alors que le leader de votre zone en compte 212.
+Ce manque est-il un sujet sur lequel vous avez déjà travaillé ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_004,Plomberie Démo 04,00 00 00 00 04,C,"Bonjour,
+J'ai regardé votre fiche Google : vos horaires sont bien renseignés.
+En revanche, vous avez 19 avis Google alors que le leader de votre zone en compte 212.
+Les appels qui viennent de Google comptent-ils pour votre activité ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_010,Plomberie Démo 10,,A,,0,FICTIF_NE_PAS_ENVOYER;AUCUN_POINT_POSITIF_VERIFIABLE,A_VALIDER,FICTIF,2026-10-30
+FICTIF_016,Plomberie Démo 16,00 00 00 00 16,B,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,0/5 est bonne.
+En revanche, vous avez 19 avis Google alors que le leader de votre zone en compte 212.
+Ce manque est-il un sujet sur lequel vous avez déjà travaillé ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_024,Plomberie Démo 24,00 00 00 00 24,C,"Bonjour,
+J'ai regardé votre fiche Google : votre note de 4,4/5 est bonne.
+En revanche, vous avez 19 avis Google alors que le leader de votre zone en compte 212.
+Les appels qui viennent de Google comptent-ils pour votre activité ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_021,Plomberie Démo 21,00 00 00 00 21,A,"Bonjour,
+J'ai regardé votre fiche Google : vos horaires sont bien renseignés.
+En revanche, vous avez 34 avis Google alors que le leader de votre zone en compte 212.
+Souhaitez-vous recevoir gratuitement un audit d'une page de votre fiche, oui ou non ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_025,Plomberie Démo 25,00 00 00 00 25,B,"Bonjour,
+J'ai regardé votre fiche Google : votre site web est bien renseigné sur la fiche.
+En revanche, vous avez 34 avis Google alors que le leader de votre zone en compte 212.
+Ce manque est-il un sujet sur lequel vous avez déjà travaillé ?
+Alex",5,FICTIF_NE_PAS_ENVOYER,A_VALIDER,FICTIF,2026-10-30
+FICTIF_009,Plomberie Démo 09,00 00 00 00 09,C,,0,FICTIF_NE_PAS_ENVOYER;AUCUN_POINT_POSITIF_VERIFIABLE,A_VALIDER,FICTIF,2026-10-30

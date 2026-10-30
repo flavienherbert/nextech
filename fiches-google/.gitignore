@@ -1,0 +1,9 @@
+# Données réelles (prospects, messages, suivi) : ne jamais committer.
+# Les CGU Google Places limitent aussi la conservation des données : voir README.md.
+prospects/prospects.csv
+prospects/*_reel*.json
+audits/*.pdf
+messages/messages.csv
+suivi/suivi.csv
+templates/sortie/
+__pycache__/

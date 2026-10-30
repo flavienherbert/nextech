@@ -1,0 +1,15 @@
+{
+  "_avertissement": "DONNÉES FICTIVES : exemple de structure uniquement, aucun client réel.",
+  "nom_client": "Plomberie Démo 00",
+  "metier": "Plombier",
+  "ville": "Ville-Exemple",
+  "date_livraison": "2026-11-20",
+  "avant": {"note": 4.2, "nb_avis": 11, "nb_photos": 2, "description": "non", "horaires": "non", "site_web": "non", "appels_45j": null},
+  "apres": {"note": 4.4, "nb_avis": 19, "nb_photos": 14, "description": "oui", "horaires": "oui", "site_web": "oui", "appels_45j": null},
+  "modifications": [
+    "Description rédigée (modèle fourni)",
+    "Horaires et jours fériés renseignés",
+    "Photos réelles ajoutées",
+    "SMS de demande d'avis et QR code remis"
+  ]
+}
