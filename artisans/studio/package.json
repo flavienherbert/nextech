@@ -1,0 +1,18 @@
+{
+  "name": "studio-sites-artisans",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Générateur de sites pour artisans : une fiche client + un métier = un site prêt à mettre en ligne.",
+  "scripts": {
+    "build": "node build.mjs",
+    "apercu": "node build.mjs --apercu",
+    "demo": "node nouveau.mjs",
+    "prospects": "node outils/prospects.mjs",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "sharp": "^0.34.0"
+  }
+}

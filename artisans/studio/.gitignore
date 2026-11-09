@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Les listes de prospects contiennent des données personnelles : elles ne vont jamais sur GitHub.
+prospection/*.csv
+!prospection/modele-suivi.csv

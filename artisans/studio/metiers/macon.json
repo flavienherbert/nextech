@@ -1,0 +1,194 @@
+{
+  "id": "macon",
+  "titre": "Maçon",
+  "activite": "maçonnerie",
+  "nomMetier": "maçon",
+  "typeSchema": "GeneralContractor",
+  "themeParDefaut": "pierre",
+  "motifs": [
+    "pierre",
+    "brique",
+    "dalle",
+    "pierre",
+    "brique",
+    "dalle"
+  ],
+  "accroche": "Maçon à {ville} et {dansDepartement}",
+  "sousTitre": "Construction, extension et rénovation de maçonnerie. Devis gratuit, travaux couverts par la garantie décennale.",
+  "titreSeo": "Maçon à {ville} ({departement}) — {nom} | Devis gratuit",
+  "descriptionSeo": "{nom}, entreprise de maçonnerie à {ville} : gros œuvre, extension, rénovation de murs en pierre, terrasses et clôtures. Devis gratuit, garantie décennale.",
+  "services": [
+    {
+      "id": "gros-oeuvre",
+      "icone": "mur",
+      "titre": "Maçonnerie générale et gros œuvre",
+      "texte": "Fondations, dalles, murs porteurs, élévation en parpaing ou en brique : nous réalisons la structure de votre projet, du terrassement au clos."
+    },
+    {
+      "id": "extension",
+      "icone": "maison",
+      "titre": "Extension et agrandissement",
+      "texte": "Une pièce en plus, un garage, une surélévation. Nous prenons en charge la maçonnerie de votre extension et son raccord propre avec l'existant."
+    },
+    {
+      "id": "pierre",
+      "icone": "pierre",
+      "titre": "Rénovation de murs en pierre",
+      "texte": "Reprise de maçonnerie ancienne, rejointoiement à la chaux, remplacement de pierres abîmées. Un savoir-faire adapté au bâti normand et à la pierre de Caen."
+    },
+    {
+      "id": "ouverture",
+      "icone": "ouverture",
+      "titre": "Ouvertures et murs porteurs",
+      "texte": "Création ou agrandissement d'une porte, d'une baie ou d'une fenêtre, avec pose de linteau ou de poutre métallique et reprise des finitions."
+    },
+    {
+      "id": "terrasse",
+      "icone": "terrasse",
+      "titre": "Terrasses, dalles et allées",
+      "texte": "Dalle béton, chape, terrasse, allée carrossable, béton désactivé. Un support plan, durable et bien drainé."
+    },
+    {
+      "id": "cloture",
+      "icone": "cloture",
+      "titre": "Clôtures, murets et soutènement",
+      "texte": "Murs de clôture, piliers de portail, murets de jardin et murs de soutènement, montés et enduits dans les règles de l'art."
+    },
+    {
+      "id": "enduit",
+      "icone": "truelle",
+      "titre": "Enduits et ravalement de façade",
+      "texte": "Enduits traditionnels ou monocouches, reprise de fissures et ravalement, pour protéger vos murs et redonner de l'allure à votre maison."
+    },
+    {
+      "id": "assainissement",
+      "icone": "goutte",
+      "titre": "Assainissement et réseaux",
+      "texte": "Tranchées, regards, raccordements et drainage en pied de mur, pour une maison saine et des fondations au sec."
+    }
+  ],
+  "servicesParDefaut": [
+    "gros-oeuvre",
+    "extension",
+    "pierre",
+    "ouverture",
+    "terrasse",
+    "cloture"
+  ],
+  "atouts": [
+    {
+      "icone": "bouclier",
+      "titre": "Garantie décennale",
+      "texte": "Tous nos ouvrages sont assurés pendant dix ans. L'attestation est remise avec le devis."
+    },
+    {
+      "icone": "document",
+      "titre": "Devis gratuit et détaillé",
+      "texte": "Une visite sur place, puis un devis clair, poste par poste, sans surprise à la facture."
+    },
+    {
+      "icone": "horloge",
+      "titre": "Délais annoncés, délais tenus",
+      "texte": "Vous connaissez la date de début et la durée du chantier avant de signer."
+    },
+    {
+      "icone": "balai",
+      "titre": "Chantier propre",
+      "texte": "Protection des abords, évacuation des gravats, nettoyage en fin de travaux."
+    }
+  ],
+  "etapes": [
+    {
+      "titre": "Vous nous contactez",
+      "texte": "Par téléphone ou par le formulaire. Nous vous rappelons sous 24 heures ouvrées."
+    },
+    {
+      "titre": "Visite et devis gratuit",
+      "texte": "Nous venons voir le projet, prendre les mesures et vous conseiller. Le devis suit sous 48 heures."
+    },
+    {
+      "titre": "Réalisation du chantier",
+      "texte": "Une équipe attitrée, un interlocuteur unique, et un point d'avancement régulier."
+    },
+    {
+      "titre": "Réception des travaux",
+      "texte": "Nous faisons le tour ensemble. Vous recevez la facture et les attestations d'assurance."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Le devis est-il vraiment gratuit ?",
+      "r": "Oui. Le déplacement, les conseils et le devis détaillé sont gratuits et sans engagement dans toute notre zone d'intervention."
+    },
+    {
+      "q": "Sous quel délai pouvez-vous intervenir ?",
+      "r": "Nous vous rappelons sous 24 heures ouvrées et passons voir le projet dans la semaine. La date de début des travaux est indiquée sur le devis."
+    },
+    {
+      "q": "Travaillez-vous sur les maisons anciennes en pierre ?",
+      "r": "Oui, c'est une part importante de notre activité. Nous utilisons des mortiers à la chaux, adaptés aux murs anciens, pour qu'ils continuent de respirer."
+    },
+    {
+      "q": "Faut-il une autorisation pour une extension ou un mur de clôture ?",
+      "r": "Cela dépend de la surface, de la hauteur et des règles d'urbanisme de votre commune. Nous vous indiquons la démarche à prévoir lors de la visite."
+    },
+    {
+      "q": "Êtes-vous assurés ?",
+      "r": "Oui. Nous sommes couverts par une assurance décennale et une responsabilité civile professionnelle. Les attestations sont jointes à chaque devis."
+    },
+    {
+      "q": "Dans quelles communes intervenez-vous ?",
+      "r": "Nous intervenons à {ville} et dans un rayon d'environ {rayon} km. La liste des principales communes figure plus haut sur cette page."
+    }
+  ],
+  "pageLocale": {
+    "titre": "Maçon à {commune}",
+    "titreSeo": "Maçon à {commune} — {nom} | Devis gratuit",
+    "descriptionSeo": "Vous cherchez un maçon à {commune} ? {nom} intervient pour vos travaux de gros œuvre, extension, rénovation de pierre, terrasse et clôture. Devis gratuit.",
+    "intro": "{nom} intervient à {commune} et dans les communes voisines pour tous vos travaux de maçonnerie, en neuf comme en rénovation.",
+    "paragraphes": [
+      "Basée à {base}, notre équipe se déplace à {commune} pour la visite, le devis et le chantier, sans frais de déplacement supplémentaires.",
+      "Extension de maison, ouverture dans un mur porteur, reprise d'un mur en pierre, terrasse ou mur de clôture : chaque projet commence par une visite sur place et un devis gratuit, détaillé poste par poste.",
+      "Nos travaux sont couverts par la garantie décennale. L'attestation d'assurance vous est remise avec le devis."
+    ]
+  },
+  "typesDeDemande": [
+    "Construction ou gros œuvre",
+    "Extension de maison",
+    "Rénovation de mur en pierre",
+    "Ouverture dans un mur",
+    "Terrasse ou dalle",
+    "Clôture ou muret",
+    "Autre projet"
+  ],
+  "photosParDefaut": {
+    "accueil": "photos/macon/accueil.jpg",
+    "aPropos": "photos/macon/equipe.jpg"
+  },
+  "realisationsParDefaut": [
+    {
+      "photo": "photos/macon/extension.jpg",
+      "titre": "Extension de maison en parpaing"
+    },
+    {
+      "photo": "photos/macon/mur-pierre.jpg",
+      "titre": "Restauration d'un mur en pierre"
+    },
+    {
+      "photo": "photos/macon/terrasse.jpg",
+      "titre": "Terrasse en béton désactivé"
+    },
+    {
+      "photo": "photos/macon/ouverture.jpg",
+      "titre": "Ouverture d'un mur porteur"
+    },
+    {
+      "photo": "photos/macon/cloture.jpg",
+      "titre": "Mur de clôture et piliers"
+    },
+    {
+      "photo": "photos/macon/dalle.jpg",
+      "titre": "Fondations et dalle béton"
+    }
+  ]
+}

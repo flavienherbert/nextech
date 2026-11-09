@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Questionnaire — fiche client</title>
+<style>
+  :root { --fond:#f6f1e7; --surface:#fff; --encre:#1c2227; --doux:#4c5660; --trait:#e2dac9; --accent:#b4491b; --clair:#f7e4d7; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+  header { background:#1b2127; color:#f4efe5; padding:22px 20px; }
+  header h1 { margin:0; font-size:1.5rem; }
+  header p { margin:6px 0 0; color:#b9c0c6; max-width:70ch; }
+  .page { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:24px; max-width:1240px; margin:0 auto; padding:24px 20px 80px; align-items:start; }
+  fieldset { background:var(--surface); border:1px solid var(--trait); border-radius:12px; padding:18px 20px 20px; margin:0 0 18px; min-width:0; }
+  legend { font-weight:700; padding:0 8px; font-size:1.05rem; }
+  .aide { color:var(--doux); font-size:.9rem; margin:0 0 12px; }
+  .grille { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 14px; }
+  .trois { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .large { grid-column:1/-1; }
+  label { display:grid; gap:4px; font-size:.9rem; font-weight:600; }
+  label.case { display:flex; align-items:center; gap:8px; font-weight:500; }
+  input[type=text], input[type=number], input[type=email], input[type=url], select, textarea {
+    font:inherit; width:100%; padding:9px 10px; border:1.5px solid var(--trait); border-radius:8px; background:var(--fond); color:inherit; min-height:42px; }
+  textarea { min-height:92px; resize:vertical; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--clair); }
+  .ligne { display:grid; gap:8px; grid-template-columns:1.2fr 1.6fr 1fr .7fr auto auto; align-items:center; margin-bottom:8px; }
+  .ligne.avis { grid-template-columns:1fr 1fr .8fr 2.4fr auto; }
+  button { font:inherit; font-weight:600; cursor:pointer; border-radius:999px; border:1.5px solid var(--encre); background:transparent; color:var(--encre); padding:9px 16px; min-height:42px; }
+  button.plein { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.petit { padding:4px 12px; min-height:36px; }
+  .cases { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 14px; }
+  aside { position:sticky; top:16px; background:var(--surface); border:1px solid var(--trait); border-radius:12px; padding:18px; }
+  aside h2 { margin:0 0 10px; font-size:1.05rem; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  pre { background:#1b2127; color:#e9e4da; border-radius:8px; padding:12px; font-size:.74rem; line-height:1.4; max-height:52vh; overflow:auto; white-space:pre-wrap; word-break:break-word; margin:0; }
+  .etat { font-size:.88rem; color:var(--doux); margin:10px 0 0; }
+  .manque { color:#a3260e; font-weight:600; }
+  @media (max-width: 980px) { .page { grid-template-columns:1fr; } aside { position:static; } .grille, .trois, .cases { grid-template-columns:1fr; } .ligne, .ligne.avis { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Questionnaire — fiche client</h1>
+  <p>Remplis ce formulaire, télécharge la fiche, range-la dans <code>studio/clients/</code> puis lance <code>npm run build</code>. Pour une démonstration, trois champs suffisent : nom, téléphone, ville. Le reste se complète avec les valeurs par défaut du métier.</p>
+</header>
+<div class="page">
+<form id="f" autocomplete="off">
+
+<fieldset><legend>1. Le site</legend>
+  <div class="grille trois">
+    <label>Type<select name="mode"><option value="demo">Démonstration</option><option value="production">Site en ligne</option></select></label>
+    <label>Formule<select name="formule"><option value="site-pro">Site Pro</option><option value="visibilite">Visibilité</option></select></label>
+    <label>Métier<select name="metier" id="metier"></select></label>
+    <label>Couleurs<select name="theme" id="theme"></select></label>
+    <label class="large">Nom de domaine (site en ligne seulement)<input type="text" name="domaine" placeholder="maconnerie-dupont.fr"></label>
+    <label class="large">Identifiant du fichier<input type="text" name="identifiant" id="identifiant" placeholder="rempli automatiquement"></label>
+    <label class="case large"><input type="checkbox" name="contenuFictif"> Entreprise fictive (démonstration générique)</label>
+  </div>
+</fieldset>
+
+<fieldset><legend>2. L'entreprise</legend>
+  <div class="grille">
+    <label>Nom de l'entreprise *<input type="text" name="e_nom" id="e_nom" required></label>
+    <label>Dirigeant<input type="text" name="e_dirigeant"></label>
+    <label>Téléphone fixe *<input type="text" name="e_telephone"></label>
+    <label>Portable<input type="text" name="e_mobile"></label>
+    <label>Email<input type="email" name="e_email"></label>
+    <label>Horaires<input type="text" name="e_horaires" value="Du lundi au vendredi, de 8 h à 18 h"></label>
+    <label>Forme juridique<input type="text" name="e_statut" placeholder="EI, EURL, SARL, SAS"></label>
+    <label>SIRET<input type="text" name="e_siret"></label>
+    <label>Immatriculation<input type="text" name="e_immatriculation" placeholder="RNE Caen / RCS Caen 123 456 789"></label>
+    <label>Année de création<input type="number" name="e_anneeCreation" min="1900" max="2100"></label>
+    <label class="large">Rue<input type="text" name="a_rue"></label>
+    <label>Code postal<input type="text" name="a_codePostal"></label>
+    <label>Ville du siège<input type="text" name="a_ville"></label>
+  </div>
+</fieldset>
+
+<fieldset><legend>3. La zone d'intervention</legend>
+  <div class="grille">
+    <label>Ville principale *<input type="text" name="z_ville" id="z_ville" required></label>
+    <label>Département *<input type="text" name="z_departement" value="Calvados"></label>
+    <label>Numéro du département<input type="text" name="z_codeDepartement" value="14"></label>
+    <label>Rayon en km<input type="number" name="z_rayonKm" value="30" min="0"></label>
+    <label class="large">Communes desservies (une par ligne)<textarea name="z_communes" id="z_communes"></textarea></label>
+    <div class="large"><button type="button" class="petit" id="suggerer">Proposer les communes dans le rayon</button> <span class="aide" id="suggestion-etat"></span></div>
+    <label class="large">Pages locales, formule Visibilité (une commune par ligne, 5 au plus)<textarea name="z_pagesLocales"></textarea></label>
+  </div>
+</fieldset>
+
+<fieldset><legend>4. Les prestations</legend>
+  <p class="aide">Décoche celles que l'artisan ne fait pas. Six prestations, c'est l'idéal.</p>
+  <div class="cases" id="services"></div>
+</fieldset>
+
+<fieldset><legend>5. Les textes</legend>
+  <p class="aide">Facultatif. Laisse vide pour utiliser les textes par défaut du métier.</p>
+  <div class="grille">
+    <label class="large">Présentation de l'entreprise (une ligne vide entre deux paragraphes)<textarea name="t_aPropos"></textarea></label>
+    <label class="large">Titre d'accueil personnalisé<input type="text" name="t_accroche" placeholder="Maçon à {ville} et {dansDepartement}"></label>
+    <label class="large">Phrase d'accueil personnalisée<input type="text" name="t_sousTitre"></label>
+  </div>
+</fieldset>
+
+<fieldset><legend>6. Les photos</legend>
+  <p class="aide">Range les photos du client dans <code>studio/clients/IDENTIFIANT/</code> et écris ici seulement le nom du fichier (exemple : <code>terrasse.jpg</code>). Tout laisser vide utilise les photos d'illustration du métier.</p>
+  <div class="grille">
+    <label>Photo d'accueil<input type="text" name="p_accueil"></label>
+    <label>Photo de l'équipe<input type="text" name="p_aPropos"></label>
+    <label class="case large"><input type="checkbox" name="p_illustration"> Ces deux photos sont des illustrations (pas celles du client)</label>
+  </div>
+  <p class="aide" style="margin-top:14px">Réalisations : fichier, titre, commune, année.</p>
+  <div id="realisations"></div>
+  <button type="button" class="petit" id="ajouter-realisation">Ajouter une réalisation</button>
+</fieldset>
+
+<fieldset><legend>7. Les avis</legend>
+  <p class="aide">Ne recopie que des avis réels, tels quels, avec leur date. Le lien vers la fiche Google est obligatoire pour un site en ligne.</p>
+  <div class="grille trois">
+    <label>Note sur 5<input type="number" name="av_note" step="0.1" min="1" max="5"></label>
+    <label>Nombre d'avis<input type="number" name="av_nombre" min="0"></label>
+    <label>Lien vers les avis Google<input type="url" name="av_lienGoogle"></label>
+  </div>
+  <p class="aide" style="margin-top:14px">Avis cités : auteur, commune, date (AAAA-MM), texte.</p>
+  <div id="avis"></div>
+  <button type="button" class="petit" id="ajouter-avis">Ajouter un avis</button>
+</fieldset>
+
+<fieldset><legend>8. Les mentions obligatoires</legend>
+  <div class="grille">
+    <label>Assureur décennale (nom et adresse)<input type="text" name="g_assureur"></label>
+    <label>Numéro de contrat<input type="text" name="g_numeroContrat"></label>
+    <label>Médiateur de la consommation<input type="text" name="m_nom"></label>
+    <label>Site du médiateur<input type="url" name="m_site"></label>
+    <label>Page Facebook<input type="url" name="r_facebook"></label>
+    <label>Compte Instagram<input type="url" name="r_instagram"></label>
+  </div>
+</fieldset>
+
+<fieldset><legend>9. Le formulaire de contact</legend>
+  <div class="grille">
+    <label>Service<select name="fo_service"><option value="aucun">Aucun (téléphone et email seulement)</option><option value="web3forms">Web3Forms</option><option value="formspree">Formspree</option></select></label>
+    <label>Clé ou identifiant fourni par le service<input type="text" name="fo_cle"></label>
+  </div>
+</fieldset>
+</form>
+
+<aside>
+  <h2>Fiche client</h2>
+  <div class="actions">
+    <button type="button" class="plein" id="telecharger">Télécharger la fiche</button>
+    <button type="button" id="copier">Copier</button>
+    <button type="button" id="charger">Ouvrir une fiche</button>
+    <input type="file" id="fichier" accept="application/json,.json" hidden>
+  </div>
+  <pre id="apercu"></pre>
+  <p class="etat" id="etat"></p>
+</aside>
+</div>
+
+<script>
+/*__DONNEES__*/
+(function () {
+  'use strict';
+  var f = document.getElementById('f');
+  var metiers = DONNEES.metiers;
+  var communes = DONNEES.communes;
+  var identifiantModifie = false;
+
+  function $(id) { return document.getElementById(id); }
+  function champ(nom) { return f.elements[nom]; }
+  function valeur(nom) { var c = champ(nom); return c ? String(c.value).trim() : ''; }
+  function coche(nom) { var c = champ(nom); return !!(c && c.checked); }
+  function lignes(nom) { return valeur(nom).split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean); }
+  function nombre(nom) { var v = valeur(nom); return v === '' ? undefined : Number(v.replace(',', '.')); }
+  function slug(t) {
+    return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  function creer(balise, attributs) {
+    var el = document.createElement(balise);
+    Object.keys(attributs || {}).forEach(function (k) { el.setAttribute(k, attributs[k]); });
+    return el;
+  }
+
+  // --- Listes déroulantes ---
+  Object.keys(metiers).forEach(function (id) {
+    var o = creer('option', { value: id }); o.textContent = metiers[id].titre; $('metier').appendChild(o);
+  });
+  DONNEES.themes.forEach(function (t) {
+    var o = creer('option', { value: t }); o.textContent = t; $('theme').appendChild(o);
+  });
+
+  function afficherServices(selection) {
+    var m = metiers[valeur('metier')];
+    var zone = $('services');
+    zone.innerHTML = '';
+    var choisis = selection || m.servicesParDefaut;
+    m.services.forEach(function (s) {
+      var l = creer('label', { 'class': 'case' });
+      var c = creer('input', { type: 'checkbox', value: s.id, 'data-service': '1' });
+      c.checked = choisis.indexOf(s.id) !== -1;
+      l.appendChild(c);
+      l.appendChild(document.createTextNode(' ' + s.titre));
+      zone.appendChild(l);
+    });
+  }
+
+  // --- Lignes répétables ---
+  function ligneRealisation(r) {
+    r = r || {};
+    var d = creer('div', { 'class': 'ligne', 'data-realisation': '1' });
+    [['photo', 'fichier.jpg'], ['titre', 'Titre du chantier'], ['lieu', 'Commune'], ['annee', 'Année']].forEach(function (c) {
+      var i = creer('input', { type: 'text', placeholder: c[1], 'data-cle': c[0], 'aria-label': c[1] });
+      i.value = r[c[0]] === undefined ? '' : r[c[0]];
+      d.appendChild(i);
+    });
+    var l = creer('label', { 'class': 'case', title: 'Photo d\'illustration' });
+    var c = creer('input', { type: 'checkbox', 'data-cle': 'illustration' });
+    c.checked = !!r.illustration;
+    l.appendChild(c); l.appendChild(document.createTextNode(' illustr.'));
+    d.appendChild(l);
+    var b = creer('button', { type: 'button', 'class': 'petit' }); b.textContent = 'Retirer';
+    b.addEventListener('click', function () { d.remove(); rafraichir(); });
+    d.appendChild(b);
+    $('realisations').appendChild(d);
+  }
+  function ligneAvis(a) {
+    a = a || {};
+    var d = creer('div', { 'class': 'ligne avis', 'data-avis': '1' });
+    [['auteur', 'Prénom N.'], ['lieu', 'Commune'], ['date', '2026-05'], ['texte', 'Texte de l\'avis']].forEach(function (c) {
+      var i = creer('input', { type: 'text', placeholder: c[1], 'data-cle': c[0], 'aria-label': c[1] });
+      i.value = a[c[0]] || '';
+      d.appendChild(i);
+    });
+    var b = creer('button', { type: 'button', 'class': 'petit' }); b.textContent = 'Retirer';
+    b.addEventListener('click', function () { d.remove(); rafraichir(); });
+    d.appendChild(b);
+    $('avis').appendChild(d);
+  }
+  function lireLignes(selecteur) {
+    return Array.prototype.map.call(document.querySelectorAll(selecteur), function (d) {
+      var o = {};
+      d.querySelectorAll('[data-cle]').forEach(function (i) {
+        o[i.getAttribute('data-cle')] = i.type === 'checkbox' ? i.checked : i.value.trim();
+      });
+      return o;
+    });
+  }
+
+  // --- Chemin d'une photo : un simple nom de fichier est rangé dans clients/<identifiant>/ ---
+  function cheminPhoto(nom, identifiant) {
+    if (!nom) return '';
+    return nom.indexOf('/') === -1 ? 'clients/' + identifiant + '/' + nom : nom;
+  }
+
+  // --- Fabrication de la fiche ---
+  function fiche() {
+    var identifiant = valeur('identifiant') || slug(valeur('e_nom') + ' ' + valeur('z_ville'));
+    var realisations = lireLignes('[data-realisation]').filter(function (r) { return r.titre; }).map(function (r) {
+      var o = { photo: cheminPhoto(r.photo, identifiant), titre: r.titre };
+      if (r.lieu) o.lieu = r.lieu;
+      if (r.annee) o.annee = Number(r.annee) || r.annee;
+      if (r.illustration) o.illustration = true;
+      return o;
+    });
+    var extraits = lireLignes('[data-avis]').filter(function (a) { return a.texte; });
+    var services = Array.prototype.filter.call(document.querySelectorAll('[data-service]'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+    var aPropos = valeur('t_aPropos').split(/\n\s*\n/).map(function (p) { return p.replace(/\n/g, ' ').trim(); }).filter(Boolean);
+    var textes = {};
+    if (aPropos.length) textes.aPropos = aPropos;
+    if (valeur('t_accroche')) textes.accroche = valeur('t_accroche');
+    if (valeur('t_sousTitre')) textes.sousTitre = valeur('t_sousTitre');
+
+    var o = {
+      identifiant: identifiant,
+      mode: valeur('mode'),
+      contenuFictif: coche('contenuFictif'),
+      formule: valeur('formule'),
+      metier: valeur('metier'),
+      theme: valeur('theme'),
+      domaine: valeur('domaine'),
+      entreprise: {
+        nom: valeur('e_nom'),
+        dirigeant: valeur('e_dirigeant'),
+        statut: valeur('e_statut'),
+        siret: valeur('e_siret'),
+        immatriculation: valeur('e_immatriculation'),
+        anneeCreation: nombre('e_anneeCreation'),
+        adresse: { rue: valeur('a_rue'), codePostal: valeur('a_codePostal'), ville: valeur('a_ville') || valeur('z_ville') },
+        telephone: valeur('e_telephone'),
+        mobile: valeur('e_mobile'),
+        email: valeur('e_email'),
+        horaires: valeur('e_horaires')
+      },
+      zone: {
+        ville: valeur('z_ville'),
+        departement: valeur('z_departement'),
+        codeDepartement: valeur('z_codeDepartement'),
+        rayonKm: nombre('z_rayonKm'),
+        communes: lignes('z_communes'),
+        pagesLocales: lignes('z_pagesLocales')
+      },
+      textes: textes,
+      services: services,
+      photos: { accueil: cheminPhoto(valeur('p_accueil'), identifiant), aPropos: cheminPhoto(valeur('p_aPropos'), identifiant), illustration: coche('p_illustration') || (!valeur('p_accueil') && !valeur('p_aPropos')) },
+      realisations: realisations,
+      avis: { note: nombre('av_note'), nombre: nombre('av_nombre'), lienGoogle: valeur('av_lienGoogle'), extraits: extraits },
+      garanties: { decennale: { assureur: valeur('g_assureur'), numeroContrat: valeur('g_numeroContrat'), zone: 'France métropolitaine' }, labels: [] },
+      mediateur: { nom: valeur('m_nom'), site: valeur('m_site') },
+      reseaux: { facebook: valeur('r_facebook'), instagram: valeur('r_instagram') },
+      formulaire: { service: valeur('fo_service'), cle: valeur('fo_cle') }
+    };
+    return o;
+  }
+
+  function manques(o) {
+    var m = [];
+    if (!o.entreprise.nom) m.push('nom de l\'entreprise');
+    if (!o.entreprise.telephone && !o.entreprise.mobile) m.push('un téléphone');
+    if (!o.zone.ville) m.push('ville principale');
+    if (o.mode === 'production') {
+      if (!o.domaine) m.push('nom de domaine');
+      if (!o.entreprise.siret) m.push('SIRET');
+      if (!o.entreprise.dirigeant) m.push('dirigeant');
+      if (!o.entreprise.adresse.rue) m.push('adresse complète');
+      if (!o.entreprise.email) m.push('email');
+    }
+    return m;
+  }
+
+  function rafraichir() {
+    if (!identifiantModifie) $('identifiant').value = slug(valeur('e_nom') + ' ' + valeur('z_ville'));
+    var o = fiche();
+    $('apercu').textContent = JSON.stringify(o, null, 2);
+    var m = manques(o);
+    $('etat').innerHTML = m.length ? '<span class="manque">Il manque : ' + m.join(', ') + '.</span>' : 'Fiche complète. Fichier : clients/' + o.identifiant + '.json';
+  }
+
+  // --- Remplissage à partir d'une fiche existante ---
+  function remplirDepuis(o) {
+    var e = o.entreprise || {}, a = e.adresse || {}, z = o.zone || {}, t = o.textes || {}, p = o.photos || {}, av = o.avis || {};
+    var g = (o.garanties && o.garanties.decennale) || {}, m = o.mediateur || {}, r = o.reseaux || {}, fo = o.formulaire || {};
+    function poser(nom, v) { var c = champ(nom); if (!c) return; if (c.type === 'checkbox') c.checked = !!v; else c.value = v === undefined || v === null ? '' : v; }
+    function fichier(chemin) { var prefixe = 'clients/' + o.identifiant + '/'; return chemin && chemin.indexOf(prefixe) === 0 ? chemin.slice(prefixe.length) : (chemin || ''); }
+    poser('mode', o.mode); poser('formule', o.formule); poser('metier', o.metier); poser('theme', o.theme || metiers[o.metier].themeParDefaut);
+    poser('domaine', o.domaine); poser('identifiant', o.identifiant); identifiantModifie = true; poser('contenuFictif', o.contenuFictif);
+    poser('e_nom', e.nom); poser('e_dirigeant', e.dirigeant); poser('e_telephone', e.telephone); poser('e_mobile', e.mobile); poser('e_email', e.email);
+    poser('e_horaires', e.horaires); poser('e_statut', e.statut); poser('e_siret', e.siret); poser('e_immatriculation', e.immatriculation); poser('e_anneeCreation', e.anneeCreation);
+    poser('a_rue', a.rue); poser('a_codePostal', a.codePostal); poser('a_ville', a.ville);
+    poser('z_ville', z.ville); poser('z_departement', z.departement); poser('z_codeDepartement', z.codeDepartement); poser('z_rayonKm', z.rayonKm);
+    poser('z_communes', (z.communes || []).join('\n')); poser('z_pagesLocales', (z.pagesLocales || []).join('\n'));
+    poser('t_aPropos', (t.aPropos || []).join('\n\n')); poser('t_accroche', t.accroche); poser('t_sousTitre', t.sousTitre);
+    poser('p_accueil', fichier(p.accueil)); poser('p_aPropos', fichier(p.aPropos)); poser('p_illustration', p.illustration);
+    poser('av_note', av.note); poser('av_nombre', av.nombre); poser('av_lienGoogle', av.lienGoogle);
+    poser('g_assureur', g.assureur); poser('g_numeroContrat', g.numeroContrat); poser('m_nom', m.nom); poser('m_site', m.site);
+    poser('r_facebook', r.facebook); poser('r_instagram', r.instagram); poser('fo_service', fo.service || 'aucun'); poser('fo_cle', fo.cle);
+    afficherServices((o.services || []).filter(function (s) { return typeof s === 'string'; }));
+    $('realisations').innerHTML = ''; (o.realisations || []).forEach(function (x) { ligneRealisation({ photo: fichier(x.photo), titre: x.titre, lieu: x.lieu, annee: x.annee, illustration: x.illustration }); });
+    $('avis').innerHTML = ''; (av.extraits || []).forEach(ligneAvis);
+    $('suggestion-etat').textContent = '';
+    rafraichir();
+  }
+
+  // --- Suggestion de communes : distance à vol d'oiseau depuis la ville principale ---
+  function distanceKm(a, b) {
+    var rad = Math.PI / 180, dLat = (b[0] - a[0]) * rad, dLon = (b[1] - a[1]) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 12742 * Math.asin(Math.sqrt(h));
+  }
+  $('suggerer').addEventListener('click', function () {
+    var centre = communes[valeur('z_ville')];
+    var rayon = nombre('z_rayonKm') || 30;
+    if (!centre) { $('suggestion-etat').textContent = 'Ville inconnue de la liste du Calvados : saisis les communes à la main.'; return; }
+    var proches = Object.keys(communes).map(function (nom) { return [nom, distanceKm(centre, communes[nom])]; })
+      .filter(function (x) { return x[1] <= rayon; }).sort(function (x, y) { return x[1] - y[1]; }).slice(0, 14).map(function (x) { return x[0]; });
+    champ('z_communes').value = proches.join('\n');
+    $('suggestion-etat').textContent = proches.length + ' communes proposées (distances approximatives) : relis la liste.';
+    rafraichir();
+  });
+
+  // --- Boutons ---
+  $('ajouter-realisation').addEventListener('click', function () { ligneRealisation(); });
+  $('ajouter-avis').addEventListener('click', function () { ligneAvis(); });
+  $('identifiant').addEventListener('input', function () { identifiantModifie = $('identifiant').value.trim() !== ''; });
+  $('metier').addEventListener('change', function () { champ('theme').value = metiers[valeur('metier')].themeParDefaut; afficherServices(); rafraichir(); });
+  f.addEventListener('input', rafraichir);
+  f.addEventListener('change', rafraichir);
+  $('telecharger').addEventListener('click', function () {
+    var o = fiche();
+    var lien = creer('a', { href: URL.createObjectURL(new Blob([JSON.stringify(o, null, 2) + '\n'], { type: 'application/json' })), download: o.identifiant + '.json' });
+    document.body.appendChild(lien); lien.click(); lien.remove();
+  });
+  $('copier').addEventListener('click', function () {
+    var texte = JSON.stringify(fiche(), null, 2);
+    if (navigator.clipboard) navigator.clipboard.writeText(texte).then(function () { $('etat').textContent = 'Fiche copiée.'; });
+  });
+  $('charger').addEventListener('click', function () { $('fichier').click(); });
+  $('fichier').addEventListener('change', function () {
+    var fichier = $('fichier').files[0];
+    if (!fichier) return;
+    var lecteur = new FileReader();
+    lecteur.onload = function () {
+      try { remplirDepuis(JSON.parse(lecteur.result)); } catch (erreur) { $('etat').innerHTML = '<span class="manque">Ce fichier n\'est pas une fiche valide.</span>'; }
+    };
+    lecteur.readAsText(fichier);
+  });
+
+  // --- Démarrage ---
+  champ('theme').value = metiers[valeur('metier')].themeParDefaut;
+  afficherServices();
+  window.remplirDepuis = remplirDepuis; // utilisé par les tests
+  window.fiche = fiche;
+  rafraichir();
+})();
+</script>
+</body>
+</html>

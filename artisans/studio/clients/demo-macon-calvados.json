@@ -1,0 +1,80 @@
+{
+  "identifiant": "demo-macon-calvados",
+  "mode": "demo",
+  "contenuFictif": true,
+  "formule": "visibilite",
+  "metier": "macon",
+  "theme": "pierre",
+  "domaine": "",
+
+  "entreprise": {
+    "nom": "Maçonnerie Hautbois",
+    "dirigeant": "Thomas Hautbois",
+    "statut": "EURL",
+    "siret": "",
+    "immatriculation": "",
+    "anneeCreation": 2009,
+    "adresse": { "rue": "", "codePostal": "14123", "ville": "Ifs" },
+    "telephone": "02 61 91 23 45",
+    "mobile": "06 39 98 12 34",
+    "email": "contact@maconnerie-hautbois.example",
+    "horaires": "Du lundi au vendredi, de 8 h à 18 h"
+  },
+
+  "zone": {
+    "ville": "Caen",
+    "departement": "Calvados",
+    "codeDepartement": "14",
+    "rayonKm": 30,
+    "communes": [
+      "Caen", "Hérouville-Saint-Clair", "Ifs", "Mondeville", "Colombelles",
+      "Bretteville-sur-Odon", "Verson", "Ouistreham", "Douvres-la-Délivrande",
+      "Courseulles-sur-Mer", "Troarn", "Bayeux", "Falaise"
+    ],
+    "pagesLocales": ["Caen", "Bayeux", "Ouistreham"]
+  },
+
+  "textes": {
+    "aPropos": [
+      "Depuis 2009, Maçonnerie Hautbois construit, agrandit et rénove les maisons de l'agglomération caennaise. Thomas Hautbois a appris le métier sur les chantiers du Calvados avant de créer l'entreprise, qui compte aujourd'hui quatre maçons.",
+      "Du mur de clôture à l'extension complète, nous gardons la même façon de travailler : une visite sur place, un devis détaillé, une date de début tenue et un chantier laissé propre."
+    ]
+  },
+
+  "services": ["gros-oeuvre", "extension", "pierre", "ouverture", "terrasse", "cloture"],
+
+  "photos": {
+    "accueil": "photos/macon/accueil.jpg",
+    "aPropos": "photos/macon/equipe.jpg",
+    "illustration": true
+  },
+
+  "realisations": [
+    { "photo": "photos/macon/extension.jpg", "titre": "Extension de 28 m² en parpaing", "lieu": "Verson", "annee": 2026, "illustration": true },
+    { "photo": "photos/macon/mur-pierre.jpg", "titre": "Restauration d'un mur en pierre de Caen", "lieu": "Bayeux", "annee": 2025, "illustration": true },
+    { "photo": "photos/macon/terrasse.jpg", "titre": "Terrasse en béton désactivé, 45 m²", "lieu": "Ouistreham", "annee": 2025, "illustration": true },
+    { "photo": "photos/macon/ouverture.jpg", "titre": "Ouverture d'un mur porteur avec poutre métallique", "lieu": "Caen", "annee": 2026, "illustration": true },
+    { "photo": "photos/macon/cloture.jpg", "titre": "Mur de clôture et piliers de portail", "lieu": "Douvres-la-Délivrande", "annee": 2024, "illustration": true },
+    { "photo": "photos/macon/dalle.jpg", "titre": "Fondations et dalle d'un garage", "lieu": "Ifs", "annee": 2025, "illustration": true }
+  ],
+
+  "avis": {
+    "note": 4.9,
+    "nombre": 37,
+    "lienGoogle": "",
+    "extraits": [
+      { "auteur": "Claire M.", "lieu": "Verson", "date": "2026-06", "texte": "Extension terminée dans les délais annoncés, chantier propre tous les soirs. Le devis a été respecté à l'euro près." },
+      { "auteur": "Bernard L.", "lieu": "Bayeux", "date": "2025-11", "texte": "Reprise complète d'un vieux mur en pierre. Travail soigné, à la chaux, par des gens qui connaissent le bâti ancien." },
+      { "auteur": "Sophie et Marc D.", "lieu": "Ouistreham", "date": "2025-08", "texte": "Très bon contact, des conseils utiles dès la première visite et une terrasse impeccable." }
+    ]
+  },
+
+  "garanties": {
+    "decennale": { "assureur": "", "numeroContrat": "", "zone": "France métropolitaine" },
+    "labels": []
+  },
+
+  "mediateur": { "nom": "", "site": "" },
+  "reseaux": { "facebook": "", "instagram": "" },
+  "formulaire": { "service": "aucun", "cle": "" }
+}

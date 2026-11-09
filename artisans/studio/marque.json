@@ -1,0 +1,74 @@
+{
+  "_aide": "Tout ce qui concerne TA marque et TON offre. Un changement ici se répercute sur la page d'offre et sur le bandeau des démonstrations au prochain build.",
+
+  "nom": "Atelier Vitrine",
+  "slogan": "Le site des artisans du Calvados",
+  "zone": "Calvados",
+  "prenom": "",
+  "adresseSite": "",
+  "emailContact": "",
+  "telephone": "",
+
+  "editeur": {
+    "_aide": "Obligatoire dans les mentions légales dès que la page d'offre est en ligne. À remplir après la création de la micro-entreprise.",
+    "nomComplet": "",
+    "statut": "Entrepreneur individuel (micro-entreprise)",
+    "siret": "",
+    "adresse": "",
+    "hebergeur": "Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, États-Unis"
+  },
+
+  "formules": [
+    {
+      "id": "site-pro",
+      "nom": "Site Pro",
+      "prixMensuel": 39,
+      "prixAnnuel": 390,
+      "resume": "Votre site complet, à votre nom, en ligne en 5 jours.",
+      "lienPaiementMensuel": "",
+      "lienPaiementAnnuel": "",
+      "inclus": [
+        "Site complet à votre nom, adapté au téléphone",
+        "Nom de domaine en .fr enregistré à votre nom",
+        "Hébergement, https et sauvegardes",
+        "Bouton d'appel et formulaire de demande de devis",
+        "Mentions légales et page de confidentialité",
+        "Adresse contact@votre-nom.fr renvoyée vers votre boîte",
+        "1 modification par mois, faite sous 3 jours ouvrés"
+      ]
+    },
+    {
+      "id": "visibilite",
+      "nom": "Visibilité",
+      "prixMensuel": 59,
+      "prixAnnuel": 590,
+      "resume": "Le site, plus tout ce qui vous fait remonter sur Google.",
+      "lienPaiementMensuel": "",
+      "lienPaiementAnnuel": "",
+      "inclus": [
+        "Tout le contenu de Site Pro",
+        "Fiche Google créée ou optimisée",
+        "Jusqu'à 5 pages locales (« Maçon à Bayeux »…)",
+        "Kit avis clients : lien, QR code, message type",
+        "3 modifications par mois",
+        "Bilan par email chaque trimestre"
+      ]
+    }
+  ],
+
+  "options": [
+    { "nom": "Page supplémentaire", "prix": "49 € une fois" },
+    { "nom": "Logo simple, 2 propositions", "prix": "79 € une fois" },
+    { "nom": "Modification urgente ou hors quota", "prix": "19 € l'unité" }
+  ],
+
+  "garanties": [
+    { "titre": "Sans engagement", "texte": "Vous arrêtez quand vous voulez, en ligne, sans frais. L'abonnement s'arrête à la fin du mois payé." },
+    { "titre": "Satisfait ou remboursé 30 jours", "texte": "Si le site ne vous convient pas dans les 30 jours après sa mise en ligne, vous êtes remboursé sur simple demande écrite." },
+    { "titre": "Votre nom de domaine vous appartient", "texte": "Il est enregistré à votre nom. Si vous partez, vous l'emportez, gratuitement." },
+    { "titre": "Prix bloqué 24 mois", "texte": "Votre tarif ne bouge pas pendant deux ans." }
+  ],
+
+  "delaiMiseEnLigneJours": 5,
+  "mentionTva": "Prix nets. TVA non applicable, article 293 B du CGI."
+}

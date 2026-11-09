@@ -1,0 +1,4 @@
+Polices Barlow et Barlow Condensed
+Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+Licence : SIL Open Font License 1.1 (https://openfontlicense.org)
+Usage commercial autorisé. Fichiers issus des paquets npm @fontsource/barlow et @fontsource/barlow-condensed.
