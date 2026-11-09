@@ -94,7 +94,7 @@ Tout est dans `marque.json` : nom, prix, formules, options, garanties, liens de 
 | Limite | Conséquence | Contournement |
 |---|---|---|
 | Un seul métier livré (maçon) | Les autres métiers sont à écrire | Voir « Ajouter un métier » |
-| Photos d'illustration non fournies | Les démonstrations affichent des dessins | Voir `studio/photos/LISEZ-MOI.md` |
+| Photos d'illustration fournies pour le seul métier de maçon | Un nouveau métier sans photos affiche des dessins | Voir `studio/photos/LISEZ-MOI.md` |
 | Liste de communes limitée au Calvados | Hors Calvados, saisir les communes à la main | Créer un fichier de données par département |
 | Pas d'espace client | Les modifications passent par toi | Voulu : c'est le service vendu |
 | Formulaire dépendant d'un service tiers | Voir `4-gestion-clients.md` | Site sans formulaire possible (téléphone et email) |

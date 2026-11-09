@@ -4,7 +4,7 @@ Le générateur cherche ses photos ici. Une photo absente est remplacée par un 
 
 ## Photos d'illustration du métier « maçon »
 
-À déposer dans `photos/macon/`, avec exactement ces noms. Format paysage, 1600 pixels de large au minimum, en `.jpg`.
+Elles sont déjà en place dans `photos/macon/` ; leur origine est notée dans `photos/CREDITS.md`. Pour en changer une, remplace le fichier en gardant exactement le même nom. Pour un nouveau métier, crée `photos/NOM-DU-METIER/` avec les mêmes huit noms de fichiers. Format paysage, 1600 pixels de large au minimum, en `.jpg`.
 
 | Fichier | Ce que la photo doit montrer | Mots à chercher |
 |---|---|---|
@@ -12,12 +12,12 @@ Le générateur cherche ses photos ici. Une photo absente est remplacée par un 
 | `equipe.jpg` | Un ou deux artisans sur un chantier, cadrage vertical possible | construction worker portrait |
 | `extension.jpg` | Extension de maison en parpaing ou gros œuvre | house extension construction, concrete blocks |
 | `mur-pierre.jpg` | Mur en pierre calcaire rejointoyé | limestone wall, stone masonry |
-| `terrasse.jpg` | Terrasse ou dalle béton terminée | concrete patio, terrace |
+| `terrasse.jpg` | Terrasse, pavage ou dalle terminée | concrete patio, paving, terrace |
 | `ouverture.jpg` | Ouverture dans un mur, linteau ou poutre | wall opening, lintel, renovation |
-| `cloture.jpg` | Mur de clôture ou muret avec piliers | garden wall, stone fence |
+| `cloture.jpg` | Mur de clôture ou muret | garden wall, stone fence |
 | `dalle.jpg` | Coulage de dalle ou fondations | concrete slab pouring, foundations |
 
-Sources gratuites autorisant l'usage commercial sans attribution : Unsplash et Pexels. Note l'adresse de chaque photo dans `photos/CREDITS.md`, pour pouvoir prouver son origine.
+Sources gratuites autorisant l'usage commercial sans attribution : Pexels et Unsplash. Évite les photos où un visage est reconnaissable. Note l'adresse de chaque photo dans `photos/CREDITS.md`, pour pouvoir prouver son origine.
 
 Règles :
 

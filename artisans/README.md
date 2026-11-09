@@ -19,7 +19,7 @@ Abonnement « visibilité locale » pour artisans du bâtiment, en commençant p
 | Étape | État | Reste à faire |
 |---|---|---|
 | 1. Offre commerciale | Terminée | Valider le nom de la marque |
-| 2. Démonstration maçon du Calvados | Construite et contrôlée sur ordinateur et téléphone | Y déposer 8 photos d'illustration |
+| 2. Démonstration maçon du Calvados | Terminée, avec 8 photos d'illustration libres de droits, contrôlée sur ordinateur et téléphone | La mettre en ligne sur ton nom de domaine |
 | 3. Système de production | Terminé, 16 tests automatiques au vert | Écrire d'autres métiers quand il le faudra |
 | 4. Prospection | Méthode, messages, objections et suivi rédigés | Essayer le script de liste chez toi ; aucun message envoyé |
 | 5. Gestion des clients | Procédures et modèles rédigés | Régler Stripe et Cloudflare (tes comptes) |
@@ -31,8 +31,7 @@ Abonnement « visibilité locale » pour artisans du bâtiment, en commençant p
 2. Créer la micro-entreprise et obtenir le SIRET.
 3. Choisir le nom de la marque et acheter le nom de domaine (environ 10 €).
 4. Remplir `studio/marque.json` : prénom, email, rubrique `editeur`.
-5. Déposer les 8 photos d'illustration (`studio/photos/LISEZ-MOI.md`).
-6. Mettre la page d'offre en ligne (`docs/4-gestion-clients.md`, « Mise en place initiale »).
+5. Mettre la page d'offre en ligne (`docs/4-gestion-clients.md`, « Mise en place initiale »).
 
 ## Les commandes
 

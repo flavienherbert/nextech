@@ -82,7 +82,8 @@ test('le build complet réussit et produit les deux types de sites', () => {
 test('aucune page générée ne contient de trou ou de valeur cassée', () => {
   for (const fichier of fichiersHtml(dist)) {
     if (fichier.endsWith('questionnaire.html')) continue; // contient du JavaScript, où ces mots sont légitimes
-    const page = readFileSync(fichier, 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+    // On retire les scripts et les données binaires incorporées (photos, polices), où ces suites de lettres peuvent apparaître par hasard.
+    const page = readFileSync(fichier, 'utf8').replace(/<script[\s\S]*?<\/script>/g, '').replace(/data:[a-z0-9/+.-]+;base64,[A-Za-z0-9+/=]+/g, '');
     for (const interdit of ['undefined', '[object Object]', 'NaN', '{ville}', '{nom}', '{commune}', '{dansDepartement}', '{{']) {
       assert.ok(!page.includes(interdit), `${fichier} contient « ${interdit} »`);
     }

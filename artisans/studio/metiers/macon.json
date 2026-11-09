@@ -176,19 +176,19 @@
     },
     {
       "photo": "photos/macon/terrasse.jpg",
-      "titre": "Terrasse en béton désactivé"
+      "titre": "Terrasse en pavés"
     },
     {
       "photo": "photos/macon/ouverture.jpg",
-      "titre": "Ouverture d'un mur porteur"
+      "titre": "Création d'une ouverture"
     },
     {
       "photo": "photos/macon/cloture.jpg",
-      "titre": "Mur de clôture et piliers"
+      "titre": "Muret de jardin en pierre"
     },
     {
       "photo": "photos/macon/dalle.jpg",
-      "titre": "Fondations et dalle béton"
+      "titre": "Dalle béton"
     }
   ]
 }
