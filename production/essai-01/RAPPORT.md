@@ -78,3 +78,33 @@ Version corrigée estimée : 700 à 900 crédits, soit environ 3,50 à 4,50 € 
 cd production/essai-01
 python3 ../pipeline/build_ad.py montage.json sortie.mp4
 ```
+
+---
+
+# Version 2 — clip Higgsfield généré par le fondateur (13/11/2026)
+
+Fichier : `gourde_v2.mp4` — 13,7 s, 1080×1920. Source : un clip unique de 15 s en 716×1286 (`v2/source_higgsfield.mp4`), quatre plans animés.
+Modèle et crédits consommés : non connus de Claude (génération faite par le fondateur sur le site).
+
+## Ce qui a été fait au montage (0 €)
+
+- Coupes : accroche 0–3,7 s, sac 5,25–9,35 s, glaçons 9,4–11,25 s ralenti ×1,5, plan produit 11,9–15 s.
+- Texte parasite illisible apparu sur la gourde au dernier plan : effacé par recopie d'une bande saine.
+- Voix off des plans 2 à 4 recréée en local à partir de la voix de l'accroche (Chatterbox, licence MIT) : ressemblance mesurée 0,85 à 0,91.
+- Musique de fond originale synthétisée, mixée sous la voix. Niveau final : −15 LUFS.
+- Sous-titres animés, pastille prix, appel à l'action, mention « Généré par IA ».
+
+## Contrôles
+
+- Transcription de la bande son finale : texte conforme au script, « fuient » correctement prononcé.
+- Les quatre plans sont de la vidéo animée, plus aucune image fixe.
+
+## Défauts restants
+
+1. Le bouchon change entre l'accroche (sans anse) et les plans suivants (anse métallique).
+2. Décor différent entre l'accroche (cuisine) et les plans 2–3 (bureau) : acceptable, mais ce n'est pas le même lieu.
+3. Résolution source 720p, agrandie en 1080p.
+4. « Pas une goutte » est dit alors que la gourde est déjà en train d'être ouverte.
+5. Glaçons qui tombent sans main visible, puis dépassent du goulot.
+6. Sous-titres en partie sur le bas de la gourde dans les plans 1 et 3.
+7. Voix off et musique non écoutées par Claude : contrôle humain nécessaire.

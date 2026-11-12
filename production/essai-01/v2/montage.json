@@ -1,0 +1,20 @@
+{
+  "label": "Généré par IA",
+  "music": {"src": "musique.wav", "volume": 0.16},
+  "segments": [
+    {"type": "clip", "src": "hf1_fix.mp4", "start": 0.0, "duration": 3.7, "caption_y": 1650,
+     "captions": [[0.0, 1.0, "ARRÊTE D'ACHETER"], [1.0, 1.6, "DES GOURDES", true],
+                  [1.6, 2.2, "QUI FUIENT", true], [2.2, 3.3, "DANS TON SAC"]]},
+    {"type": "clip", "src": "hf1_fix.mp4", "start": 5.25, "duration": 4.1, "audio": 0.5,
+     "vo": "t_vo1.wav", "vo_delay": 0.25, "caption_y": 1640,
+     "captions": [[0.0, 0.52, "CELLE-CI,"], [0.54, 1.48, "TU PEUX LA RETOURNER"],
+                  [1.48, 2.1, "DANS TON SAC"], [2.24, 3.4, "PAS UNE GOUTTE", true]]},
+    {"type": "clip", "src": "hf1_fix.mp4", "start": 9.4, "duration": 1.85, "speed": 1.5, "audio": 0.6,
+     "vo": "t_vo2.wav", "vo_delay": 0.2, "caption_y": 1650,
+     "captions": [[0.0, 1.06, "L'EAU RESTE FRAÎCHE"], [1.06, 2.3, "PENDANT 24 HEURES", true]]},
+    {"type": "clip", "src": "hf1_fix.mp4", "start": 11.9, "duration": 3.1, "audio": 0,
+     "vo": "t_vo3.wav", "vo_delay": 0.3,
+     "badge": "19 €", "badge_size": 84, "badge_x": 56, "badge_y": 520,
+     "cta": "Lien juste en dessous ↓", "cta_at": 1.0, "cta_y": 1745}
+  ]
+}
