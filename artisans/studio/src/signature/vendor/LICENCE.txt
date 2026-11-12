@@ -1,0 +1,5 @@
+GSAP 3.15.1 et ScrollTrigger — Copyright GreenSock / Webflow.
+Licence standard GSAP (https://gsap.com/community/standard-license/), relue le 12 novembre 2026 :
+usage gratuit autorisé sur tout site internet, y compris commercial. Seul l'usage dans un outil de
+création visuelle d'animations concurrent de Webflow est interdit, ce qui ne concerne pas ces sites.
+Fichiers issus du paquet npm gsap, non modifiés.

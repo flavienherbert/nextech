@@ -28,7 +28,7 @@ const LARGEURS = [800, 1600];
  * @param {string} o.graine       graine du dessin de secours
  * @returns {Promise<{fichiers: {src:string, srcsetWebp?:string, srcsetJpg?:string}, largeur:number, hauteur:number, remplacement:boolean}>}
  */
-export async function preparerImage({ source, dossierStudio, dossierSortie, nom, motifType = 'pierre', graine = nom }) {
+export async function preparerImage({ source, dossierStudio, dossierSortie, nom, motifType = 'pierre', graine = nom, largeurs = LARGEURS }) {
   mkdirSync(dossierSortie, { recursive: true });
   const chemin = source ? (isAbsolute(source) ? source : join(dossierStudio, source)) : '';
   const base = slug(nom);
@@ -53,7 +53,7 @@ export async function preparerImage({ source, dossierStudio, dossierSortie, nom,
   const hauteurOrigine = meta.height || 1200;
   const webp = [];
   const jpg = [];
-  for (const largeur of LARGEURS) {
+  for (const largeur of largeurs) {
     const cible = Math.min(largeur, largeurOrigine);
     const nomWebp = `${base}-${empreinte}-${largeur}.webp`;
     const nomJpg = `${base}-${empreinte}-${largeur}.jpg`;

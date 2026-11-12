@@ -9,7 +9,7 @@ function vide(v) {
   return v === undefined || v === null || String(v).trim() === '';
 }
 
-export function validerClient(client, { metiers, themes }) {
+export function validerClient(client, { metiers, themes, gabarits = ['classique', 'signature'] }) {
   const erreurs = [];
   const avertissements = [];
   const e = client.entreprise || {};
@@ -22,6 +22,9 @@ export function validerClient(client, { metiers, themes }) {
   if (!FORMULES.includes(client.formule)) erreurs.push('« formule » doit valoir "site-pro" ou "visibilite".');
   if (vide(client.metier)) erreurs.push('« metier » est vide.');
   else if (!metiers.includes(client.metier)) erreurs.push(`Le métier « ${client.metier} » n'existe pas dans le dossier metiers/ (disponibles : ${metiers.join(', ')}).`);
+  if (client.gabarit && !gabarits.includes(client.gabarit)) erreurs.push(`Le gabarit « ${client.gabarit} » n'existe pas (disponibles : ${gabarits.join(', ')}).`);
+  if (client.pagesPrestations && client.formule !== 'visibilite') avertissements.push('Des pages par prestation sont demandées avec la formule « site-pro » : dans l\'offre, les pages supplémentaires sont une option payante.');
+  if (client.formulaire && client.formulaire.piecesJointes) avertissements.push('Photos jointes au formulaire : vérifie que l\'offre souscrite auprès du service de formulaire accepte les pièces jointes.');
   if (client.theme && !themes.includes(client.theme)) erreurs.push(`Le thème « ${client.theme} » n'existe pas (disponibles : ${themes.join(', ')}).`);
 
   if (vide(e.nom)) erreurs.push('« entreprise.nom » est vide.');

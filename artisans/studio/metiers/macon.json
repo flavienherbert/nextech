@@ -22,49 +22,152 @@
       "id": "gros-oeuvre",
       "icone": "mur",
       "titre": "Maçonnerie générale et gros œuvre",
-      "texte": "Fondations, dalles, murs porteurs, élévation en parpaing ou en brique : nous réalisons la structure de votre projet, du terrassement au clos."
+      "texte": "Fondations, dalles, murs porteurs, élévation en parpaing ou en brique : nous réalisons la structure de votre projet, du terrassement au clos.",
+      "photo": "photos/macon/accueil.jpg",
+      "accroche": "La structure de votre projet, des fondations jusqu'aux murs.",
+      "paragraphes": [
+        "Le gros œuvre regroupe tout ce qui porte le bâtiment : fondations, dallages, murs porteurs et planchers. C'est la partie que l'on ne voit plus une fois la maison terminée, et celle dont dépend tout le reste.",
+        "Nous intervenons en construction neuve comme en reprise d'un bâti existant, à partir de vos plans ou de ceux de votre maître d'œuvre."
+      ],
+      "points": [
+        "Terrassement et fondations",
+        "Dallages et planchers",
+        "Élévation de murs en parpaing, en brique ou en béton",
+        "Chaînages, linteaux et appuis de fenêtre",
+        "Reprises en sous-œuvre"
+      ]
     },
     {
       "id": "extension",
       "icone": "maison",
       "titre": "Extension et agrandissement",
-      "texte": "Une pièce en plus, un garage, une surélévation. Nous prenons en charge la maçonnerie de votre extension et son raccord propre avec l'existant."
+      "texte": "Une pièce en plus, un garage, une surélévation. Nous prenons en charge la maçonnerie de votre extension et son raccord propre avec l'existant.",
+      "photo": "photos/macon/extension.jpg",
+      "accroche": "Gagner une pièce sans changer d'adresse.",
+      "paragraphes": [
+        "Une chambre en plus, une cuisine ouverte sur le jardin, un garage : l'extension est souvent la réponse la plus simple quand la maison devient trop petite.",
+        "Nous réalisons la maçonnerie de votre agrandissement et soignons particulièrement le raccord avec l'existant, là où se jouent la solidité et l'étanchéité de l'ensemble."
+      ],
+      "points": [
+        "Fondations et dallage de l'extension",
+        "Élévation des murs et raccord avec la maison",
+        "Création de l'ouverture vers l'existant",
+        "Surélévation et garage accolé",
+        "Coordination avec les autres corps de métier"
+      ]
     },
     {
       "id": "pierre",
       "icone": "pierre",
       "titre": "Rénovation de murs en pierre",
-      "texte": "Reprise de maçonnerie ancienne, rejointoiement à la chaux, remplacement de pierres abîmées. Un savoir-faire adapté au bâti normand et à la pierre de Caen."
+      "texte": "Reprise de maçonnerie ancienne, rejointoiement à la chaux, remplacement de pierres abîmées. Un savoir-faire adapté au bâti normand et à la pierre de Caen.",
+      "photo": "photos/macon/mur-pierre.jpg",
+      "accroche": "Redonner sa tenue à un mur ancien, sans le dénaturer.",
+      "paragraphes": [
+        "Un mur en pierre vit avec l'humidité : il a besoin de mortiers qui le laissent respirer. Nous travaillons à la chaux, avec des techniques adaptées au bâti ancien de la région.",
+        "Reprise d'un pignon, rejointoiement d'une façade, remplacement de pierres abîmées : chaque intervention commence par un examen du mur et de ses désordres."
+      ],
+      "points": [
+        "Rejointoiement à la chaux",
+        "Remplacement et retaille de pierres",
+        "Reprise de fissures et de zones déchaussées",
+        "Restauration de murets et de murs de clôture",
+        "Conseils d'entretien du bâti ancien"
+      ]
     },
     {
       "id": "ouverture",
       "icone": "ouverture",
       "titre": "Ouvertures et murs porteurs",
-      "texte": "Création ou agrandissement d'une porte, d'une baie ou d'une fenêtre, avec pose de linteau ou de poutre métallique et reprise des finitions."
+      "texte": "Création ou agrandissement d'une porte, d'une baie ou d'une fenêtre, avec pose de linteau ou de poutre métallique et reprise des finitions.",
+      "photo": "photos/macon/ouverture.jpg",
+      "accroche": "Faire entrer la lumière, en toute sécurité.",
+      "paragraphes": [
+        "Ouvrir un mur porteur ne s'improvise pas. Avant de toucher à la maçonnerie, il faut étayer, puis poser le linteau ou la poutre qui reprendra les charges.",
+        "Nous prenons en charge l'ensemble de l'opération, de l'étaiement à la reprise des tableaux, pour une ouverture nette et prête à recevoir la menuiserie."
+      ],
+      "points": [
+        "Création de portes, de fenêtres et de baies",
+        "Agrandissement d'ouvertures existantes",
+        "Étaiement, linteaux et poutres métalliques",
+        "Reprise des tableaux et des seuils",
+        "Évacuation des gravats"
+      ]
     },
     {
       "id": "terrasse",
       "icone": "terrasse",
       "titre": "Terrasses, dalles et allées",
-      "texte": "Dalle béton, chape, terrasse, allée carrossable, béton désactivé. Un support plan, durable et bien drainé."
+      "texte": "Dalle béton, chape, terrasse, allée carrossable, béton désactivé. Un support plan, durable et bien drainé.",
+      "photo": "photos/macon/terrasse.jpg",
+      "accroche": "Un sol plan, durable et agréable à vivre.",
+      "paragraphes": [
+        "Une terrasse réussie commence sous sa surface : un fond de forme stable, une pente bien réglée et une évacuation des eaux pensée dès le départ.",
+        "Nous réalisons dalles, chapes, terrasses et allées, avec la finition qui convient à votre maison et à l'usage que vous en ferez."
+      ],
+      "points": [
+        "Dalles et chapes en béton",
+        "Terrasses en pavés ou en béton décoratif",
+        "Allées et accès carrossables",
+        "Seuils, marches et bordures",
+        "Gestion des pentes et de l'écoulement"
+      ]
     },
     {
       "id": "cloture",
       "icone": "cloture",
       "titre": "Clôtures, murets et soutènement",
-      "texte": "Murs de clôture, piliers de portail, murets de jardin et murs de soutènement, montés et enduits dans les règles de l'art."
+      "texte": "Murs de clôture, piliers de portail, murets de jardin et murs de soutènement, montés et enduits dans les règles de l'art.",
+      "photo": "photos/macon/cloture.jpg",
+      "accroche": "Délimiter, protéger et mettre en valeur votre terrain.",
+      "paragraphes": [
+        "Un mur de clôture ou un muret se regarde tous les jours. Il mérite des fondations sérieuses et une finition soignée.",
+        "Nous construisons murs, piliers et soutènements, en pierre, en brique ou en parpaing enduit, en accord avec le style de votre maison."
+      ],
+      "points": [
+        "Murs de clôture et murets de jardin",
+        "Piliers de portail",
+        "Murs de soutènement",
+        "Couvertines et chaperons",
+        "Enduits de finition"
+      ]
     },
     {
       "id": "enduit",
       "icone": "truelle",
       "titre": "Enduits et ravalement de façade",
-      "texte": "Enduits traditionnels ou monocouches, reprise de fissures et ravalement, pour protéger vos murs et redonner de l'allure à votre maison."
+      "texte": "Enduits traditionnels ou monocouches, reprise de fissures et ravalement, pour protéger vos murs et redonner de l'allure à votre maison.",
+      "photo": "photos/macon/enduit.jpg",
+      "accroche": "Protéger vos murs et leur redonner de l'allure.",
+      "paragraphes": [
+        "L'enduit est la peau de la maison : il la protège de la pluie et lui donne son aspect. Le choix du produit dépend du support, ancien ou récent.",
+        "Nous réalisons enduits traditionnels et ravalements, après avoir traité les fissures et les zones dégradées."
+      ],
+      "points": [
+        "Enduits traditionnels à la chaux",
+        "Enduits monocouches",
+        "Reprise de fissures",
+        "Ravalement de façade",
+        "Finitions talochées, grattées ou lissées"
+      ]
     },
     {
       "id": "assainissement",
       "icone": "goutte",
       "titre": "Assainissement et réseaux",
-      "texte": "Tranchées, regards, raccordements et drainage en pied de mur, pour une maison saine et des fondations au sec."
+      "texte": "Tranchées, regards, raccordements et drainage en pied de mur, pour une maison saine et des fondations au sec.",
+      "photo": "",
+      "accroche": "Une maison saine commence par des fondations au sec.",
+      "paragraphes": [
+        "Humidité en pied de mur, eaux de pluie mal évacuées : ces désordres se traitent à la source, par le drainage et des réseaux bien conçus.",
+        "Nous réalisons tranchées, regards et raccordements, en coordination avec les autres intervenants de votre chantier."
+      ],
+      "points": [
+        "Drainage en pied de mur",
+        "Tranchées et réseaux enterrés",
+        "Regards et raccordements",
+        "Évacuation des eaux pluviales"
+      ]
     }
   ],
   "servicesParDefaut": [
@@ -150,6 +253,10 @@
       "Basée à {base}, notre équipe se déplace à {commune} pour la visite, le devis et le chantier, sans frais de déplacement supplémentaires.",
       "Extension de maison, ouverture dans un mur porteur, reprise d'un mur en pierre, terrasse ou mur de clôture : chaque projet commence par une visite sur place et un devis gratuit, détaillé poste par poste.",
       "Nos travaux sont couverts par la garantie décennale. L'attestation d'assurance vous est remise avec le devis."
+    ],
+    "signature": [
+      "Notre équipe se déplace à {commune} pour étudier votre projet sur place, puis pour réaliser les travaux.",
+      "Extension de maison, ouverture dans un mur porteur, reprise d'un mur en pierre, terrasse ou mur de clôture : chaque projet commence par un échange sur vos besoins et un devis détaillé."
     ]
   },
   "typesDeDemande": [
@@ -163,32 +270,102 @@
   ],
   "photosParDefaut": {
     "accueil": "photos/macon/accueil.jpg",
-    "aPropos": "photos/macon/equipe.jpg"
+    "aPropos": "photos/macon/equipe.jpg",
+    "hero": "photos/macon/hero.jpg",
+    "detail": "photos/macon/pierre-volets.jpg",
+    "bande": "photos/macon/geste.jpg"
   },
   "realisationsParDefaut": [
     {
-      "photo": "photos/macon/extension.jpg",
-      "titre": "Extension de maison en parpaing"
-    },
-    {
-      "photo": "photos/macon/mur-pierre.jpg",
-      "titre": "Restauration d'un mur en pierre"
-    },
-    {
-      "photo": "photos/macon/terrasse.jpg",
-      "titre": "Terrasse en pavés"
-    },
-    {
-      "photo": "photos/macon/ouverture.jpg",
-      "titre": "Création d'une ouverture"
-    },
-    {
-      "photo": "photos/macon/cloture.jpg",
-      "titre": "Muret de jardin en pierre"
+      "photo": "photos/macon/real-facade.jpg",
+      "titre": "Restauration d'une façade en pierre",
+      "type": "Rénovation"
     },
     {
       "photo": "photos/macon/dalle.jpg",
-      "titre": "Dalle béton"
+      "titre": "Dalle béton",
+      "type": "Gros œuvre"
+    },
+    {
+      "photo": "photos/macon/real-joints.jpg",
+      "titre": "Rejointoiement d'un mur en moellons",
+      "type": "Rénovation"
+    },
+    {
+      "photo": "photos/macon/real-allee.jpg",
+      "titre": "Allée et terrasse",
+      "type": "Aménagement extérieur"
+    },
+    {
+      "photo": "photos/macon/real-pilier.jpg",
+      "titre": "Pilier de portail en brique",
+      "type": "Clôture"
+    },
+    {
+      "photo": "photos/macon/real-mur-taille.jpg",
+      "titre": "Mur en pierre de taille",
+      "type": "Maçonnerie"
+    }
+  ],
+  "signature": {
+    "phrase": "Construction, extension et rénovation de maçonnerie, réalisées avec soin.",
+    "presentationTitre": "Le goût du travail bien fait, du premier échange à la fin du chantier.",
+    "presentation": [
+      "{nom} réalise vos travaux de maçonnerie à {ville} et {dansDepartement}, en construction neuve comme en rénovation.",
+      "Chaque projet est étudié avec vous avant d'être chiffré : nous prenons le temps de comprendre ce que vous attendez, puis nous vous expliquons ce que nous proposons et pourquoi."
+    ],
+    "prestationsTitre": "Nos travaux de maçonnerie",
+    "prestationsIntro": "Du gros œuvre aux finitions extérieures, pour les particuliers comme pour les professionnels.",
+    "realisationsTitre": "Quelques chantiers",
+    "methodeTitre": "Vous savez toujours où en est votre projet.",
+    "methodeIntro": "De votre premier appel à la réception des travaux, les étapes sont les mêmes pour chaque chantier.",
+    "raisonsTitre": "Pourquoi nous confier vos travaux",
+    "zoneTitre": "Nous intervenons à {ville} et dans les communes voisines.",
+    "titreSeo": "Maçon à {ville} ({departement}) — {nom}",
+    "descriptionSeo": "{nom}, entreprise de maçonnerie à {ville} : gros œuvre, extension, rénovation de murs en pierre, terrasses et clôtures. Demandez votre devis."
+  },
+  "methode": [
+    {
+      "titre": "Premier contact",
+      "texte": "Vous nous appelez ou vous nous écrivez. Nous prenons note de votre besoin et de vos coordonnées."
+    },
+    {
+      "titre": "Échange sur votre projet",
+      "texte": "Nous faisons le point avec vous : nature des travaux, contraintes du lieu, calendrier souhaité."
+    },
+    {
+      "titre": "Visite ou étude si nécessaire",
+      "texte": "Quand le projet le demande, nous venons voir les lieux et prendre les mesures."
+    },
+    {
+      "titre": "Proposition et devis",
+      "texte": "Vous recevez un devis détaillé, poste par poste, que nous prenons le temps de vous expliquer."
+    },
+    {
+      "titre": "Réalisation des travaux",
+      "texte": "Le chantier est mené par notre équipe, avec un seul interlocuteur du début à la fin."
+    }
+  ],
+  "raisons": [
+    {
+      "titre": "Savoir-faire",
+      "texte": "Des techniques éprouvées, en neuf comme sur le bâti ancien."
+    },
+    {
+      "titre": "Accompagnement",
+      "texte": "Un interlocuteur qui vous conseille et répond à vos questions, à chaque étape."
+    },
+    {
+      "titre": "Travail soigné",
+      "texte": "Des finitions nettes et un chantier rangé, parce que le détail fait la différence."
+    },
+    {
+      "titre": "Devis personnalisé",
+      "texte": "Un chiffrage établi pour votre projet, détaillé poste par poste."
+    },
+    {
+      "titre": "Respect des engagements",
+      "texte": "Ce qui est convenu au devis est ce qui est réalisé."
     }
   ]
 }

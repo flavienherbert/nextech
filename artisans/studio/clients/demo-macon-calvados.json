@@ -4,7 +4,8 @@
   "contenuFictif": true,
   "formule": "visibilite",
   "metier": "macon",
-  "theme": "pierre",
+  "gabarit": "signature",
+  "theme": "foret",
   "domaine": "",
   "entreprise": {
     "nom": "Maçonnerie Hautbois",
@@ -64,83 +65,84 @@
     "cloture"
   ],
   "photos": {
-    "accueil": "photos/macon/accueil.jpg",
+    "accueil": "photos/macon/hero.jpg",
     "aPropos": "photos/macon/equipe.jpg",
+    "detail": "photos/macon/pierre-volets.jpg",
+    "bande": "photos/macon/geste.jpg",
     "illustration": true
   },
   "realisations": [
     {
-      "photo": "photos/macon/extension.jpg",
-      "titre": "Extension de 28 m² en parpaing",
-      "lieu": "Verson",
-      "annee": 2026,
-      "illustration": true
-    },
-    {
-      "photo": "photos/macon/mur-pierre.jpg",
-      "titre": "Restauration d'un mur en pierre calcaire",
+      "photo": "photos/macon/real-facade.jpg",
+      "titre": "Restauration d'une façade en pierre",
+      "type": "Rénovation",
+      "prestation": "pierre",
       "lieu": "Bayeux",
       "annee": 2025,
-      "illustration": true
-    },
-    {
-      "photo": "photos/macon/terrasse.jpg",
-      "titre": "Terrasse en pavés de terre cuite, 45 m²",
-      "lieu": "Ouistreham",
-      "annee": 2025,
-      "illustration": true
-    },
-    {
-      "photo": "photos/macon/ouverture.jpg",
-      "titre": "Création d'une ouverture dans un mur porteur",
-      "lieu": "Caen",
-      "annee": 2026,
-      "illustration": true
-    },
-    {
-      "photo": "photos/macon/cloture.jpg",
-      "titre": "Muret de jardin en pierre",
-      "lieu": "Douvres-la-Délivrande",
-      "annee": 2024,
+      "description": "Reprise des joints à la chaux et remplacement des pierres abîmées sur le pignon d'une longère.",
       "illustration": true
     },
     {
       "photo": "photos/macon/dalle.jpg",
       "titre": "Dalle béton d'un garage",
+      "type": "Gros œuvre",
+      "prestation": "gros-oeuvre",
       "lieu": "Ifs",
       "annee": 2025,
+      "description": "Fondations, ferraillage et coulage d'une dalle de 40 m², tirée à la règle.",
+      "illustration": true
+    },
+    {
+      "photo": "photos/macon/real-joints.jpg",
+      "titre": "Rejointoiement d'un mur en moellons",
+      "type": "Rénovation",
+      "prestation": "pierre",
+      "lieu": "Douvres-la-Délivrande",
+      "annee": 2024,
+      "description": "Dégarnissage des anciens joints au ciment, puis rejointoiement au mortier de chaux.",
+      "illustration": true
+    },
+    {
+      "photo": "photos/macon/real-allee.jpg",
+      "titre": "Allée et terrasse d'une extension",
+      "type": "Aménagement extérieur",
+      "prestation": "terrasse",
+      "lieu": "Verson",
+      "annee": 2026,
+      "description": "Dallage de l'allée et de la terrasse, avec reprise des pentes pour l'écoulement des eaux.",
+      "illustration": true
+    },
+    {
+      "photo": "photos/macon/real-pilier.jpg",
+      "titre": "Pilier de portail en brique",
+      "type": "Clôture",
+      "prestation": "cloture",
+      "lieu": "Ouistreham",
+      "annee": 2024,
+      "description": "Reconstruction à l'identique d'un pilier en brique, scellement du portillon.",
+      "illustration": true
+    },
+    {
+      "photo": "photos/macon/real-mur-taille.jpg",
+      "titre": "Mur de clôture en pierre de taille",
+      "type": "Maçonnerie",
+      "prestation": "cloture",
+      "lieu": "Caen",
+      "annee": 2026,
+      "description": "Élévation d'un mur en pierre calcaire, lits réglés et joints fins.",
       "illustration": true
     }
   ],
   "avis": {
-    "note": 4.9,
-    "nombre": 37,
+    "note": null,
+    "nombre": null,
     "lienGoogle": "",
-    "extraits": [
-      {
-        "auteur": "Claire M.",
-        "lieu": "Verson",
-        "date": "2026-06",
-        "texte": "Extension terminée dans les délais annoncés, chantier propre tous les soirs. Le devis a été respecté à l'euro près."
-      },
-      {
-        "auteur": "Bernard L.",
-        "lieu": "Bayeux",
-        "date": "2025-11",
-        "texte": "Reprise complète d'un vieux mur en pierre. Travail soigné, à la chaux, par des gens qui connaissent le bâti ancien."
-      },
-      {
-        "auteur": "Sophie et Marc D.",
-        "lieu": "Ouistreham",
-        "date": "2025-08",
-        "texte": "Très bon contact, des conseils utiles dès la première visite et une terrasse impeccable."
-      }
-    ]
+    "extraits": []
   },
   "garanties": {
     "decennale": {
-      "assureur": "",
-      "numeroContrat": "",
+      "assureur": "Assurance Exemple (fictive)",
+      "numeroContrat": "DEMO-0000",
       "zone": "France métropolitaine"
     },
     "labels": []
@@ -156,5 +158,7 @@
   "formulaire": {
     "service": "aucun",
     "cle": ""
-  }
+  },
+  "devisGratuit": true,
+  "pagesPrestations": true
 }

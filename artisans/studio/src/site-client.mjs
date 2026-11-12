@@ -25,7 +25,7 @@ export function image(img, { racine = '', alt = '', tailles = '100vw', prioritai
   return html`<img src="${prefixe + f.src}" alt="${alt}" width="${img.largeur}" height="${img.hauteur}" ${attributs}>`;
 }
 
-function aCompleter(valeur, libelle) {
+export function aCompleter(valeur, libelle) {
   if (valeur !== undefined && valeur !== null && String(valeur).trim() !== '') return html`${valeur}`;
   return html`<span class="a-completer">à compléter : ${libelle}</span>`;
 }
@@ -433,7 +433,7 @@ ${blocFormulaire(ctx)}
 /* Données structurées (pour Google)                                   */
 /* ------------------------------------------------------------------ */
 
-function donneesStructurees(ctx) {
+export function donneesStructurees(ctx) {
   const { client, metier, v } = ctx;
   const e = client.entreprise;
   const a = e.adresse || {};
@@ -523,21 +523,15 @@ ${sectionFaq({ ...ctx, v })}
 ${fin(ctx)}`.toString();
 }
 
-export function pageMentions(ctx) {
+/** Texte des mentions légales, commun aux deux gabarits. */
+export function corpsMentions(ctx) {
   const { client, marque } = ctx;
   const e = client.entreprise;
   const a = e.adresse || {};
   const d = (client.garanties && client.garanties.decennale) || {};
   const m = client.mediateur || {};
   const adresse = [a.rue, `${a.codePostal || ''} ${a.ville || ''}`.trim()].filter(Boolean).join(', ');
-  return html`${tete(ctx, { titre: `Mentions légales — ${e.nom}`, description: `Mentions légales du site de ${e.nom}.`, chemin: 'mentions-legales/' })}
-<body>
-${bandeauDemo(ctx)}
-${entete(ctx)}
-<main>
-<div class="page-titre"><div class="conteneur"><h1>Mentions légales</h1></div></div>
-<section class="section"><div class="conteneur"><div class="prose">
-<h2>Éditeur du site</h2>
+  return html`<h2>Éditeur du site</h2>
 <p><strong>${e.nom}</strong> — ${aCompleter(e.statut, 'forme juridique')}<br>
 Adresse : ${aCompleter(a.rue ? adresse : '', 'adresse complète')}<br>
 Téléphone : ${e.telephone || e.mobile}<br>
@@ -554,25 +548,31 @@ Immatriculation : ${aCompleter(e.immatriculation, 'registre et ville d\'immatric
 <h2>Conception du site</h2>
 <p>${marque.nom}${marque.adresseSite ? html` — <a href="${marque.adresseSite}" rel="noopener">${marque.adresseSite}</a>` : ''}.</p>
 <h2>Propriété des contenus</h2>
-<p>Les textes et les photographies de ce site appartiennent à ${e.nom} ou sont utilisés avec l'accord de leurs auteurs. Toute reproduction sans autorisation est interdite.</p>
+<p>Les textes et les photographies de ce site appartiennent à ${e.nom} ou sont utilisés avec l'accord de leurs auteurs. Toute reproduction sans autorisation est interdite.</p>`;
+}
+
+export function pageMentions(ctx) {
+  const e = ctx.client.entreprise;
+  return html`${tete(ctx, { titre: `Mentions légales — ${e.nom}`, description: `Mentions légales du site de ${e.nom}.`, chemin: 'mentions-legales/' })}
+<body>
+${bandeauDemo(ctx)}
+${entete(ctx)}
+<main>
+<div class="page-titre"><div class="conteneur"><h1>Mentions légales</h1></div></div>
+<section class="section"><div class="conteneur"><div class="prose">
+${corpsMentions(ctx)}
 </div></div></section>
 </main>
 ${fin(ctx)}`.toString();
 }
 
-export function pageConfidentialite(ctx) {
+/** Texte de la page de confidentialité, commun aux deux gabarits. */
+export function corpsConfidentialite(ctx) {
   const { client, marque } = ctx;
   const e = client.entreprise;
   const service = (client.formulaire && client.formulaire.service) || 'aucun';
   const nomService = { web3forms: 'Web3Forms', formspree: 'Formspree' }[service];
-  return html`${tete(ctx, { titre: `Confidentialité — ${e.nom}`, description: `Utilisation des données personnelles sur le site de ${e.nom}.`, chemin: 'confidentialite/' })}
-<body>
-${bandeauDemo(ctx)}
-${entete(ctx)}
-<main>
-<div class="page-titre"><div class="conteneur"><h1>Confidentialité</h1><p>Ce site ne dépose aucun cookie publicitaire et ne suit pas votre navigation.</p></div></div>
-<section class="section"><div class="conteneur"><div class="prose">
-<h2>Qui est responsable de vos données ?</h2>
+  return html`<h2>Qui est responsable de vos données ?</h2>
 <p>${e.nom}, ${aCompleter(e.adresse && e.adresse.rue ? `${e.adresse.rue}, ${e.adresse.codePostal} ${e.adresse.ville}` : '', 'adresse')}. Contact : ${aCompleter(e.email, 'email')}.</p>
 <h2>Quelles données, et pour quoi faire ?</h2>
 <p>Lorsque vous utilisez le formulaire de contact ou que vous nous écrivez, nous recevons votre nom, vos coordonnées et la description de votre projet. Ces informations servent uniquement à vous répondre et à établir un devis. Elles ne sont ni vendues ni transmises à des tiers à des fins commerciales.</p>
@@ -583,14 +583,26 @@ ${entete(ctx)}
 <ul>
 <li>${e.nom}, pour traiter votre demande.</li>
 <li>${marque.nom}, qui assure la maintenance technique du site.</li>
-<li>L'hébergeur du site : Cloudflare, Inc. (États-Unis).</li>
+<li>L'hébergeur du site : ${marque.editeur.hebergeur}</li>
 ${nomService ? html`<li>Le service qui achemine les messages du formulaire : ${nomService}.</li>` : ''}
 </ul>
 <p>Certains de ces prestataires sont établis hors de l'Union européenne. Les transferts sont encadrés par les mécanismes prévus par le RGPD (décision d'adéquation ou clauses contractuelles types).</p>
 <h2>Cookies et mesure d'audience</h2>
 <p>Ce site n'utilise aucun cookie de publicité ni de suivi. Si une mesure d'audience est activée, elle est anonyme et fonctionne sans cookie.</p>
 <h2>Vos droits</h2>
-<p>Vous pouvez demander l'accès à vos données, leur rectification ou leur effacement, et vous opposer à leur utilisation, en écrivant à ${aCompleter(e.email, 'email')}. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).</p>
+<p>Vous pouvez demander l'accès à vos données, leur rectification ou leur effacement, et vous opposer à leur utilisation, en écrivant à ${aCompleter(e.email, 'email')}. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).</p>`;
+}
+
+export function pageConfidentialite(ctx) {
+  const e = ctx.client.entreprise;
+  return html`${tete(ctx, { titre: `Confidentialité — ${e.nom}`, description: `Utilisation des données personnelles sur le site de ${e.nom}.`, chemin: 'confidentialite/' })}
+<body>
+${bandeauDemo(ctx)}
+${entete(ctx)}
+<main>
+<div class="page-titre"><div class="conteneur"><h1>Confidentialité</h1><p>Ce site ne dépose aucun cookie publicitaire et ne suit pas votre navigation.</p></div></div>
+<section class="section"><div class="conteneur"><div class="prose">
+${corpsConfidentialite(ctx)}
 </div></div></section>
 </main>
 ${fin(ctx)}`.toString();
