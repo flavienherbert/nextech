@@ -1,0 +1,19 @@
+{
+  "label": "Généré par IA",
+  "segments": [
+    {"type": "clip", "src": "hook.mp4", "duration": 3.75,
+     "captions": [[0.0, 0.8, "ARRÊTE D'ACHETER"], [0.8, 1.82, "DES GOURDES", true],
+                  [1.82, 2.68, "QUI FUIENT", true], [2.68, 3.45, "DANS TON SAC"]]},
+    {"type": "still", "src": "b1_clean.jpg", "vo": "vo1.wav", "duration": 3.7, "zoom": [1.05, 1.16],
+     "focus": [0.15, 0.55], "chip": "Zéro fuite",
+     "captions": [[0.0, 0.8, "CELLE-CI,"], [0.9, 1.64, "TU PEUX LA RETOURNER"],
+                  [1.64, 2.35, "DANS TON SAC"], [2.48, 3.35, "PAS UNE GOUTTE", true]]},
+    {"type": "still", "src": "b2.jpg", "vo": "vo2.wav", "duration": 3.35, "zoom": [1.14, 1.04],
+     "focus": [0.5, 0.35], "chip": "Frais 24 h",
+     "captions": [[0.0, 0.7, "ET TON EAU"], [0.7, 1.42, "RESTE FRAÎCHE"],
+                  [1.42, 3.0, "PENDANT 24 HEURES", true]]},
+    {"type": "still", "src": "b3.jpg", "vo": "vo3.wav", "duration": 4.6, "zoom": [1.0, 1.07],
+     "focus": [0.5, 0.6], "badge": "19 €", "cta": "Lien juste en dessous ↓", "cta_at": 2.2,
+     "captions": [[0.0, 0.85, "19 EUROS,", true], [1.1, 1.95, "LIVRÉE CHEZ TOI"]]}
+  ]
+}

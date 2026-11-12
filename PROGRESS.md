@@ -7,12 +7,12 @@
 | Étude de marché | Faite |
 | Choix du business | Fait : Studio Accroche |
 | Fiches ComeUp et Fiverr | Rédigées, non publiées |
-| Méthode de production | Rédigée, non testée sur une vraie vidéo |
+| Méthode de production | Testée sur 1 vidéo (essai-01), verdict : pas encore vendable à 69 € |
 | Site vitrine | Construit et testé en local, non mis en ligne |
-| Vidéos d'exemple | Aucune |
+| Vidéos d'exemple | 1 essai, non publiable en l'état (son) |
 | SIRET | Non créé |
 | Ventes | 0 |
-| Dépenses | 0 € |
+| Dépenses | 0 € d'achat ; 280 crédits Alexya déjà détenus consommés (solde 37) |
 
 ## Vérifications effectuées sur le site
 
@@ -30,6 +30,10 @@
 - **12/11** — Retenu : vidéos publicitaires avec présentateur IA sur marketplaces de services.
 - **12/11** — Refus des faux témoignages clients et mention IA systématique.
 - **12/11** — Constat : Higgsfield à 0 crédit, Alexya à 317 crédits (≈ 5 s de vidéo). La production demande un budget outil, non engagé.
+
+- **12/11** — Essai n°1 produit : 280 crédits, ~40 min. Image convaincante, son insuffisant (deux voix, pas de musique). Détail dans `production/essai-01/RAPPORT.md`.
+- **12/11** — Format retenu : accroche parlée courte + plans produit + voix off. Un présentateur parlant 15 s en 720p coûterait 1 500 crédits.
+- **12/11** — Nom vérifié (domaines libres, pas d'homonyme dans le secteur), marques INPI à contrôler à la main. Voir ADMIN.md.
 
 ## Relevé hebdomadaire
 

@@ -2,27 +2,23 @@
 
 ## En attente d'une décision du fondateur
 
-1. **Budget exemples** : autoriser 10 à 25 € de crédits vidéo pour produire 3 exemples. Sans exemples, rien n'est publiable.
-2. **Nom** : valider « Studio Accroche » ou en proposer un autre.
-3. **Publication** : autoriser la mise en ligne du site sur Vercel et la publication des fiches, une fois les exemples prêts.
+1. **Écouter l'essai n°1** (`production/essai-01/gourde_v1.mp4`) et dire si « fuient » est bien prononcé et si la voix du clip est acceptable.
+2. **Budget de la version corrigée** : environ 700 à 900 crédits Alexya. Le compte n'en a plus que 37. Relever le prix d'une recharge sans abonnement sur alexya.ai (page connectée) pour que je vérifie que cela tient sous 8 €.
+3. Micro-entreprise : feu vert à donner quand tu le décides (dossier prêt dans ADMIN.md).
 
-## À faire par le fondateur (identité requise)
+## À faire par le fondateur
 
-- [ ] Créer la micro-entreprise sur le guichet unique de l'INPI (gratuit, délai 1 à 2 semaines)
-- [ ] Créer une adresse e-mail dédiée à l'activité
-- [ ] Créer les comptes vendeur ComeUp et Fiverr
-- [ ] Vérifier à l'inscription : SIRET exigé ou non, commission réelle, paliers de prix
-- [ ] Créer 3 liens de paiement Stripe (25 €, 69 €, 129 €) avec redirection vers `/merci`
+- [ ] Vérifier les marques « accroche » sur data.inpi.fr (5 min)
+- [ ] Créer une adresse e-mail dédiée gratuite
+- [ ] Plus tard : comptes ComeUp et Fiverr, liens de paiement Stripe
 
 ## À faire par Claude dès le feu vert
 
-- [ ] Vérifier les tarifs du jour des outils de génération et choisir
-- [ ] Produire 3 vidéos d'exemple et mesurer coût et temps réels
-- [ ] Intégrer les exemples au site, mettre en ligne
-- [ ] Préparer les miniatures des fiches
-- [ ] Adapter le pipeline d'assemblage de `archive/fruit-studio`
+- [ ] Version corrigée : voix unique, clip 720p, musique libre de droits, un plan produit animé
+- [ ] Si la version corrigée est vendable : deux autres exemples dans l'enveloppe de 25 €
+- [ ] Intégrer les exemples au site, préparer les miniatures des fiches
 
 ## Plus tard
 
-- [ ] Faire relire la position « pas de faux témoignage » et les conditions de vente par un professionnel du droit
-- [ ] Désigner un médiateur de la consommation (obligatoire pour vendre à des particuliers)
+- [ ] Relecture juridique des conditions de vente et de la position « pas de faux témoignage »
+- [ ] Médiateur de la consommation

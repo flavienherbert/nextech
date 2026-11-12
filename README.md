@@ -16,6 +16,9 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `TODO.md` | Prochaines actions, dont celles qui attendent une autorisation |
 | `listings/` | Textes des fiches ComeUp et Fiverr, prêts à coller |
 | `production/PROCESS.md` | Méthode du brief à la livraison, contrôle qualité |
+| `production/pipeline/build_ad.py` | Outil d'assemblage vidéo (sous-titres, incrustations, voix off) |
+| `production/essai-01/` | Première publicité test et son rapport |
+| `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
 | `site/` | Site vitrine (Next.js) |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
 

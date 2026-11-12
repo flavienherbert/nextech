@@ -60,6 +60,22 @@ Lecture : l'Essai sert à obtenir le premier avis, pas à gagner de l'argent. La
 
 En vente directe (Stripe), le Pack Test rapporte environ 37 à 45 € nets au lieu de 24 à 32 €.
 
+## Rentabilité mesurée après l'essai n°1 (12/11/2026)
+
+Base : tarifs Alexya relevés (clip parlé 720p = 100 crédits/s, image = 25 crédits), 1 crédit ≈ 0,0044 € au tarif Starter, 50 % d'essais ratés en plus, commission 20 %, cotisations 25,6 % (hypothèse haute). Le prix des recharges sans abonnement reste à relever.
+
+| | Essai 25 € | Pack Test 69 € | Pack Campagne 129 € |
+|---|---|---|---|
+| Crédits (720p, essais ratés inclus) | ~750 | ~1 950 | ~3 800 |
+| Génération | ~3,30 € | ~8,60 € | ~16,70 € |
+| Commission | 5,00 € | 13,80 € | 25,80 € |
+| Cotisations | 6,40 € | 17,65 € | 33,00 € |
+| **Bénéfice net** | **~10 €** | **~29 €** | **~53 €** |
+| Temps | ~55 min | ~1 h 30 | ~2 h 30 |
+| Net par heure | ~11 € | ~19 € | ~21 € |
+
+Ces chiffres supposent le format testé : accroche parlée de 4 s, puis plans produit et voix off. Un présentateur parlant pendant 15 s coûterait environ 6,60 € par prise, ce qui rend l'Essai déficitaire.
+
 ## Coûts
 
 - Fixes : 0 €/mois en paiement à l'usage. Hébergement Vercel gratuit, pas de nom de domaine au départ.
