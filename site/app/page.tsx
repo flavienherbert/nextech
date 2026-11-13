@@ -1,47 +1,25 @@
 import Link from "next/link";
-import FilmPlayer from "./components/FilmPlayer";
-import HeroVideo from "./components/HeroVideo";
-import PlanReel from "./components/PlanReel";
 import Reveal from "./components/Reveal";
-import {
-  angles,
-  chapitres,
-  engagements,
-  etapes,
-  faq,
-  formules,
-  plans,
-  site,
-} from "./config";
+import { BandeauMode, Pied } from "./components/Cadre";
+import { angles, engagements, etapes, faq, site, temps } from "./config";
+import { delaiTexte, euros, formules } from "@/lib/formules";
 
-const defilant = [
-  "Accroche",
-  "Script",
-  "Présentateur IA",
-  "Voix française",
-  "Sous-titres",
-  "Format 9:16",
-  "Livré en 48 h",
-];
-
-const vignettes: Record<string, string[]> = {
-  essai: ["plan-A"],
-  test: ["plan-A", "plan-B", "plan-C"],
-  campagne: ["plan-A", "plan-B", "plan-C", "plan-D", "plan-A", "plan-C"],
-};
+const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", "Format 9:16", "Livré en 48 h"];
+const pile = ["presentatrice", "sac", "glacons", "produit", "presentatrice", "glacons"];
 
 export default function Accueil() {
   return (
     <>
+      <BandeauMode />
       <header className="entete">
         <div className="conteneur entete-ligne">
           <a className="marque" href="#haut">
             Studio <em>Accroche</em>
           </a>
           <nav className="navigation" aria-label="Navigation principale">
-            <a href="#film">Le film</a>
-            <a href="#plans">Les plans</a>
+            <a href="#anatomie">La méthode</a>
             <a href="#formules">Formules</a>
+            <a href="#questions">Questions</a>
           </nav>
           <a className="bouton bouton-petit" href="#formules">
             Commander
@@ -52,7 +30,12 @@ export default function Accueil() {
       <main id="haut">
         {/* ——— Ouverture ——— */}
         <section className="hero">
-          <HeroVideo />
+          <div className="hero-media hero-images" aria-hidden="true">
+            {/* eslint-disable @next/next/no-img-element */}
+            <img src="/media/img/sac.jpg" alt="" />
+            <img src="/media/img/presentatrice.jpg" alt="" />
+            <img src="/media/img/glacons.jpg" alt="" />
+          </div>
           <div className="hero-voile" aria-hidden="true" />
           <div className="grain" aria-hidden="true" />
           <div className="bande-cine bande-haut" aria-hidden="true" />
@@ -76,24 +59,23 @@ export default function Accueil() {
               {site.sousTitre}
             </p>
             <div className="hero-actions monte" style={{ animationDelay: "1.2s" }}>
-              <a className="bouton" href="#film">
-                Voir le film
+              <a className="bouton" href="#formules">
+                Voir les formules
               </a>
-              <a className="bouton bouton-fantome" href="#formules">
-                Commander dès 25 €
-              </a>
+              <Link className="bouton bouton-fantome" href="/commander/essai">
+                Essayer pour 25 €
+              </Link>
             </div>
           </div>
 
           <div className="conteneur hero-pied">
-            <span>Démonstration · images générées par IA</span>
-            <a href="#film" className="defiler">
+            <span>Images de démonstration générées par IA</span>
+            <a href="#anatomie" className="defiler">
               Défiler
             </a>
           </div>
         </section>
 
-        {/* ——— Bandeau défilant ——— */}
         <div className="defilant" aria-hidden="true">
           <div className="defilant-piste">
             {[...defilant, ...defilant, ...defilant, ...defilant].map((m, i) => (
@@ -102,47 +84,36 @@ export default function Accueil() {
           </div>
         </div>
 
-        {/* ——— Le film ——— */}
-        <section className="section" id="film">
+        {/* ——— Anatomie ——— */}
+        <section className="section" id="anatomie">
           <div className="conteneur">
             <Reveal className="tete-section">
-              <p className="surtitre">Le film</p>
+              <p className="surtitre">Anatomie d&apos;une publicité</p>
               <h2>
-                Quatorze secondes, <em>quatre temps.</em>
+                Quinze secondes, <em>quatre temps.</em>
               </h2>
               <p className="intro">
-                Voici une publicité complète, telle que vous la recevez. Lancez-la
-                avec le son, puis cliquez sur un chapitre pour voir comment elle
-                est construite.
+                Chaque vidéo que nous livrons suit la même construction. Voici celle de notre
+                produit de démonstration, plan par plan.
               </p>
             </Reveal>
-            <Reveal delay={120}>
-              <FilmPlayer chapitres={chapitres} />
-            </Reveal>
+            <div className="temps">
+              {temps.map((t, i) => (
+                <Reveal as="article" key={t.numero} delay={i * 110} className="temps-carte">
+                  <div className="temps-cadre">
+                    <img src={`/media/img/${t.image}.jpg`} alt="" loading="lazy" />
+                    <span className="plan-numero">{t.numero}</span>
+                  </div>
+                  <h3>{t.titre}</h3>
+                  <p>{t.texte}</p>
+                </Reveal>
+              ))}
+            </div>
             <p className="mention">
-              Produit et marque fictifs, créés pour cette démonstration.
-              Présentatrice, plans et voix générés par intelligence artificielle.
+              Produit et marque fictifs, créés pour cette démonstration. Présentatrice et décors
+              générés par intelligence artificielle.
             </p>
           </div>
-        </section>
-
-        {/* ——— Plan par plan ——— */}
-        <section className="section section-bord" id="plans">
-          <div className="conteneur">
-            <Reveal className="tete-section">
-              <p className="surtitre">Plan par plan</p>
-              <h2>
-                De vrais plans, <em>pas un diaporama.</em>
-              </h2>
-              <p className="intro">
-                Chaque publicité alterne quatre types de plans. Ce sont eux qui
-                donnent le rythme d&apos;une vidéo de créateur.
-              </p>
-            </Reveal>
-          </div>
-          <Reveal delay={100}>
-            <PlanReel plans={plans} />
-          </Reveal>
         </section>
 
         {/* ——— Les accroches ——— */}
@@ -150,8 +121,7 @@ export default function Accueil() {
           <div className="conteneur">
             <Reveal>
               <p className="manifeste">
-                Une publicité ne rate pas à la dixième seconde.{" "}
-                <em>Elle rate à la troisième.</em>
+                Une publicité ne rate pas à la dixième seconde. <em>Elle rate à la troisième.</em>
               </p>
             </Reveal>
             <div className="angles">
@@ -165,25 +135,25 @@ export default function Accueil() {
             </div>
             <Reveal delay={150}>
               <p className="intro centre-bloc">
-                Même produit, même argumentaire, trois débuts. Vous les diffusez en
-                parallèle et vous gardez celui qui retient.
+                Même produit, même argumentaire, trois débuts. Vous les diffusez en parallèle et
+                vous gardez celui qui retient.
               </p>
             </Reveal>
           </div>
         </section>
 
-        {/* ——— Méthode ——— */}
+        {/* ——— Parcours ——— */}
         <section className="section section-bord" id="methode">
           <div className="conteneur">
             <Reveal className="tete-section">
-              <p className="surtitre">La méthode</p>
+              <p className="surtitre">De la commande à la livraison</p>
               <h2>
                 Sans tournage. <em>Sans colis.</em>
               </h2>
             </Reveal>
-            <ol className="etapes">
+            <ol className="etapes etapes-4">
               {etapes.map((e, i) => (
-                <Reveal as="li" key={e.titre} delay={i * 110}>
+                <Reveal as="li" key={e.titre} delay={i * 90}>
                   <span className="numero">{String(i + 1).padStart(2, "0")}</span>
                   <h3>{e.titre}</h3>
                   <p>{e.texte}</p>
@@ -202,49 +172,49 @@ export default function Accueil() {
                 Un prix par livraison. <em>Pas d&apos;abonnement.</em>
               </h2>
               <p className="intro">
-                Script, présentateur, voix et sous-titres sont inclus dans chaque
-                formule.
+                Script, présentateur, voix et sous-titres sont inclus. Paiement unique par carte.
               </p>
             </Reveal>
             <div className="formules">
               {formules.map((f, i) => (
-                <Reveal
-                  as="article"
-                  key={f.id}
-                  delay={i * 110}
-                  className={`formule${f.misEnAvant ? " formule-avant" : ""}`}
-                >
-                  <div
-                    className={`pile pile-${vignettes[f.id].length}`}
-                    aria-hidden="true"
-                  >
-                    {vignettes[f.id].map((v, k) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img key={k} src={`/media/${v}.jpg`} alt="" loading="lazy" />
+                <Reveal as="article" key={f.id} delay={i * 110} className={`formule${f.misEnAvant ? " formule-avant" : ""}`}>
+                  <div className={`pile pile-${f.videos}`} aria-hidden="true">
+                    {pile.slice(0, f.videos).map((v, k) => (
+                      <img key={k} src={`/media/img/${v}-p.jpg`} alt="" loading="lazy" />
                     ))}
                   </div>
                   {f.misEnAvant && <span className="badge">Le plus utile pour tester</span>}
                   <h3>{f.nom}</h3>
                   <p className="resume">{f.resume}</p>
-                  <p className="prix">{f.prix}</p>
+                  <p className="prix">{euros(f.prixCents)}</p>
+                  <dl className="faits">
+                    <div>
+                      <dt>Vidéos livrées</dt>
+                      <dd>{f.videos}</dd>
+                    </div>
+                    <div>
+                      <dt>Durée</dt>
+                      <dd>{f.duree}</dd>
+                    </div>
+                    <div>
+                      <dt>Délai</dt>
+                      <dd>{delaiTexte(f).replace("Livré en ", "")}</dd>
+                    </div>
+                  </dl>
                   <ul>
-                    {f.points.map((p) => (
+                    {f.points.slice(1).map((p) => (
                       <li key={p}>{p}</li>
                     ))}
                   </ul>
-                  <p className="delai">{f.delai}</p>
-                  <a
-                    className={`bouton bouton-large${f.misEnAvant ? "" : " bouton-fantome"}`}
-                    href={f.lien}
-                  >
-                    Commander
-                  </a>
+                  <Link className={`bouton bouton-large${f.misEnAvant ? "" : " bouton-fantome"}`} href={`/commander/${f.id}`}>
+                    Commander — {euros(f.prixCents)}
+                  </Link>
                 </Reveal>
               ))}
             </div>
             <p className="mention">
-              Options : livraison en 24 h (+15 €), version anglaise (+15 €), script
-              supplémentaire (+10 €).
+              Le délai court à partir de la réception de votre brief. TVA non applicable, article
+              293 B du CGI.
             </p>
           </div>
         </section>
@@ -295,13 +265,12 @@ export default function Accueil() {
                 Votre produit, <em>dans ce cadre.</em>
               </h2>
               <p className="chapeau">
-                Envoyez un lien et trois photos. Le script arrive sous 24 heures,
-                rien n&apos;est produit avant votre accord.
+                Commencez par un essai : une vidéo, un script, 48 heures.
               </p>
               <div className="hero-actions">
-                <a className="bouton" href="#formules">
-                  Choisir une formule
-                </a>
+                <Link className="bouton" href="/commander/essai">
+                  Commander un essai — 25 €
+                </Link>
                 {site.email && (
                   <a className="bouton bouton-fantome" href={`mailto:${site.email}`}>
                     Poser une question
@@ -312,15 +281,7 @@ export default function Accueil() {
           </div>
         </section>
       </main>
-
-      <footer className="pied">
-        <div className="conteneur pied-ligne">
-          <span>
-            © {new Date().getFullYear()} {site.marque}
-          </span>
-          <Link href="/mentions-legales">Mentions légales et conditions</Link>
-        </div>
-      </footer>
+      <Pied />
     </>
   );
 }

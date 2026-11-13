@@ -6,3 +6,4 @@ out
 .vercel
 *.log
 next-env.d.ts
+data

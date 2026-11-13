@@ -1,17 +1,6 @@
 // Tout le contenu modifiable du site est ici.
-// Les liens Stripe, l'e-mail et les mentions légales viennent des variables
-// d'environnement (voir .env.example) : rien de sensible dans le code.
-
-export type Formule = {
-  id: "essai" | "test" | "campagne";
-  nom: string;
-  prix: string;
-  resume: string;
-  points: string[];
-  delai: string;
-  lien: string;
-  misEnAvant?: boolean;
-};
+// Les formules et leurs prix sont dans lib/formules.ts.
+// L'e-mail et les mentions légales viennent des variables d'environnement.
 
 export type Chapitre = { debut: number; titre: string; texte: string };
 export type Plan = { fichier: string; titre: string; texte: string };
@@ -24,14 +13,6 @@ export type Exemple = {
 };
 
 const email = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
-
-function lienCommande(stripe: string | undefined, formule: string): string {
-  if (stripe) return stripe;
-  if (email) {
-    return `mailto:${email}?subject=${encodeURIComponent(`Commande ${formule}`)}`;
-  }
-  return "#contact";
-}
 
 export const site = {
   marque: "Studio Accroche",
@@ -46,74 +27,26 @@ export const site = {
   },
 };
 
-export const formules: Formule[] = [
-  {
-    id: "essai",
-    nom: "Essai",
-    prix: "25 €",
-    resume: "Pour juger le rendu sur votre produit.",
-    points: [
-      "1 vidéo de 10 à 15 secondes",
-      "1 accroche, script inclus",
-      "Sous-titres animés, format 9:16",
-      "1 retouche",
-    ],
-    delai: "Livré en 48 h",
-    lien: lienCommande(process.env.NEXT_PUBLIC_STRIPE_LINK_ESSAI, "Essai"),
-  },
-  {
-    id: "test",
-    nom: "Pack Test",
-    prix: "69 €",
-    resume: "Pour trouver l'accroche qui marche.",
-    points: [
-      "3 vidéos de 15 à 20 secondes",
-      "3 accroches sur 3 angles différents",
-      "Sous-titres animés, format 9:16",
-      "1 retouche par vidéo",
-    ],
-    delai: "Livré en 3 jours",
-    lien: lienCommande(process.env.NEXT_PUBLIC_STRIPE_LINK_TEST, "Pack Test"),
-    misEnAvant: true,
-  },
-  {
-    id: "campagne",
-    nom: "Pack Campagne",
-    prix: "129 €",
-    resume: "Pour alimenter une campagne complète.",
-    points: [
-      "6 vidéos de 15 à 20 secondes",
-      "3 accroches × 2 présentateurs",
-      "Formats 9:16 et 1:1",
-      "2 retouches par vidéo",
-    ],
-    delai: "Livré en 5 jours",
-    lien: lienCommande(
-      process.env.NEXT_PUBLIC_STRIPE_LINK_CAMPAGNE,
-      "Pack Campagne",
-    ),
-  },
-];
-
 // Ajouter ici les vidéos d'exemple une fois produites.
 // La section « Exemples » reste masquée tant que cette liste est vide.
 export const exemples: Exemple[] = [];
 
 export const etapes = [
   {
-    titre: "Vous envoyez le brief",
-    texte:
-      "Lien du produit, trois photos, votre client type et la promesse à mettre en avant.",
+    titre: "Vous commandez",
+    texte: "Vous choisissez une formule et payez par carte sur la page sécurisée de Stripe.",
+  },
+  {
+    titre: "Vous remplissez le brief",
+    texte: "Lien du produit, photos, client type, arguments. Cinq minutes, depuis votre lien privé.",
   },
   {
     titre: "Vous validez le script",
-    texte:
-      "Sous 24 h, vous recevez les accroches et le texte. Rien n'est généré avant votre accord.",
+    texte: "Vous recevez les accroches et le texte. Rien n'est produit avant votre accord.",
   },
   {
-    titre: "Vous recevez les vidéos",
-    texte:
-      "Fichiers MP4 en 1080p, sous-titrés, avec tous les droits d'exploitation publicitaire.",
+    titre: "Vous recevez vos vidéos",
+    texte: "Fichiers MP4 à télécharger depuis votre espace, avec les droits d'exploitation publicitaire.",
   },
 ];
 
@@ -150,7 +83,7 @@ export const faq = [
   },
   {
     q: "Que se passe-t-il si le rendu ne me convient pas ?",
-    r: "Une retouche est incluse dans chaque formule. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.",
+    r: "Chaque formule inclut des retouches, à demander depuis votre espace de commande. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.",
   },
   {
     q: "Y a-t-il un droit de rétractation ?",
@@ -220,4 +153,12 @@ export const angles = [
   { lettre: "A", nom: "Le problème", phrase: "« Arrête d'acheter des gourdes qui fuient dans ton sac. »" },
   { lettre: "B", nom: "Le résultat", phrase: "« Avec elle, ton eau est encore fraîche à 18 heures. »" },
   { lettre: "C", nom: "La curiosité", phrase: "« Cette gourde à 19 € remplace toutes tes bouteilles en plastique. »" },
+];
+
+// Les quatre temps d'une publicité, illustrés par des images fixes.
+export const temps = [
+  { image: "presentatrice", numero: "01", titre: "L'accroche", texte: "Un problème, dit face caméra, en trois secondes." },
+  { image: "sac", numero: "02", titre: "La preuve", texte: "Le geste qui montre le bénéfice avant de le dire." },
+  { image: "glacons", numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
+  { image: "produit", numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
 ];
