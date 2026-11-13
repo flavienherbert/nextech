@@ -16,7 +16,7 @@ export default async function Connexion({ searchParams }: { searchParams: Promis
         <h1 className="titre-page">Studio <em>Accroche</em></h1>
         {!adminConfigure() ? (
           <p className="avis avis-erreur">
-            Espace non configuré : définissez ADMIN_PASSWORD (10 caractères minimum) et SESSION_SECRET (32 caractères minimum).
+            Espace non configuré : définissez ADMIN_PASSWORD (12 caractères minimum) et SESSION_SECRET (32 caractères minimum).
           </p>
         ) : (
           <form action={connexion} className="formulaire">

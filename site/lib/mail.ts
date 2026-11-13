@@ -19,24 +19,59 @@ function gabarit(titre: string, corps: string, bouton?: { texte: string; url: st
 const enTexte = (html: string) =>
   html.replace(/<style[\s\S]*?<\/style>/g, "").replace(/<br\s*\/?>/g, "\n").replace(/<\/(p|h1|li|tr|div)>/g, "\n").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, "\n\n").trim();
 
+// Sépare « Nom <adresse> » en ses deux parties.
+function expediteur() {
+  const m = env.mailFrom().match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  return m ? { nom: m[1] || "Studio Accroche", adresse: m[2] } : { nom: "Studio Accroche", adresse: env.mailFrom().trim() };
+}
+
+type Pilote = { nom: string; envoyer: (a: string, objet: string, html: string, texte: string) => Promise<Response> };
+
+function pilote(): Pilote | null {
+  if (!env.mailFrom()) return null;
+  const e = expediteur();
+  const brevo = process.env.BREVO_API_KEY;
+  if (brevo)
+    return {
+      nom: "brevo",
+      envoyer: (a, objet, html, texte) =>
+        fetch(`${process.env.BREVO_API_BASE || "https://api.brevo.com"}/v3/smtp/email`, {
+          method: "POST",
+          headers: { "api-key": brevo, "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ sender: { name: e.nom, email: e.adresse }, to: [{ email: a }], subject: objet, htmlContent: html, textContent: texte, ...(env.legal().email ? { replyTo: { email: env.legal().email } } : {}) }),
+        }),
+    };
+  if (env.resendKey())
+    return {
+      nom: "resend",
+      envoyer: (a, objet, html, texte) =>
+        fetch(`${process.env.RESEND_API_BASE || "https://api.resend.com"}/emails`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${env.resendKey()}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ from: `${e.nom} <${e.adresse}>`, to: [a], subject: objet, html, text: texte, ...(env.legal().email ? { reply_to: env.legal().email } : {}) }),
+        }),
+    };
+  return null;
+}
+
+export const envoiReel = () => pilote()?.nom ?? null;
+
+// Un e-mail qui échoue ne doit jamais faire échouer la commande : l'échec est archivé et visible.
 async function envoyer(a: string, objet: string, html: string, commande?: string) {
   const m: Courriel = { id: crypto.randomBytes(6).toString("hex"), date: maintenant(), a, objet, html, texte: enTexte(html), commande, pilote: "fichier", resultat: "archivé (aucun envoi réel)" };
+  const p = pilote();
   if (!a) {
     m.resultat = "non envoyé : destinataire manquant";
-  } else if (env.resendKey() && env.mailFrom()) {
-    m.pilote = "resend";
+  } else if (p) {
+    m.pilote = p.nom;
     try {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${env.resendKey()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: env.mailFrom(), to: [a], subject: objet, html, text: m.texte }),
-      });
-      m.resultat = r.ok ? "envoyé" : `échec ${r.status}`;
+      const r = await p.envoyer(a, objet, html, m.texte);
+      m.resultat = r.ok ? "envoyé" : `échec ${r.status} : ${(await r.text()).slice(0, 200)}`;
     } catch (e) {
       m.resultat = `échec : ${(e as Error).message}`;
     }
   }
-  await store.archiverCourriel(m);
+  await store.archiverCourriel(m).catch((e) => console.error("[courriel] archivage impossible :", (e as Error).message));
   return m;
 }
 
@@ -79,7 +114,7 @@ export const courriels = {
 
   livree: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — vos fichiers sont disponibles`,
-      gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement depuis votre lien privé. Conservez cet e-mail : le lien reste valable.</p><p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
+      gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement depuis votre lien privé. Ils y restent disponibles 90 jours : pensez à les enregistrer.</p>${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
 
   // — Administrateur —
   adminPaiement: (c: Commande) =>

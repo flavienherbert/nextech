@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { majNotes, majStatut, retirerLivrable } from "../../actions";
+import { creerFacture, majNotes, majStatut, retirerLivrable } from "../../actions";
+import Livrable from "../../Livrable";
+import { obstaclesFacture } from "@/lib/factures";
 import { exigerAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { delaiTexte, euros, formuleParId } from "@/lib/formules";
@@ -72,6 +74,9 @@ export default async function Detail({ params, searchParams }: { params: Promise
                   {ligne("Arguments", b.arguments)}
                   {ligne("À éviter", b.aEviter)}
                   {ligne("Complément", b.complement)}
+                  {ligne("À facturer à", b.nomFacture)}
+                  {ligne("Adresse de facturation", b.adresseFacture)}
+                  {ligne("SIREN / SIRET", b.sirenClient)}
                 </dl>
               )}
               <h3>Fichiers du client ({c.fichiersClient.length})</h3>
@@ -137,14 +142,33 @@ export default async function Detail({ params, searchParams }: { params: Promise
                   ))}
                 </ul>
               )}
-              <form method="post" action={`/api/admin/commande/${c.id}/livrable`} encType="multipart/form-data" className="formulaire">
-                <label className="champ">
-                  <span>Ajouter une vidéo ou un fichier (40 Mo max.)</span>
-                  <input type="file" name="fichier" accept=".mp4,.mov,.webm,.jpg,.jpeg,.png,.webp,.pdf" required />
-                </label>
-                <button className="bouton bouton-fantome bouton-large" type="submit">Ajouter le livrable</button>
-              </form>
+              <Livrable commande={c.id} />
               <p className="aide">Pour livrer : ajoutez les fichiers, puis passez le statut à « En attente de validation » (le client valide ou demande une retouche) ou directement à « Livrée ».</p>
+            </section>
+
+            <section className="bloc">
+              <h2>Facture</h2>
+              {c.facture ? (
+                <>
+                  <dl className="recap-liste">
+                    <div><dt>Numéro</dt><dd>{c.facture.numero}</dd></div>
+                    <div><dt>Émise le</dt><dd>{quand(c.facture.date)}</dd></div>
+                  </dl>
+                  {c.facture.specimen && <p className="aide">Spécimen de préproduction, sans valeur. Le client ne peut pas le télécharger.</p>}
+                  <p className="actions"><a className="bouton bouton-fantome bouton-petit" href={`/api/admin/facture/${c.id}`}>Télécharger le PDF</a></p>
+                </>
+              ) : obstaclesFacture(c).length ? (
+                <>
+                  <p className="aide">La facture ne peut pas encore être émise :</p>
+                  <ul className="historique">{obstaclesFacture(c).map((o) => (<li key={o}>{o}</li>))}</ul>
+                </>
+              ) : (
+                <form action={creerFacture} className="formulaire">
+                  <input type="hidden" name="id" value={c.id} />
+                  <p className="aide">Elle est émise automatiquement à la livraison. Vous pouvez l&apos;émettre dès maintenant ; un numéro attribué ne peut plus être repris.</p>
+                  <button className="bouton bouton-fantome bouton-large" type="submit">Émettre la facture</button>
+                </form>
+              )}
             </section>
 
             <section className="bloc">

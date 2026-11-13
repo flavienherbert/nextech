@@ -5,6 +5,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 const BASE = process.env.BASE || "http://localhost:3000";
 const MOCK = process.env.MOCK || "http://localhost:4242";
@@ -15,9 +16,11 @@ const CAPTURES = process.env.CAPTURES || "";
 
 const resultats = [];
 const verifier = (nom, ok, detail = "") => { resultats.push({ nom, ok: Boolean(ok) }); console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
-const commandes = () => fs.existsSync(`${DATA}/commandes`) ? fs.readdirSync(`${DATA}/commandes`).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(fs.readFileSync(`${DATA}/commandes/${f}`, "utf8"))) : [];
-const commande = (id) => JSON.parse(fs.readFileSync(`${DATA}/commandes/${id}.json`, "utf8"));
-const courriels = (id) => fs.existsSync(`${DATA}/courriels`) ? fs.readdirSync(`${DATA}/courriels`).map((f) => JSON.parse(fs.readFileSync(`${DATA}/courriels/${f}`, "utf8"))).filter((m) => m.commande === id) : [];
+// Avec le stockage objet, l'état est recopié localement avant chaque lecture.
+const rafraichir = () => { if (process.env.S3_BUCKET) execFileSync(process.execPath, ["scripts/miroir-s3.mjs"], { env: process.env }); };
+const commandes = () => rafraichir() ?? fs.existsSync(`${DATA}/commandes`) ? fs.readdirSync(`${DATA}/commandes`).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(fs.readFileSync(`${DATA}/commandes/${f}`, "utf8"))) : [];
+const commande = (id) => rafraichir() ?? JSON.parse(fs.readFileSync(`${DATA}/commandes/${id}.json`, "utf8"));
+const courriels = (id) => rafraichir() ?? fs.existsSync(`${DATA}/courriels`) ? fs.readdirSync(`${DATA}/courriels`).map((f) => JSON.parse(fs.readFileSync(`${DATA}/courriels/${f}`, "utf8"))).filter((m) => m.commande === id) : [];
 const signer = (corps, secret = SECRET, t = Math.floor(Date.now() / 1000)) => `t=${t},v1=${crypto.createHmac("sha256", secret).update(`${t}.${corps}`).digest("hex")}`;
 const evenement = (type, session, id = `evt_test_${crypto.randomBytes(6).toString("hex")}`) => JSON.stringify({ id, object: "event", type, livemode: false, created: Math.floor(Date.now() / 1000), data: { object: session } });
 const webhook = (corps, signature) => fetch(`${BASE}/api/stripe/webhook`, { method: "POST", headers: { "Content-Type": "application/json", "Stripe-Signature": signature }, body: corps });
@@ -72,7 +75,7 @@ await cap(page, "03-brief");
 // Brief : validation des champs, dépôt de fichiers
 await page.click('form.formulaire button[type="submit"]');
 await page.waitForSelector(".champ-erreur");
-verifier("Brief incomplet refusé avec messages d'erreur", (await page.locator(".champ-erreur").count()) >= 4);
+verifier("Brief incomplet refusé avec messages d'erreur", (await page.locator(".champ-erreur").count()) >= 6);
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 await page.setInputFiles("#depot", [{ name: "produit-face.png", mimeType: "image/png", buffer: png }, { name: "logo.png", mimeType: "image/png", buffer: png }]);
 await page.waitForFunction(() => document.querySelectorAll(".depots li").length === 2);
@@ -80,9 +83,15 @@ verifier("Deux fichiers déposés et listés", true);
 await page.setInputFiles("#depot", [{ name: "virus.exe", mimeType: "application/x-msdownload", buffer: Buffer.from("MZ") }]);
 await page.waitForSelector(".avis-erreur");
 verifier("Fichier au format interdit refusé", (await page.locator(".avis-erreur").textContent()).includes("Format non accepté"));
+await page.setInputFiles("#depot", [{ name: "photo.png", mimeType: "image/png", buffer: Buffer.from("MZ\x90\x00 ceci n'est pas une image") }]);
+await page.waitForFunction(() => document.querySelector(".avis-erreur")?.textContent.includes("contenu"));
+verifier("Fichier déguisé (extension image, contenu différent) refusé", (await page.locator(".depots li").count()) === 2);
 await page.fill('input[name="nom"]', "Marie Durand");
 await page.fill('input[name="marque"]', "Exemple Marque");
 await page.fill('input[name="telephone"]', "06 00 00 00 00");
+await page.fill('input[name="nomFacture"]', "Exemple Marque SAS");
+await page.fill('textarea[name="adresseFacture"]', "12 rue de l'Exemple\n75000 Paris");
+await page.fill('input[name="sirenClient"]', "123456789");
 await page.fill('input[name="lien"]', "https://exemple-marque.fr/produits/gourde");
 await page.fill('input[name="produit"]', "Gourde inox 750 ml");
 await page.selectOption('select[name="style"]', "Complice");
@@ -132,16 +141,15 @@ await admin.selectOption('select[name="statut"]', "en_production");
 await admin.locator('form:has(select[name="statut"]) button').click();
 await admin.waitForURL("**?ok=statut");
 verifier("Statut « En production » + e-mail au client", commande(idCommande).statut === "en_production" && courriels(idCommande).some((x) => x.objet.includes("production lancée")));
-const video = Buffer.concat([Buffer.from("00000018667479706d703432", "hex"), crypto.randomBytes(2048)]);
-await admin.setInputFiles('input[name="fichier"]', { name: "exemple-marque-accroche-A.mp4", mimeType: "video/mp4", buffer: video });
-await admin.locator('form[action$="/livrable"] button').click();
-await admin.waitForURL("**?ok=livrable");
+const video = Buffer.concat([Buffer.from("00000018667479706d703432", "hex"), crypto.randomBytes(3 * 1024 * 1024)]);
+await admin.setInputFiles("#livrable", { name: "exemple-marque-accroche-A.mp4", mimeType: "video/mp4", buffer: video });
+await admin.waitForSelector('.telechargements a:has-text("Voir")');
 verifier("Livrable ajouté par l'administrateur", commande(idCommande).livrables.length === 1);
 const idLivrable = commande(idCommande).livrables[0].id;
 verifier("Livrable non téléchargeable par le client avant mise en validation (404)", (await fetch(`${BASE}/api/commande/${tokenClient}/fichier/${idLivrable}`)).status === 404);
 await admin.selectOption('select[name="statut"]', "attente_validation");
 await admin.locator('form:has(select[name="statut"]) button').click();
-await admin.waitForURL("**?ok=statut");
+await admin.waitForSelector(".admin-tete .etat-attente_validation");
 verifier("Statut « En attente de validation » + e-mail « à valider »", commande(idCommande).statut === "attente_validation" && courriels(idCommande).some((x) => x.objet.includes("à valider")));
 await cap(admin, "06-admin-detail");
 
@@ -151,7 +159,7 @@ await page.reload();
 await page.waitForSelector(".telechargements");
 const r = await fetch(`${BASE}/api/commande/${tokenClient}/fichier/${idLivrable}`);
 const recu = Buffer.from(await r.arrayBuffer());
-verifier("Le client télécharge sa vidéo par son lien privé, fichier intact", r.status === 200 && recu.equals(video) && r.headers.get("content-disposition").includes("attachment"));
+verifier("Le client télécharge sa vidéo par son lien privé, fichier intact (3 Mo)", r.status === 200 && recu.equals(video) && r.headers.get("content-disposition").includes("attachment"));
 verifier("Lien de téléchargement inutilisable avec un autre jeton (404)", (await fetch(`${BASE}/api/commande/${"a".repeat(48)}/fichier/${idLivrable}`)).status === 404);
 await page.click("text=Demander une retouche");
 await page.fill(".validation textarea", "Merci de raccourcir l'accroche de la première vidéo.");
@@ -161,7 +169,7 @@ verifier("Retouche demandée → retour en production + e-mail admin", commande(
 await admin.goto(`${BASE}/admin/commande/${idCommande}`);
 await admin.selectOption('select[name="statut"]', "attente_validation");
 await admin.locator('form:has(select[name="statut"]) button').click();
-await admin.waitForURL("**?ok=statut");
+await admin.waitForSelector(".admin-tete .etat-attente_validation");
 await page.reload();
 await page.click("text=Je valide la livraison");
 await page.waitForSelector("h1:has-text('livrée')");
@@ -178,8 +186,8 @@ await page.waitForSelector(".attente");
 verifier("Arriver sur la page de retour sans avoir payé n'affiche pas le formulaire", (await page.locator("form.formulaire").count()) === 0);
 await cap(page, "08-fausse-confirmation");
 verifier("Envoi d'un brief sans paiement refusé (403)", (await fetch(`${BASE}/api/commande/${f1.c.token}/brief`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nom: "X" }) })).status === 403);
-const fd = new FormData(); fd.append("fichier", new Blob([png], { type: "image/png" }), "a.png");
-verifier("Dépôt de fichier sans paiement refusé (403)", (await fetch(`${BASE}/api/commande/${f1.c.token}/fichiers`, { method: "POST", body: fd })).status === 403);
+const demande = (token, corps) => fetch(`${BASE}/api/commande/${token}/fichiers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+verifier("Dépôt de fichier sans paiement refusé (403)", (await demande(f1.c.token, { nom: "a.png", type: "image/png", taille: png.length })).status === 403);
 
 const s1 = await session(f1.c.paiement.sessionId);
 const faux = evenement("checkout.session.completed", { ...s1, payment_status: "paid", status: "complete" });
@@ -240,7 +248,62 @@ const tardif = evenement("checkout.session.expired", s4);
 await webhook(tardif, signer(tardif));
 verifier("Un événement « expiré » tardif n'annule pas une commande payée", commande(f4.c.id).paiement.etat === "paye");
 
-// ───────────── 6. Divers ─────────────
+// ───────────── 6. Facture ─────────────
+console.log("\n— Facturation —");
+c = commande(idCommande);
+verifier("Facture émise automatiquement à la livraison, numérotée", c.facture && /^(SPECIMEN|F)-\d{4}-0001$/.test(c.facture.numero), JSON.stringify(c.facture));
+verifier("En préproduction, la facture est un spécimen hors série officielle", c.facture?.specimen === true && c.facture.numero.startsWith("SPECIMEN-"));
+const cookies = (await adminCtx.cookies()).map((k) => `${k.name}=${k.value}`).join("; ");
+const pdfR = await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: { Cookie: cookies } });
+const pdf = Buffer.from(await pdfR.arrayBuffer());
+verifier("L'administrateur télécharge la facture en PDF", pdfR.status === 200 && pdf.subarray(0, 5).toString() === "%PDF-" && pdf.length > 1500);
+if (CAPTURES) fs.writeFileSync(`${CAPTURES}/facture-specimen.pdf`, pdf);
+verifier("Facture inaccessible sans session administrateur (401)", (await fetch(`${BASE}/api/admin/facture/${idCommande}`)).status === 401);
+verifier("Un spécimen n'est jamais remis au client (404)", (await fetch(`${BASE}/api/commande/${tokenClient}/facture`)).status === 404);
+verifier("Journal de la commande : émission tracée", c.historique.some((h) => h.evenement.includes(c.facture.numero)));
+// Deuxième commande payée, avec brief, puis facture émise à la main : le numéro suit.
+await admin.goto(`${BASE}/admin/commande/${f4.c.id}`);
+verifier("Sans brief, la facture est bloquée et la raison est affichée", (await admin.locator(".admin-grille").textContent()).includes("brief non reçu"));
+const briefApi = await fetch(`${BASE}/api/commande/${f4.c.token}/brief`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nom: "Paul Martin", email: "paul@exemple.fr", marque: "Deuxième", lien: "https://exemple.fr", produit: "Bougie", style: "Direct", nomFacture: "Paul Martin", adresseFacture: "3 place du Test, 69000 Lyon" }) });
+await admin.reload();
+await admin.click("text=Émettre la facture");
+await admin.waitForURL("**?ok=facture");
+verifier("Deuxième facture : numéro suivant, sans trou ni doublon", briefApi.status === 200 && /-0002$/.test(commande(f4.c.id).facture?.numero || ""), commande(f4.c.id).facture?.numero);
+await admin.goto(`${BASE}/admin/commande/${f4.c.id}`);
+verifier("Une commande n'a jamais deux factures", (await admin.locator("text=Émettre la facture").count()) === 0);
+
+// ───────────── 7. Sécurité des fichiers et de l'administration ─────────────
+console.log("\n— Sécurité —");
+const rsv = await (await demande(f4.c.token, { nom: "x.png", type: "image/png", taille: 10 })).json().catch(() => ({}));
+verifier("Dépôt fermé une fois le brief transmis (409)", (await demande(f4.c.token, { nom: "x.png", type: "image/png", taille: 10 })).status === 409, JSON.stringify(rsv));
+const f5 = await commandeNonPayee("essai");
+await fetch(`${MOCK}/_test/modifier`, { method: "POST", body: JSON.stringify({ session: f5.c.paiement.sessionId, patch: { payment_status: "paid", status: "complete" } }) });
+const ev6 = evenement("checkout.session.completed", await session(f5.c.paiement.sessionId)); await webhook(ev6, signer(ev6));
+verifier("Fichier trop volumineux refusé dès la demande (413)", (await demande(f5.c.token, { nom: "g.mp4", type: "video/mp4", taille: 41 * 1024 * 1024 })).status === 413);
+verifier("Type non autorisé refusé dès la demande (415)", (await demande(f5.c.token, { nom: "page.html", type: "text/html", taille: 100 })).status === 415);
+const aut = await (await demande(f5.c.token, { nom: "ok.png", type: "image/png", taille: png.length })).json();
+const falsifie = aut.jeton.slice(0, -3) + (aut.jeton.endsWith("AAA") ? "BBB" : "AAA");
+const conf = (token, jeton) => fetch(`${BASE}/api/commande/${token}/fichiers/confirmer`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jeton }) });
+verifier("Autorisation d'envoi falsifiée refusée (403)", (await conf(f5.c.token, falsifie)).status === 403);
+verifier("Confirmation sans fichier réellement déposé refusée (409)", (await conf(f5.c.token, aut.jeton)).status === 409);
+verifier("Autorisation d'une commande inutilisable sur une autre (403)", (await conf(f4.c.token, aut.jeton)).status !== 200);
+if (!aut.direct) {
+  verifier("Envoi au serveur sans autorisation valide refusé (403)", (await fetch(`${BASE}/api/depot/${"0".repeat(32)}?j=${falsifie}`, { method: "PUT", body: png })).status === 403);
+  verifier("Envoi plus gros qu'annoncé refusé (413)", (await fetch(`${BASE}${aut.url}`, { method: "PUT", body: Buffer.concat([png, png, png]) })).status === 413);
+}
+verifier("Livrable : demande d'envoi refusée sans session administrateur (401)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status === 401);
+verifier("Livrable : requête venant d'un autre site refusée (403)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookies, Origin: "https://site-malveillant.example" }, body: "{}" })).status === 403);
+const faux2 = (await adminCtx.cookies()).find((k) => k.name === "sa_admin").value.replace(/^\d+/, String(Math.floor(Date.now() / 1000) + 999999));
+verifier("Cookie de session modifié refusé", (await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: { Cookie: `sa_admin=${faux2}` } })).status === 401);
+const hd = (await fetch(`${BASE}/`)).headers, ha = (await fetch(`${BASE}/admin/connexion`)).headers, hc = (await fetch(`${BASE}/commande/${tokenClient}`)).headers;
+verifier("En-têtes de sécurité présents (CSP, anti-cadre, nosniff, HSTS)", hd.get("content-security-policy")?.includes("frame-ancestors 'none'") && hd.get("x-frame-options") === "DENY" && hd.get("x-content-type-options") === "nosniff" && Boolean(hd.get("strict-transport-security")) && !hd.get("x-powered-by"));
+verifier("Le lien secret de commande ne fuit pas vers d'autres sites (Referrer-Policy)", hc.get("referrer-policy") === "same-origin");
+verifier("Administration et pages de commande exclues des moteurs de recherche", ha.get("x-robots-tag")?.includes("noindex") && hc.get("x-robots-tag")?.includes("noindex") && (await (await fetch(`${BASE}/robots.txt`)).text()).includes("/admin"));
+const t0 = Date.now();
+const ech = await fetch(`${BASE}/admin/connexion`, { redirect: "manual" });
+verifier("Page de connexion accessible, sans indice sur le mot de passe", ech.status === 200 && !(await ech.text()).includes(MDP));
+
+// ───────────── 8. Divers ─────────────
 console.log("\n— Pages et liens —");
 verifier("Commande sans cases cochées refusée côté serveur", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "essai" }), redirect: "manual" })).headers.get("location").includes("erreur=conditions"));
 verifier("Formule inconnue → retour à l'accueil", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "gratuit", cgv: "oui", ia: "oui" }), redirect: "manual" })).headers.get("location").endsWith("/#formules"));

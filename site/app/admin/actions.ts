@@ -2,7 +2,8 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession } from "@/lib/auth";
+import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir } from "@/lib/auth";
+import { emettreFacture } from "@/lib/factures";
 import { changerStatut } from "@/lib/commandes";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
@@ -11,7 +12,10 @@ export async function connexion(form: FormData) {
   if (!essaiAutorise(ip)) redirect("/admin/connexion?erreur=essais");
   const valide = motDePasseValide(String(form.get("motdepasse") || ""));
   noterEssai(ip, valide);
-  if (!valide) redirect("/admin/connexion?erreur=refus");
+  if (!valide) {
+    await ralentir();
+    redirect("/admin/connexion?erreur=refus");
+  }
   await ouvrirSession();
   redirect("/admin");
 }
@@ -57,4 +61,12 @@ export async function retirerLivrable(form: FormData) {
   });
   if (retire) await store.supprimerFichier(fichier);
   redirect(`/admin/commande/${id}?ok=retire`);
+}
+
+export async function creerFacture(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  const r = await emettreFacture(id);
+  if (r.obstacles) redirect(`/admin/commande/${id}?erreur=${encodeURIComponent("Facture impossible : " + r.obstacles.join(" ; "))}`);
+  redirect(`/admin/commande/${id}?ok=facture`);
 }

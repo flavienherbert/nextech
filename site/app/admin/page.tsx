@@ -5,6 +5,9 @@ import { exigerAdmin } from "@/lib/auth";
 import { modePaiement } from "@/lib/env";
 import { euros, formuleParId } from "@/lib/formules";
 import { nomStatut, store, STATUTS } from "@/lib/store";
+import { purger } from "@/lib/purge";
+import { depot } from "@/lib/depot";
+import { envoiReel } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Commandes — Administration", robots: { index: false, follow: false } };
@@ -14,6 +17,7 @@ const jour = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "2-di
 export default async function Admin({ searchParams }: { searchParams: Promise<{ statut?: string; tout?: string }> }) {
   await exigerAdmin();
   const q = await searchParams;
+  await purger().catch((e) => console.error("[purge]", (e as Error).message));
   const toutes = await store.commandes();
   // Par défaut, les commandes jamais payées sont masquées : ce ne sont pas des ventes.
   const visibles = toutes.filter((c) => (q.statut ? c.statut === q.statut : q.tout ? true : c.paiement.etat === "paye"));
@@ -26,7 +30,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       <div className="conteneur">
         <div className="admin-tete">
           <div>
-            <p className="surtitre">Administration · paiements : {mode}</p>
+            <p className="surtitre">Administration · paiements : {mode} · stockage : {depot().nom} · e-mails : {envoiReel() ?? "non envoyés"}</p>
             <h1 className="titre-page">Commandes</h1>
           </div>
           <div className="actions">

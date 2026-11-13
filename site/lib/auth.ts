@@ -10,7 +10,7 @@ const DUREE = 12 * 3600; // secondes
 const signer = (v: string) => crypto.createHmac("sha256", env.sessionSecret()).update(v).digest("hex");
 const egal = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
-export const adminConfigure = () => env.adminPassword().length >= 10 && env.sessionSecret().length >= 32;
+export const adminConfigure = () => env.adminPassword().length >= 12 && env.sessionSecret().length >= 32;
 
 // Limite les essais de mot de passe : 5 échecs par quart d'heure et par adresse.
 const essais = new Map<string, { n: number; debut: number }>();
@@ -27,6 +27,9 @@ export function noterEssai(ip: string, reussi: boolean) {
   if (e) e.n += 1;
   else essais.set(ip, { n: 1, debut: Date.now() });
 }
+
+// Chaque échec coûte une seconde : une recherche exhaustive devient impraticable.
+export const ralentir = () => new Promise((ok) => setTimeout(ok, 1000));
 
 export function motDePasseValide(saisi: string): boolean {
   if (!adminConfigure()) return false;
@@ -60,3 +63,9 @@ export async function estAdmin(): Promise<boolean> {
 export async function exigerAdmin() {
   if (!(await estAdmin())) redirect("/admin/connexion");
 }
+
+// Refuse les requêtes déclenchées depuis un autre site.
+export const origineValide = (req: Request) => {
+  const o = req.headers.get("origin");
+  return !o || o === new URL(env.baseUrl()).origin;
+};

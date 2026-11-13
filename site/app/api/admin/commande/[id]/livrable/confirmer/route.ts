@@ -1,7 +1,6 @@
 import { store, journal } from "@/lib/store";
-import { estAdmin } from "@/lib/auth";
+import { estAdmin, origineValide } from "@/lib/auth";
 import { confirmer } from "@/lib/fichiers";
-import { origineValide } from "../route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

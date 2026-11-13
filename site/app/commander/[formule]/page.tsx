@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: "Commander — Studio Accroche", robo
 const messages: Record<string, string> = {
   conditions: "Cochez les deux cases pour continuer.",
   ferme: "Les commandes ne sont pas encore ouvertes.",
+  rythme: "Trop de tentatives. Réessayez dans quelques minutes.",
   paiement: "Le paiement n'a pas pu être préparé. Réessayez dans un instant.",
 };
 

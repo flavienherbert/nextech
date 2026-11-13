@@ -68,6 +68,7 @@ export type Commande = {
   livrables: Fichier[];
   facture?: Facture;
   livreeLe?: string;
+  fichiersPurgesLe?: string;
   retouchesDemandees: { date: string; message: string }[];
   valideeLe?: string;
   notes: string;
@@ -188,14 +189,17 @@ export const store = {
   async suivant(nom: string): Promise<number> {
     if (!sur(nom)) throw new Error("Nom de compteur invalide.");
     const cle = `compteurs/${nom}.json`;
-    for (let essai = 0; essai < 12; essai++) {
-      const lu = await lireJson<{ n: number }>(cle);
-      const n = (lu?.donnees.n ?? 0) + 1;
-      const ok = await depot().ecrire(cle, json({ n, majLe: maintenant() }), lu ? { siVersion: lu.version } : { siAbsent: true });
-      if (ok) return n;
-      await new Promise((r) => setTimeout(r, 30 * (essai + 1)));
-    }
-    throw new Error("Compteur indisponible.");
+    // Au sein d'un processus, les tirages passent un par un ; entre processus,
+    // l'écriture conditionnelle départage, avec reprise et attente aléatoire.
+    return avecVerrou(cle, async () => {
+      for (let essai = 0; essai < 40; essai++) {
+        const lu = await lireJson<{ n: number }>(cle);
+        const n = (lu?.donnees.n ?? 0) + 1;
+        if (await depot().ecrire(cle, json({ n, majLe: maintenant() }), lu ? { siVersion: lu.version } : { siAbsent: true })) return n;
+        await new Promise((r) => setTimeout(r, 20 + Math.random() * 60 * (essai + 1)));
+      }
+      throw new Error("Compteur indisponible.");
+    });
   },
 
   async archiverCourriel(m: Courriel) {

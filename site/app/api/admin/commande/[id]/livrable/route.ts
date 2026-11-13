@@ -1,15 +1,9 @@
 import { store } from "@/lib/store";
-import { estAdmin } from "@/lib/auth";
-import { env } from "@/lib/env";
+import { estAdmin, origineValide } from "@/lib/auth";
 import { reserver } from "@/lib/fichiers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-export const origineValide = (req: Request) => {
-  const o = req.headers.get("origin");
-  return !o || o === new URL(env.baseUrl()).origin;
-};
 
 // Étape 1 du dépôt d'un livrable par l'administrateur.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

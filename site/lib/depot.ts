@@ -79,14 +79,34 @@ function depotDisque(): Depot {
             return false;
           }
         }
-        if (condition?.siVersion) {
+        const remplacer = async () => {
+          const tmp = `${f}.${crypto.randomBytes(4).toString("hex")}.tmp`;
+          await fs.writeFile(tmp, b);
+          await fs.rename(tmp, f);
+          return true;
+        };
+        if (!condition?.siVersion) return remplacer();
+        // « Lire, comparer, écrire » doit être indivisible même entre plusieurs processus :
+        // un fichier-verrou créé en exclusivité protège la séquence.
+        const verrou = `${f}.verrou`;
+        for (let essai = 0; ; essai++) {
+          try {
+            await fs.writeFile(verrou, String(process.pid), { flag: "wx" });
+            break;
+          } catch {
+            const age = await fs.stat(verrou).then((x) => Date.now() - x.mtimeMs, () => 0);
+            if (age > 10_000) await fs.rm(verrou, { force: true }); // verrou abandonné par un processus interrompu
+            else if (essai > 400) return false;
+            else await new Promise((ok) => setTimeout(ok, 5 + Math.random() * 20));
+          }
+        }
+        try {
           const courant = await fs.readFile(f).catch(() => null);
           if (!courant || version(courant) !== condition.siVersion) return false;
+          return await remplacer();
+        } finally {
+          await fs.rm(verrou, { force: true });
         }
-        const tmp = `${f}.${crypto.randomBytes(4).toString("hex")}.tmp`;
-        await fs.writeFile(tmp, b);
-        await fs.rename(tmp, f);
-        return true;
       });
     },
     async supprimer(cle) {
@@ -95,7 +115,7 @@ function depotDisque(): Depot {
     async lister(prefixe) {
       try {
         const dossier = chemin(prefixe);
-        return (await fs.readdir(dossier)).filter((n) => !n.endsWith(".tmp")).map((n) => `${prefixe.replace(/\/$/, "")}/${n}`);
+        return (await fs.readdir(dossier)).filter((n) => !n.endsWith(".tmp") && !n.endsWith(".verrou")).map((n) => `${prefixe.replace(/\/$/, "")}/${n}`);
       } catch {
         return [];
       }

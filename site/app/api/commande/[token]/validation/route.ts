@@ -1,6 +1,6 @@
 import { store, journal, maintenant } from "@/lib/store";
 import { courriels } from "@/lib/mail";
-import { retouchesMax } from "@/lib/commandes";
+import { facturerSiPossible, retouchesMax } from "@/lib/commandes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,10 +17,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       if (cmd.statut !== "attente_validation") return false;
       cmd.statut = "livree";
       cmd.valideeLe = maintenant();
+      cmd.livreeLe = cmd.valideeLe;
       journal(cmd, "Livraison validée par le client.");
     });
     if (maj?.statut === "livree") {
-      await courriels.livree(maj);
+      await facturerSiPossible(maj.id);
+      await courriels.livree((await store.commande(maj.id)) || maj);
       await courriels.adminValidation(maj);
     }
     return Response.json({ ok: true });

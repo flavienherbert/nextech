@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { env, modePaiement } from "./env";
 import { stripe } from "./stripe";
 import { courriels } from "./mail";
+import { emettreFacture } from "./factures";
 import { formuleParId, type FormuleId } from "./formules";
 import { store, journal, maintenant, nouveauNumero, nouveauToken, type Brief, type Commande, type Statut } from "./store";
 
@@ -129,14 +130,26 @@ export async function changerStatut(id: string, statut: Statut, prevenirClient: 
     if (cmd.statut === statut) return false;
     change = true;
     cmd.statut = statut;
+    if (statut === "livree") cmd.livreeLe = maintenant();
     journal(cmd, `Statut passé à « ${statut} » par l'administrateur.`);
   });
+  if (c && change && statut === "livree") await facturerSiPossible(id);
   if (c && change && prevenirClient) {
     if (statut === "en_production") await courriels.enProduction(c);
     if (statut === "attente_validation") await courriels.aValider(c);
     if (statut === "livree") await courriels.livree(c);
   }
   return c;
+}
+
+// À la livraison, la facture est émise si toutes les informations sont réunies.
+// Une facture impossible ne bloque jamais la livraison : elle reste à émettre depuis l'administration.
+export async function facturerSiPossible(id: string) {
+  try {
+    await emettreFacture(id);
+  } catch (e) {
+    console.error("[facture]", id, (e as Error).message);
+  }
 }
 
 export const retouchesMax = (c: Commande) => {

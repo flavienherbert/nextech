@@ -89,7 +89,9 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                   {(c.statut === "attente_validation" || c.statut === "livree") && (
                     <section className="bloc">
                       <h2>{c.statut === "livree" ? "Vos fichiers" : "Votre livraison"}</h2>
-                      {c.livrables.length === 0 ? (
+                      {c.fichiersPurgesLe ? (
+                        <p className="aide">Les fichiers de cette commande ont été supprimés à l&apos;issue des 90 jours de conservation.</p>
+                      ) : c.livrables.length === 0 ? (
                         <p className="aide">Les fichiers arrivent.</p>
                       ) : (
                         <ul className="telechargements">
@@ -122,7 +124,10 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                       <div><dt>Délai</dt><dd>{delaiTexte(f)} après réception du brief</dd></div>
                       <div><dt>Marque</dt><dd>{c.brief.marque}</dd></div>
                       <div><dt>Produit</dt><dd>{c.brief.produit}</dd></div>
-                      <div><dt>Fichiers transmis</dt><dd>{c.fichiersClient.length}</dd></div>
+                      <div><dt>Fichiers transmis</dt><dd>{c.fichiersPurgesLe ? "supprimés" : c.fichiersClient.length}</dd></div>
+                      {c.facture && !c.facture.specimen && (
+                        <div><dt>Facture</dt><dd><a href={`/api/commande/${token}/facture`}>Télécharger la facture n° {c.facture.numero}</a></dd></div>
+                      )}
                     </dl>
                     <p className="aide">Conservez l&apos;adresse de cette page : c&apos;est votre lien privé de suivi et de téléchargement.</p>
                   </section>
