@@ -1,4 +1,4 @@
-import { store } from "@/lib/store";
+import { cleFichier, store } from "@/lib/store";
 import { reponseFichier } from "@/lib/fichiers";
 
 export const runtime = "nodejs";
@@ -11,5 +11,5 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
   const c = await store.commandeParToken(token);
   if (!c || !["attente_validation", "livree"].includes(c.statut)) return new Response("Introuvable", { status: 404 });
   const f = c.livrables.find((x) => x.id === id);
-  return f ? reponseFichier(f) : new Response("Introuvable", { status: 404 });
+  return f ? reponseFichier(cleFichier(f.id), f.nom, f.taille) : new Response("Introuvable", { status: 404 });
 }

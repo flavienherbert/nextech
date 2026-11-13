@@ -1,4 +1,4 @@
-import { store } from "@/lib/store";
+import { cleFichier, store } from "@/lib/store";
 import { estAdmin } from "@/lib/auth";
 import { reponseFichier } from "@/lib/fichiers";
 
@@ -10,5 +10,5 @@ export async function GET(_: Request, { params }: { params: Promise<{ commande: 
   const { commande, id } = await params;
   const c = await store.commande(commande);
   const f = c ? [...c.fichiersClient, ...c.livrables].find((x) => x.id === id) : undefined;
-  return f ? reponseFichier(f) : new Response("Introuvable", { status: 404 });
+  return f ? reponseFichier(cleFichier(f.id), f.nom, f.taille) : new Response("Introuvable", { status: 404 });
 }

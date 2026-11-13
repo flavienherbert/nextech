@@ -87,7 +87,9 @@ export function validerBrief(d: Record<string, unknown>): { brief?: Brief; erreu
     nom: propre(d.nom, 120), email: propre(d.email, 160).toLowerCase(), telephone: propre(d.telephone, 40),
     marque: propre(d.marque, 120), lien: propre(d.lien, 500), produit: propre(d.produit, 300),
     style: propre(d.style, 60), cible: propre(d.cible, 600), arguments: propre(d.arguments, 3000),
-    aEviter: propre(d.aEviter, 1500), complement: propre(d.complement, 3000), recuLe: maintenant(),
+    aEviter: propre(d.aEviter, 1500), complement: propre(d.complement, 3000),
+    nomFacture: propre(d.nomFacture, 160), adresseFacture: propre(d.adresseFacture, 400), sirenClient: propre(d.sirenClient, 20).replace(/\s/g, ""),
+    recuLe: maintenant(),
   };
   const e: Record<string, string> = {};
   if (b.nom.length < 2) e.nom = "Indiquez votre nom.";
@@ -101,6 +103,9 @@ export function validerBrief(d: Record<string, unknown>): { brief?: Brief; erreu
   }
   if (b.produit.length < 2) e.produit = "Indiquez le produit à mettre en avant.";
   if (!b.style) e.style = "Choisissez un style.";
+  if (b.nomFacture.length < 2) e.nomFacture = "Indiquez le nom à facturer.";
+  if (b.adresseFacture.length < 8) e.adresseFacture = "Indiquez l'adresse de facturation complète.";
+  if (b.sirenClient && !/^(\d{9}|\d{14})$/.test(b.sirenClient)) e.sirenClient = "9 chiffres (SIREN) ou 14 chiffres (SIRET).";
   return Object.keys(e).length ? { erreurs: e } : { brief: b, erreurs: {} };
 }
 

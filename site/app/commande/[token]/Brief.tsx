@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { envoyerFichier } from "../../components/envoi";
 
 type Depot = { id: string; nom: string; taille: number };
 const STYLES = ["Direct", "Complice", "Haut de gamme", "Drôle", "Je vous laisse choisir"];
@@ -20,20 +21,12 @@ export default function Brief({ token, emailConnu, fichiers }: { token: string; 
     setMessage("");
     for (const f of Array.from(liste)) {
       setEnvoi(f.name);
-      const corps = new FormData();
-      corps.append("fichier", f);
-      try {
-        const r = await fetch(`/api/commande/${token}/fichiers`, { method: "POST", body: corps });
-        const d = await r.json();
-        if (!r.ok) {
-          setMessage(`${f.name} : ${d.erreur || "envoi refusé"}`);
-          break;
-        }
-        setDepots((x) => [...x, d]);
-      } catch {
-        setMessage(`${f.name} : envoi interrompu.`);
+      const d = await envoyerFichier(`/api/commande/${token}/fichiers`, f);
+      if (d.erreur || !d.id) {
+        setMessage(`${f.name} : ${d.erreur || "envoi refusé"}`);
         break;
       }
+      setDepots((x) => [...x, { id: d.id!, nom: d.nom!, taille: d.taille! }]);
     }
     setEnvoi(null);
     if (champFichier.current) champFichier.current.value = "";
@@ -92,6 +85,19 @@ export default function Brief({ token, emailConnu, fichiers }: { token: string; 
           {champ("marque", "Nom de la marque *", { required: true, autoComplete: "organization" })}
           {champ("telephone", "Téléphone", { type: "tel", autoComplete: "tel" }, "Facultatif. Utilisé uniquement en cas de question urgente.")}
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Facturation</legend>
+        <div className="grille-champs">
+          {champ("nomFacture", "Nom ou raison sociale à facturer *", { required: true }, "Tel qu'il doit figurer sur la facture.")}
+          {champ("sirenClient", "SIREN ou SIRET", { inputMode: "numeric" }, "Pour les professionnels. Laissez vide si vous êtes un particulier.")}
+        </div>
+        <label className="champ champ-large">
+          <span>Adresse de facturation *</span>
+          <textarea name="adresseFacture" rows={2} aria-invalid={Boolean(erreurs.adresseFacture)} required autoComplete="street-address" />
+          {erreurs.adresseFacture && <em className="champ-erreur">{erreurs.adresseFacture}</em>}
+        </label>
       </fieldset>
 
       <fieldset>
