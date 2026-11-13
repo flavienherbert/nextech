@@ -12,17 +12,20 @@ const egal = (a: string, b: string) => a.length === b.length && crypto.timingSaf
 
 export const adminConfigure = () => env.adminPassword().length >= 10 && env.sessionSecret().length >= 32;
 
-// Limite les essais de mot de passe : 5 par quart d'heure et par adresse.
+// Limite les essais de mot de passe : 5 échecs par quart d'heure et par adresse.
 const essais = new Map<string, { n: number; debut: number }>();
 export function essaiAutorise(ip: string): boolean {
-  const t = Date.now();
   const e = essais.get(ip);
-  if (!e || t - e.debut > 15 * 60_000) {
-    essais.set(ip, { n: 1, debut: t });
-    return true;
-  }
-  e.n += 1;
-  return e.n <= 5;
+  if (e && Date.now() - e.debut > 15 * 60_000) essais.delete(ip);
+  return (essais.get(ip)?.n ?? 0) < 5;
+}
+
+// Seuls les échecs sont comptés ; une connexion réussie remet le compteur à zéro.
+export function noterEssai(ip: string, reussi: boolean) {
+  if (reussi) return void essais.delete(ip);
+  const e = essais.get(ip);
+  if (e) e.n += 1;
+  else essais.set(ip, { n: 1, debut: Date.now() });
 }
 
 export function motDePasseValide(saisi: string): boolean {

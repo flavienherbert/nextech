@@ -8,6 +8,7 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 
 | Fichier | Contenu |
 |---|---|
+| `LANCEMENT.md` | État réel : ce qui fonctionne, ce qui reste, ce qui dépend du fondateur |
 | `RESEARCH.md` | Étude de marché : 12 opportunités comparées, mesures et sources |
 | `BUSINESS.md` | Offre, prix, marges, objectifs |
 | `MARKETING.md` | Canaux d'acquisition, scripts vidéo, arguments |
@@ -23,31 +24,22 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `production/pipeline/make_site_media.sh` | Fabrique les vidéos du site à partir d'une publicité |
 | `publicite-studio/CONCEPT.md` | Concept, storyboard, script et prompts de la publicité du studio |
 | `publicite-studio/studio-accroche-pub-v0.mp4` | Version sans génération de la publicité (22 s) ; `animation/` contient de quoi la reconstruire |
+| `commercial/VERIFICATION.md` | Vérification visuelle des prospects |
 | `commercial/ACCROCHES.md` | Trois accroches pour chacun des 8 prospects prioritaires |
+| `commercial/MESSAGES.md` | Huit messages personnalisés prêts à envoyer |
 | `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
-| `site/` | Site vitrine (Next.js) |
+| `site/` | Site de vente et de gestion des commandes (voir `site/README.md`) |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
 
-## Lancer le site en local
+## Tester le site
 
 ```bash
 cd site
 npm install
-cp .env.example .env.local   # puis remplir les valeurs
-npm run dev                  # http://localhost:3000
+npm run demo      # http://localhost:3000 — administration : /admin, mot de passe « demonstration »
 ```
 
-## Mettre en ligne (Vercel)
-
-1. Importer le dépôt dans Vercel et choisir `site` comme dossier racine.
-2. Renseigner les variables d'environnement listées dans `site/.env.example`.
-3. Dans chaque lien de paiement Stripe, régler la redirection après paiement sur `https://<domaine>/merci`.
-
-Ne pas mettre en ligne avant d'avoir : le SIRET, les mentions légales complètes, une adresse e-mail dédiée et au moins 3 vidéos d'exemple.
-
-## Ajouter des vidéos d'exemple
-
-Déposer les fichiers MP4 dans `site/public/exemples/` et les déclarer dans la liste `exemples` de `site/app/config.ts`. La section apparaît automatiquement.
+Le paiement est simulé, rien n'est débité. Détails et mise en service dans `site/README.md`.
 
 ## Règles
 

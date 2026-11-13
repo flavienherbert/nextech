@@ -8,7 +8,7 @@
 | Choix du business | Fait : Studio Accroche |
 | Fiches ComeUp et Fiverr | Rédigées, non publiées |
 | Méthode de production | Testée sur 1 vidéo (essai-01), verdict : pas encore vendable à 69 € |
-| Site vitrine | Refonte cinématique faite et testée en local (13/11), non mis en ligne |
+| Site | Système de commande complet, 63 tests réussis en local contre un simulateur Stripe ; non mis en ligne, non testé contre le vrai Stripe |
 | Vidéos d'exemple | 1 essai, non publiable en l'état (son) |
 | SIRET | Non créé |
 | Ventes | 0 |
@@ -39,6 +39,12 @@
 - **13/11** — Refonte de la page de vente : film d'accueil en trois volets, lecteur à chapitres, bande d'extraits, formules illustrées. Aucun faux client ni faux avis ; tout est présenté comme démonstration.
 - **13/11** — 25 prospects identifiés (15 vérifiés, 10 partiels), aucun contacté. Méthode retenue : cinq messages personnalisés par semaine, avec trois accroches offertes.
 - **13/11** — Constat : sans SIRET, aucun encaissement possible. C'est le point bloquant du premier client.
+
+- **13/11** — Publicité du studio mise en pause par le fondateur. Priorité au système commercial.
+- **13/11** — Paiement : sessions Stripe créées par le site et confirmées par webhook signé, à la place de simples liens de paiement. Une clé réelle est refusée sans autorisation explicite et mentions légales complètes.
+- **13/11** — Accueil : visuels fixes à la place des vidéos, à la demande du fondateur. Les fichiers vidéo restent dans le dépôt, non affichés.
+- **13/11** — Stockage sur disque local, indépendant de l'hébergeur. L'offre gratuite de Vercel interdisant l'usage commercial, le choix de l'hébergement reste ouvert.
+- **13/11** — Prospects revérifiés visuellement : OCNI Factory retirée (déjà très équipée en vidéo), remplacée par La Fille des Carnets ; trois accroches corrigées.
 
 ## Relevé hebdomadaire
 

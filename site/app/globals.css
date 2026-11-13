@@ -1196,8 +1196,9 @@ details p {
   border-bottom: 1px solid rgba(255, 90, 43, 0.4);
 }
 
-.bandeau-mode + .entete {
-  top: 37px;
+.bandeau-mode + .entete:not(.entete-simple) {
+  position: absolute;
+  top: auto;
 }
 
 .entete-simple {
@@ -2077,4 +2078,14 @@ button.bouton-petit {
   .admin-grille {
     grid-template-columns: 1.45fr 1fr;
   }
+}
+
+.admin-grille > *,
+.recap-liste dd,
+.bloc {
+  min-width: 0;
+}
+
+.bloc {
+  overflow-wrap: anywhere;
 }

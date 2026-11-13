@@ -2,14 +2,16 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, ouvrirSession } from "@/lib/auth";
+import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession } from "@/lib/auth";
 import { changerStatut } from "@/lib/commandes";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
 export async function connexion(form: FormData) {
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0].trim() || "local";
   if (!essaiAutorise(ip)) redirect("/admin/connexion?erreur=essais");
-  if (!motDePasseValide(String(form.get("motdepasse") || ""))) redirect("/admin/connexion?erreur=refus");
+  const valide = motDePasseValide(String(form.get("motdepasse") || ""));
+  noterEssai(ip, valide);
+  if (!valide) redirect("/admin/connexion?erreur=refus");
   await ouvrirSession();
   redirect("/admin");
 }

@@ -1,27 +1,27 @@
 # TODO
 
-## Décisions attendues du fondateur
+Le détail et l'ordre sont dans `LANCEMENT.md`.
 
-1. **Lancer la micro-entreprise** (dossier dans ADMIN.md). Sans SIRET, aucun client ne peut payer.
-2. **Autoriser la mise en ligne du site** une fois les mentions légales complètes.
-3. **Valider le son** de `production/essai-01/gourde_v2.mp4`.
+## Attendu du fondateur
 
-## À faire par le fondateur
+1. Tester une commande complète en local (`site/README.md`).
+2. Fournir une clé Stripe de test pour la vérification réelle.
+3. Lancer la micro-entreprise (dossier dans `ADMIN.md`).
+4. Créer l'adresse e-mail dédiée.
+5. Choisir l'hébergeur et le médiateur de la consommation.
+6. Faire relire les conditions de vente.
 
-- [ ] Créer l'adresse e-mail du studio (gratuite)
-- [ ] Vérifier les marques « accroche » sur data.inpi.fr
-- [ ] Revérifier à l'œil l'observation de chaque prospect avant de lui écrire
-- [ ] Envoyer les 8 premiers messages (modèles dans commercial/PLAN.md)
-- [ ] Produire une seconde démonstration dans une autre catégorie (bougie ou soin)
-- [ ] Après le SIRET : liens de paiement Stripe, comptes ComeUp et Fiverr
+## À faire par Claude ensuite
 
-## À faire par Claude sur demande
+- [ ] Test contre Stripe en mode test
+- [ ] Adaptation du stockage à l'hébergeur retenu
+- [ ] Envoi réel des e-mails
+- [ ] Facture PDF par commande
+- [ ] Suppression automatique des fichiers après 90 jours
+- [ ] Reprise de la publicité du studio (en pause)
 
-- [ ] Écrire les trois accroches de chacun des 8 prospects prioritaires
-- [ ] Monter la seconde démonstration et l'ajouter à la page
-- [ ] Préparer le déploiement Vercel et les miniatures des fiches
+## Commercial (après mise en ligne et SIRET)
 
-## Plus tard
-
-- [ ] Relecture juridique des conditions de vente
-- [ ] Médiateur de la consommation
+- [ ] Ouvrir à la main les comptes Instagram des 8 prospects prioritaires
+- [ ] Envoyer les messages de `commercial/MESSAGES.md`, un par un
+- [ ] Publier les fiches ComeUp et Fiverr

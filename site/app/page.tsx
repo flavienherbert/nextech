@@ -4,6 +4,8 @@ import { BandeauMode, Pied } from "./components/Cadre";
 import { angles, engagements, etapes, faq, site, temps } from "./config";
 import { delaiTexte, euros, formules } from "@/lib/formules";
 
+export const dynamic = "force-dynamic";
+
 const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", "Format 9:16", "Livré en 48 h"];
 const pile = ["presentatrice", "sac", "glacons", "produit", "presentatrice", "glacons"];
 

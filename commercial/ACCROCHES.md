@@ -1,75 +1,75 @@
 # Accroches pour les 8 prospects prioritaires
 
-Trois débuts de vidéo par marque, à coller dans le message type de `PLAN.md`. Chaque accroche s'appuie uniquement sur ce que la fiche de `PROSPECTS.md` a relevé. Avant d'envoyer, revérifie sur le site le fait cité (prix, nouveauté, date) : s'il a changé, adapte la phrase.
+Version du 13 novembre 2026, réécrite après vérification des sites (voir `VERIFICATION.md`). Trois débuts de vidéo par marque, repris dans `MESSAGES.md`.
 
-Angles : **A** le problème, **B** le résultat, **C** la curiosité. Aucune promesse santé, aucun faux témoignage.
+Chaque accroche repose sur un fait lu sur le site de la marque ce jour-là. Les suppositions de la version précédente ont été corrigées ou remplacées. OCNI Factory a été retirée (marque déjà très équipée en vidéo) et remplacée par La Fille des Carnets.
+
+Angles : **A** le problème, **B** le résultat, **C** la curiosité. De 8 à 14 mots, aucune promesse santé, aucun faux témoignage, aucune comparaison avec un concurrent.
+
+Avant d'envoyer, relis sur le site le fait indiqué : s'il a changé, adapte la phrase.
 
 ## 1. Zeste — gourdes en inox fabriquées en France
 
-Fait à revérifier : réouverture des commandes annoncée pour la mi-novembre.
+Faits confirmés : bandeau « les commandes réouvriront à partir de mi-novembre » ; gourde à 39 €, affichée « épuisée » ; « garantie à vie ».
 
-- A. « Encore une gourde en plastique qui finit au fond d'un placard ? »
-- B. « La gourde en inox fabriquée en France est de nouveau disponible. »
-- C. « Elle était en rupture. Elle revient mi-novembre. »
+- A. « Tu attends de pouvoir commander ta gourde en inox ? »
+- B. « Une gourde en inox fabriquée en France, et garantie à vie. »
+- C. « Elle était épuisée. Les commandes rouvrent à partir de mi-novembre. »
 
-## 2. OCNI Factory — crayons d'assaisonnement à tailler
+Si les commandes ont déjà rouvert le jour de l'envoi, remplace C par : « Elle était épuisée. La gourde fabriquée en France est de retour. »
 
-Fait à revérifier : coffret de 3 crayons à 27,50 €, coffrets de fin d'année.
+## 2. Ptitcul — coussin nomade isolant et imperméable
 
-- A. « Tu assaisonnes encore tes plats avec une salière ? »
-- B. « Trois tours de taille-crayon, et ton assiette change de goût. »
-- C. « Ce crayon ne sert pas à écrire. Il se taille au-dessus de l'assiette. »
-
-## 3. Le Parais — bougies parfumées en cire végétale
-
-Fait à revérifier : nouveautés et collection Noël annoncées.
-
-- A. « Ta bougie sent bon dans le pot, et plus rien une fois allumée ? »
-- B. « Une bougie, et toute la pièce sent le linge propre. »
-- C. « Cette bougie est coulée en Provence, et elle se recharge. »
-
-Note : l'accroche C suppose que les recharges concernent les bougies. La fiche mentionne « diffuseurs et recharges » sans préciser : vérifie avant d'envoyer.
-
-## 4. Topla — jeux de société
-
-Fait à revérifier : lancement du jeu Houblon annoncé en page d'accueil.
-
-- A. « Marre de ressortir le même jeu à chaque repas de famille ? »
-- B. « Dix minutes de règles, et tout le monde joue. »
-- C. « Le nouveau jeu de Topla s'appelle Houblon. Voici comment on y joue. »
-
-Note : l'accroche B suppose des règles rapides, ce que la fiche n'indique pas. Garde-la seulement si le site le confirme.
-
-## 5. Ptitcul — coussin nomade isolant et imperméable
-
-Fait à revérifier : aucun prix affiché sur la page d'accueil.
+Faits confirmés : coussin à 29 €, moins de 100 g, isolant et imperméable, fabriqué dans la Loire par un ESAT à partir de matériaux upcyclés.
 
 - A. « Tu t'assois encore par terre sur un sol froid et mouillé ? »
-- B. « Un coussin dans le sac, et tu t'assois partout dehors. »
-- C. « Ce coussin est imperméable, isolant, et fabriqué dans la Loire. »
+- B. « Un coussin de moins de cent grammes, et tu t'assois partout. »
+- C. « Ce coussin est fabriqué dans la Loire, à partir de matériaux upcyclés. »
 
-## 6. Moomie — langes et vêtements bébé
+## 3. Le Paraïs — bougies parfumées en cire végétale
 
-Fait à revérifier : nouvelle collection « Little New York », langes de 20 à 26 €.
+Faits confirmés : bougie « Linge frais » dès 11,90 € ; bougies coulées à la main en Provence, parfums de Grasse ; collection Noël annoncée et collection festive en ligne.
 
-- A. « Un bavoir, une couverture, un protège-épaule : trois achats pour rien. »
-- B. « Un seul lange fait les trois. »
-- C. « Ce carré de tissu est cousu en Ardèche, en petites séries. »
+- A. « À un mois des fêtes, ta maison ne sent toujours pas Noël ? »
+- B. « Une bougie allumée, et le salon sent le linge frais. »
+- C. « Cette bougie est coulée à la main en Provence, parfum de Grasse. »
 
-## 7. Pomlie — bougies artisanales
+## 4. Pomlie — bougies artisanales
 
-Fait à revérifier : promotion de −35 % sur une sélection de bougies.
+Faits confirmés : sélection de bougies à −35 % (15,60 € au lieu de 24 €), sans code ; bougies coulées à la main en France ; environ 50 heures de combustion.
 
-- A. « Tu paies ta bougie plus cher que le parfum qu'elle laisse ? »
-- B. « Une bougie coulée à la main, qui parfume tout le salon. »
-- C. « En ce moment, ces bougies artisanales sont à −35 %. »
+- A. « Tu hésites toujours devant le prix d'une bougie artisanale ? »
+- B. « Une bougie coulée à la main, environ cinquante heures de combustion. »
+- C. « En ce moment, une sélection de bougies Pomlie est à −35 %. »
 
-## 8. Monzémaré — bracelets en corde gravés
+## 5. Monzémaré — bracelets en paracorde gravés
 
-Fait à revérifier : nouveauté « bracelets cordons », message de fêtes en page d'accueil.
+Faits confirmés : bracelets en paracorde noués à la main près de Saint-Malo, 35 à 45 € ; gravure personnalisée en option ; message de fêtes sur l'accueil.
 
-- A. « Encore un cadeau acheté à la dernière minute ? »
-- B. « Un bracelet en corde gravé à son prénom, fabriqué près de Saint-Malo. »
-- C. « Ce bracelet est fait avec de la vraie corde de marin. »
+- A. « Encore un cadeau de Noël acheté à la dernière minute ? »
+- B. « Un bracelet noué à la main en Bretagne, gravé à son prénom. »
+- C. « Ce bracelet est en paracorde, la corde autrefois utilisée pour les parachutes. »
 
-Note : l'accroche C suppose une corde de type marin, ce que la fiche ne confirme pas. Vérifie la matière sur le site.
+## 6. La Fille des Carnets — carnets d'écriture guidée
+
+Faits confirmés : carnet « N°1 — Cinq minutes, pas plus. » à 18 € ; 21 inspirations pour écrire 21 jours ; conçu et fabriqué en France.
+
+- A. « Envie d'écrire, mais tu restes bloqué devant la page blanche ? »
+- B. « Vingt et une inspirations, vingt et un jours : tu écris enfin. »
+- C. « Ce carnet s'appelle "Cinq minutes, pas plus". Il est fabriqué en France. »
+
+## 7. Moomie — langes et vêtements bébé
+
+Faits confirmés : langes en gaze de coton de 20 à 26 €, 60 × 60 cm ; usages cités sur la fiche (protéger l'épaule, essuyer la bouche, petit foulard) ; confection à Annonay, en petite série.
+
+- A. « Protège-épaule, foulard, essuie-bouche : ton sac à langer déborde ? »
+- B. « Un seul lange en gaze de coton fait les trois. »
+- C. « Ce lange est cousu à Annonay, en Ardèche, en petite série. »
+
+## 8. Topla — jeux de société
+
+Faits confirmés : Houblon, 28 €, nouveauté 2026 ; règle « très facile » d'après le site ; 3 à 6 joueurs, environ 30 minutes ; les joueurs incarnent des nains dans une taverne.
+
+- A. « Marre de ressortir le même jeu à chaque repas de famille ? »
+- B. « Une règle très facile, trois à six joueurs, trente minutes de partie. »
+- C. « Dans Houblon, tu joues un nain qui veut devenir roi de la taverne. »

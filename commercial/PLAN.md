@@ -53,7 +53,7 @@ Règles :
 > 2. « … »
 > 3. « … »
 >
-> Si vous voulez voir ce que cela donne en image, voici une publicité de 14 secondes réalisée par le studio sur un produit de démonstration : [lien du site].
+> Si vous voulez voir ce que cela donne en image, voici une démonstration du studio, plan par plan, sur un produit fictif : [lien du site].
 >
 > Le premier essai coûte 25 € : une vidéo de 10 à 15 secondes, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
@@ -79,7 +79,7 @@ Observation tirée de la fiche, à revérifier avant envoi : le site annonce une
 > 2. « Fabriquée en France, en inox, et enfin de retour. »
 > 3. « Elle était en rupture. Elle revient mi-novembre. »
 >
-> Il se trouve que notre film de démonstration porte justement sur une gourde : [lien du site].
+> Il se trouve que notre démonstration porte justement sur une gourde : [lien du site].
 >
 > Le premier essai coûte 25 € : une vidéo de 10 à 15 secondes, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
