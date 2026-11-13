@@ -31,19 +31,17 @@ Pour repartir de zéro : supprimer le dossier `site/data`.
 
 ```bash
 npm run demo:prod          # dans un premier terminal
-npm run test:e2e           # dans un second
+npm run test:e2e           # dans un second : parcours complet, fraude, factures, sécurité
+npm run test:unitaires     # concurrence, factures, purge, e-mails
 ```
 
-63 vérifications : parcours complet, administration, livraison, et tentatives de fraude (retour sans paiement, webhook sans signature, signature fausse, rejeu, corps modifié, montant falsifié, paiement d'une autre commande, doublon).
+88 vérifications de bout en bout sur disque, 86 sur stockage objet (émulateur local), et 24 tests ciblés sur chaque stockage. Variables de test : `scripts/env-test.sh`.
 
-## Brancher le vrai Stripe en mode test
+## Documents
 
-1. Dans le tableau de bord Stripe, activer le **mode test** et copier la clé secrète `sk_test_…`.
-2. Créer un point de terminaison de webhook vers `<adresse du site>/api/stripe/webhook`, événements `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`. Copier son secret `whsec_…`.
-3. Renseigner `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET` (voir `.env.example`), laisser `STRIPE_API_HOST` vide.
-4. Payer avec la carte de test `4242 4242 4242 4242`, date future, code quelconque.
-
-En local, Stripe ne peut pas joindre `localhost` : utiliser la commande `stripe listen --forward-to localhost:3000/api/stripe/webhook` de l'outil Stripe CLI, qui affiche le secret à utiliser.
+- `STRIPE.md` : configurer la clé de test sans l'exposer.
+- `CHOIX-TECHNIQUES.md` : hébergement, stockage, e-mails, coûts.
+- `SECURITE.md` : revue de sécurité et risques restants.
 
 ## Sécurité du paiement
 
@@ -59,17 +57,28 @@ En local, Stripe ne peut pas joindre `localhost` : utiliser la commande `stripe 
 |---|---|
 | `lib/formules.ts` | Formules et prix (source unique) |
 | `lib/commandes.ts` | Règles : création, confirmation de paiement, brief, statuts |
-| `lib/store.ts` | Stockage sur disque des commandes, fichiers, e-mails |
-| `lib/mail.ts` | Modèles et envoi des e-mails |
+| `lib/depot.ts` | Stockage : pilotes disque et stockage objet |
+| `lib/store.ts` | Commandes, compteurs, e-mails archivés |
+| `lib/fichiers.ts` | Dépôt et téléchargement des fichiers privés |
+| `lib/factures.ts` | Factures PDF |
+| `lib/purge.ts` | Suppression des fichiers après 90 jours |
+| `lib/mail.ts` | Modèles et envoi des e-mails (Brevo, Resend) |
 | `lib/auth.ts` | Session de l'espace administrateur |
 | `app/api/` | Paiement, webhook, brief, fichiers, validation |
 | `app/commander/`, `app/commande/` | Parcours du client |
 | `app/admin/` | Espace administrateur |
 | `scripts/` | Simulateur Stripe, lanceur de démonstration, tests |
 
+## Factures
+
+- Émises automatiquement à la livraison, ou à la main depuis la fiche de commande.
+- Numérotation continue par année (`F-2026-0001`), sans trou ni doublon, archivage en PDF.
+- Bloquées tant que le nom, le SIRET, l'adresse et l'e-mail du vendeur ne sont pas renseignés, ou que le client n'a pas donné son nom et son adresse de facturation.
+- Hors ventes réelles, le document est un **spécimen** filigrané, numéroté à part (`SPECIMEN-…`), invisible pour le client.
+- Non géré : les factures d'avoir (remboursement) et la facture d'acompte.
+
 ## Limites connues
 
-- Le stockage est un dossier sur disque : il faut un hébergeur avec disque persistant, ou écrire un pilote de stockage objet avant la mise en ligne.
-- Les fichiers passent par le serveur (40 Mo maximum par fichier) : sur un hébergement « sans serveur », cette limite tombe à quelques mégaoctets.
-- L'envoi réel des e-mails (Resend) est écrit mais n'a pas été testé.
-- Aucune facture n'est générée automatiquement.
+- Aucun test contre le vrai Stripe, un vrai stockage objet, un vrai service d'e-mail ni un vrai hébergeur.
+- Passage à la version majeure suivante du cadre technique (Next.js 16) non fait.
+- Liste des commandes relue en entier à chaque affichage : suffisant jusqu'à quelques centaines de commandes.

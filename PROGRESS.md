@@ -46,6 +46,12 @@
 - **13/11** — Stockage sur disque local, indépendant de l'hébergeur. L'offre gratuite de Vercel interdisant l'usage commercial, le choix de l'hébergement reste ouvert.
 - **13/11** — Prospects revérifiés visuellement : OCNI Factory retirée (déjà très équipée en vidéo), remplacée par La Fille des Carnets ; trois accroches corrigées.
 
+- **13/11** — Stockage : pilote compatible S3 ajouté à côté du disque ; fichiers envoyés directement du navigateur au stockage. Choix proposé : Cloudflare R2, non souscrit.
+- **13/11** — Factures PDF : émises à la livraison, numérotation continue, spécimens hors série en préproduction, blocage sans informations légales.
+- **13/11** — E-mails : pilotes Brevo et Resend, testés contre un faux serveur. Choix proposé : Brevo.
+- **13/11** — Revue de sécurité : 7 défauts corrigés, risques restants listés dans `site/SECURITE.md`.
+- **13/11** — Hébergement : proposition Netlify gratuit + R2, repli Render ou Fly.io. Aucun déploiement.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

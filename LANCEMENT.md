@@ -19,15 +19,23 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 | Paiements fermés sans autorisation explicite | Vérifié dans 3 configurations |
 | Pages légales : mentions, conditions de vente, confidentialité | Affichées, liens vérifiés |
 
-63 vérifications automatiques sur 63, rejouables (`site/README.md`).
+| Stockage durable (stockage objet), survie au redémarrage | 86 tests sur émulateur local |
+| Envoi direct des fichiers au stockage, jusqu'à 300 Mo par vidéo | Test automatique |
+| Factures PDF numérotées, archivées, bloquées sans informations légales | Tests automatiques et ciblés |
+| Suppression des fichiers après 90 jours | Test ciblé |
+| Sécurité de l'administration et des fichiers | Revue et tests, voir `site/SECURITE.md` |
+
+88 vérifications de bout en bout sur disque, 86 sur stockage objet, 24 tests ciblés sur chacun. Rejouables (`site/README.md`).
 
 ## 2. Écrit mais pas encore vérifié en conditions réelles
 
 | Élément | Ce qui manque pour le vérifier |
 |---|---|
-| Connexion au vrai Stripe (mode test) | Une clé de test du fondateur. Tous les tests ont tourné contre un simulateur local qui signe comme Stripe. |
-| Envoi réel des e-mails | Un compte de service d'envoi et un nom de domaine vérifié |
-| Fonctionnement chez un hébergeur | Le choix de l'hébergeur |
+| Connexion au vrai Stripe (mode test) | Ta clé de test, saisie chez toi (`site/STRIPE.md`) |
+| Stockage sur un vrai service (Cloudflare R2) | La création du bucket |
+| Envoi réel des e-mails (Brevo ou Resend) | Un compte et un nom de domaine vérifié |
+| Fonctionnement chez un hébergeur | Le choix de l'hébergeur et un déploiement de préproduction |
+| Facture réelle | Les informations administratives ; seuls des spécimens ont été produits |
 
 ## 3. Préparé, non mis en service
 
@@ -38,37 +46,38 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 
 ## 4. Reste à faire côté technique
 
-1. Vérifier le parcours contre Stripe en mode test.
-2. Choisir l'hébergeur, puis adapter le stockage si son disque n'est pas persistant.
-3. Brancher l'envoi réel des e-mails.
-4. Facturation : aujourd'hui aucune facture n'est produite.
-5. Suppression automatique des fichiers après 90 jours, annoncée dans la politique de confidentialité et non encore programmée.
-6. Vidéo de démonstration de qualité à remettre sur l'accueil quand elle existera.
+1. Vérifications en conditions réelles du § 2, dans cet ordre : Stripe test, stockage, e-mails, hébergeur.
+2. Factures d'avoir en cas de remboursement, facture d'acompte : non gérées.
+3. Sauvegarde du stockage.
+4. Vidéo de démonstration de qualité à remettre sur l'accueil quand elle existera.
 
 ## 5. Ce qui nécessite ton intervention
 
 | Action | Pourquoi |
 |---|---|
 | Tester toi-même une commande (`npm run demo`) | Valider le parcours avant d'aller plus loin |
-| Fournir une clé Stripe de test | Vérification contre le vrai Stripe |
+| Configurer ta clé Stripe de test | `site/STRIPE.md`, sans la communiquer |
 | Créer la micro-entreprise | SIRET obligatoire pour encaisser |
 | Créer une adresse e-mail dédiée | Contact, notifications, mentions légales |
 | Choisir un médiateur de la consommation | Mention obligatoire pour vendre à des particuliers |
-| Choisir l'hébergeur | Voir § 6 |
+| Valider les choix techniques | `site/CHOIX-TECHNIQUES.md` |
+| Interroger un comptable sur la facturation | Date d'émission de la facture quand le paiement précède la livraison |
 | Faire relire les conditions de vente | Rédigées avec soin, non relues par un juriste |
 | Vérifier les marques INPI « accroche » | Non lisible automatiquement |
 | Envoyer les messages aux prospects | Seulement après mise en ligne et SIRET |
 
 ## 6. Ce qui nécessitera une dépense
 
-| Poste | Coût | Remarque |
+Comparatif complet dans `site/CHOIX-TECHNIQUES.md`.
+
+| Poste | Choix proposé | Coût |
 |---|---|---|
-| Hébergement | 0 à ~20 €/mois | L'offre gratuite de Vercel interdit l'usage commercial. Il faut soit une offre payante, soit un hébergeur dont l'offre gratuite l'autorise, soit un petit serveur. À chiffrer au moment du choix. |
-| Nom de domaine | ~7 à 12 €/an | Nécessaire pour envoyer des e-mails fiables et pour l'adresse du site |
-| Médiateur de la consommation | Variable | Certains demandent une adhésion annuelle |
-| Envoi d'e-mails | 0 € au départ | Offres gratuites suffisantes pour ce volume, à vérifier |
+| Hébergement | Netlify, offre gratuite (repli : Render ou Fly.io, 3 à 8 $/mois) | 0 € |
+| Stockage | Cloudflare R2 | 0 € jusqu'à 10 Go |
+| E-mails | Brevo, offre gratuite | 0 € |
+| Nom de domaine | .fr ou .com | ~7 à 12 € par an |
+| Médiateur de la consommation | À choisir | Variable |
 | Stripe | Commission par paiement | Aucun abonnement |
-| Crédits de génération vidéo | Par commande | Voir BUSINESS.md |
 
 Rien de tout cela n'a été souscrit.
 
