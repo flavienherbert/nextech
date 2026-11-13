@@ -13,6 +13,9 @@ export type Formule = {
   misEnAvant?: boolean;
 };
 
+export type Chapitre = { debut: number; titre: string; texte: string };
+export type Plan = { fichier: string; titre: string; texte: string };
+
 export type Exemple = {
   src: string; // fichier MP4 dans /public/exemples
   poster?: string;
@@ -32,9 +35,9 @@ function lienCommande(stripe: string | undefined, formule: string): string {
 
 export const site = {
   marque: "Studio Accroche",
-  titre: "Vos pubs vidéo avec présentateur IA, prêtes à tester en 48 h",
+  titre: "Trois secondes pour arrêter un pouce.",
   sousTitre:
-    "Un lien produit et trois photos suffisent. Vous recevez des vidéos verticales pour TikTok, Reels et Meta Ads, avec plusieurs accroches à comparer.",
+    "Nous écrivons l'accroche, nous tournons sans caméra, vous recevez des publicités verticales prêtes pour TikTok, Reels et Meta Ads. En 48 heures.",
   email,
   legal: {
     nom: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "",
@@ -162,4 +165,59 @@ export const brief = [
   "La promesse principale, en une phrase",
   "Le ton souhaité : direct, complice, haut de gamme, drôle",
   "Ce qu'il ne faut pas dire",
+];
+
+// Chapitres du film de démonstration (temps en secondes dans /media/film.mp4).
+export const chapitres: Chapitre[] = [
+  {
+    debut: 0,
+    titre: "L'accroche",
+    texte: "« Arrête d'acheter des gourdes qui fuient dans ton sac. » Un problème, dit face caméra, en trois secondes.",
+  },
+  {
+    debut: 3.7,
+    titre: "La preuve",
+    texte: "Le produit sort du sac, retourné. Le bénéfice se voit avant d'être dit.",
+  },
+  {
+    debut: 7.8,
+    titre: "Le bénéfice",
+    texte: "Gros plan, glaçons, ralenti. Une seule promesse, une seule image.",
+  },
+  {
+    debut: 10.55,
+    titre: "L'offre",
+    texte: "Le produit seul, le prix, où cliquer. Rien d'autre.",
+  },
+];
+
+// Extraits présentés dans la bande « plan par plan ».
+export const plans: Plan[] = [
+  {
+    fichier: "plan-A",
+    titre: "Face caméra",
+    texte: "Une présentatrice qui parle français, cadrée comme un selfie.",
+  },
+  {
+    fichier: "plan-B",
+    titre: "Démonstration en main",
+    texte: "Le geste qui prouve l'argument, filmé comme au quotidien.",
+  },
+  {
+    fichier: "plan-C",
+    titre: "Gros plan matière",
+    texte: "Le détail qui donne envie : texture, fraîcheur, finition.",
+  },
+  {
+    fichier: "plan-D",
+    titre: "Plan produit",
+    texte: "Le produit seul, propre, prêt à recevoir le prix.",
+  },
+];
+
+// Les trois angles d'accroche livrés dans un Pack Test.
+export const angles = [
+  { lettre: "A", nom: "Le problème", phrase: "« Arrête d'acheter des gourdes qui fuient dans ton sac. »" },
+  { lettre: "B", nom: "Le résultat", phrase: "« Avec elle, ton eau est encore fraîche à 18 heures. »" },
+  { lettre: "C", nom: "La curiosité", phrase: "« Cette gourde à 19 € remplace toutes tes bouteilles en plastique. »" },
 ];

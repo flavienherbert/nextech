@@ -8,7 +8,7 @@
 | Choix du business | Fait : Studio Accroche |
 | Fiches ComeUp et Fiverr | Rédigées, non publiées |
 | Méthode de production | Testée sur 1 vidéo (essai-01), verdict : pas encore vendable à 69 € |
-| Site vitrine | Construit et testé en local, non mis en ligne |
+| Site vitrine | Refonte cinématique faite et testée en local (13/11), non mis en ligne |
 | Vidéos d'exemple | 1 essai, non publiable en l'état (son) |
 | SIRET | Non créé |
 | Ventes | 0 |
@@ -34,6 +34,11 @@
 - **12/11** — Essai n°1 produit : 280 crédits, ~40 min. Image convaincante, son insuffisant (deux voix, pas de musique). Détail dans `production/essai-01/RAPPORT.md`.
 - **12/11** — Format retenu : accroche parlée courte + plans produit + voix off. Un présentateur parlant 15 s en 720p coûterait 1 500 crédits.
 - **12/11** — Nom vérifié (domaines libres, pas d'homonyme dans le secteur), marques INPI à contrôler à la main. Voir ADMIN.md.
+
+- **13/11** — Version 2 de la publicité montée à partir d'un clip Higgsfield généré par le fondateur : « fuient » correct, quatre plans animés, voix unique recréée en local, musique originale.
+- **13/11** — Refonte de la page de vente : film d'accueil en trois volets, lecteur à chapitres, bande d'extraits, formules illustrées. Aucun faux client ni faux avis ; tout est présenté comme démonstration.
+- **13/11** — 25 prospects identifiés (15 vérifiés, 10 partiels), aucun contacté. Méthode retenue : cinq messages personnalisés par semaine, avec trois accroches offertes.
+- **13/11** — Constat : sans SIRET, aucun encaissement possible. C'est le point bloquant du premier client.
 
 ## Relevé hebdomadaire
 

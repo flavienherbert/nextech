@@ -18,6 +18,9 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `production/PROCESS.md` | Méthode du brief à la livraison, contrôle qualité |
 | `production/pipeline/build_ad.py` | Outil d'assemblage vidéo (sous-titres, incrustations, voix off) |
 | `production/essai-01/` | Première publicité test et son rapport |
+| `commercial/PROSPECTS.md` | 25 clients potentiels, avec observation et accroche pour chacun |
+| `commercial/PLAN.md` | Méthode de présentation, messages types, plan jusqu'au premier client |
+| `production/pipeline/make_site_media.sh` | Fabrique les vidéos du site à partir d'une publicité |
 | `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
 | `site/` | Site vitrine (Next.js) |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
