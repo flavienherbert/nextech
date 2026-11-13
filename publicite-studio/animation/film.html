@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Publicité Studio Accroche — animation</title>
+<style>
+@font-face { font-family: "Serif"; src: url("../../site/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2"); }
+@font-face { font-family: "Serif"; font-style: italic; src: url("../../site/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2"); }
+@font-face { font-family: "Sans"; font-weight: 100 900; src: url("../../site/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2"); }
+:root { --fond:#0b0a09; --encre:#f3efe8; --doux:#a8a094; --accent:#ff5a2b; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--fond); }
+#scene { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Sans"; color: var(--encre); }
+.plan { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.serif { font-family: "Serif"; font-weight: 400; letter-spacing: -0.015em; line-height: 1; }
+em { font-style: italic; color: var(--accent); }
+video, img { display: block; }
+.couvre { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.grain { position: absolute; inset: 0; z-index: 50; pointer-events: none; opacity: .13; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+#mention { position: absolute; left: 54px; bottom: 150px; z-index: 60; font-size: 27px; letter-spacing: .12em; text-transform: uppercase; color: rgba(243,239,232,.78); text-shadow: 0 2px 12px rgba(0,0,0,.7); }
+#compteur { position: absolute; top: 150px; left: 0; right: 0; z-index: 60; text-align: center; font-size: 40px; font-weight: 600; letter-spacing: .14em; font-variant-numeric: tabular-nums; opacity: 0; text-shadow: 0 2px 14px rgba(0,0,0,.7); }
+#compteur i { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); margin-right: 16px; vertical-align: 4px; }
+
+/* 1 — le fil qui défile */
+#p1 { background: #dedad3; }
+#fil { position: absolute; left: 60px; right: 60px; top: 0; }
+.carte { height: 600px; margin-bottom: 36px; background: #f6f4f0; border-radius: 34px; display: flex; gap: 40px; padding: 40px; box-shadow: 0 6px 30px rgba(0,0,0,.06); }
+.carte .photo { width: 380px; height: 520px; border-radius: 22px; background: #e7e3dc center/cover; filter: grayscale(.85) contrast(.9) brightness(1.05); }
+.carte .lignes { flex: 1; padding-top: 40px; }
+.carte .lignes b { display: block; height: 30px; border-radius: 15px; background: #d9d5cd; margin-bottom: 28px; }
+.carte .lignes b:nth-child(2) { width: 70%; } .carte .lignes b:nth-child(3) { width: 85%; } .carte .lignes b:nth-child(4) { width: 40%; height: 64px; border-radius: 32px; margin-top: 70px; }
+#p1 .voile { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(11,10,9,.94) 8%, rgba(11,10,9,.5) 38%, rgba(11,10,9,0) 62%); }
+.titre-bas { position: absolute; left: 60px; right: 60px; bottom: 300px; font-size: 138px; }
+
+/* 2 — sauf ici */
+#p2 .voile { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(11,10,9,.82) 6%, rgba(11,10,9,0) 44%); }
+#eclair { position: absolute; inset: 0; background: #fff; z-index: 40; opacity: 0; }
+
+/* 3 — le problème */
+#p3 { background: radial-gradient(70% 45% at 50% 22%, rgba(255,90,43,.14), transparent 70%), var(--fond); }
+#rangee { position: absolute; top: 250px; left: 0; right: 0; display: flex; justify-content: center; gap: 22px; }
+#rangee img { width: 178px; height: 316px; object-fit: cover; border-radius: 20px; box-shadow: 0 0 0 2px rgba(255,255,255,.12); }
+.pile-texte { position: absolute; left: 60px; right: 60px; top: 760px; }
+.pile-texte div { font-size: 132px; margin-bottom: 26px; opacity: 0; }
+
+/* 4 — le nom */
+#p4 { background: var(--fond); display: grid; place-items: center; }
+#nom { font-size: 190px; text-align: center; line-height: .92; }
+#nom span { display: block; overflow: hidden; padding-bottom: 18px; } #nom span > b { display: block; font-weight: 400; }
+#filet { position: absolute; left: 50%; top: 1235px; height: 3px; background: var(--accent); width: 0; transform: translateX(-50%); }
+.rideau { position: absolute; left: 0; right: 0; height: 50%; background: #000; z-index: 30; }
+
+/* 5 — le mur d'extraits */
+#mur { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; padding: 10px; background: #000; }
+#mur div { position: relative; overflow: hidden; border-radius: 26px; }
+#p5 .voile { position: absolute; inset: 0; background: radial-gradient(70% 34% at 50% 50%, rgba(11,10,9,.9), rgba(11,10,9,.1) 100%); }
+.centre { position: absolute; left: 50px; right: 50px; top: 50%; transform: translateY(-50%); text-align: center; font-size: 124px; }
+.centre div { opacity: 0; position: absolute; left: 0; right: 0; top: 50%; }
+
+/* 6 — trois accroches */
+#p6 { background: radial-gradient(80% 40% at 50% 40%, rgba(255,90,43,.12), transparent 70%), var(--fond); }
+#trio { position: absolute; top: 330px; left: 0; right: 0; display: flex; justify-content: center; gap: 26px; }
+.tel { position: relative; width: 318px; }
+.tel .lettre { font-family: "Serif"; font-style: italic; font-size: 92px; text-align: center; color: var(--doux); margin-bottom: 14px; }
+.tel .ecran { position: relative; height: 566px; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 3px rgba(255,255,255,.14), 0 40px 70px -20px #000; }
+.tel .sous { position: absolute; left: 14px; right: 14px; bottom: 26px; text-align: center; font-weight: 800; font-size: 27px; line-height: 1.15; text-transform: uppercase; color: #fff; text-shadow: 0 0 6px #000, 0 2px 4px #000, 0 0 2px #000; }
+#mots { position: absolute; left: 60px; right: 60px; top: 1200px; font-size: 136px; text-align: center; line-height: 1.08; }
+#mots span { opacity: 0; display: inline-block; }
+
+/* 7 — l'offre */
+#p7 { background: radial-gradient(70% 40% at 50% 46%, rgba(255,90,43,.2), transparent 72%), var(--fond); }
+#des { position: absolute; left: 0; right: 0; top: 560px; text-align: center; font-size: 60px; letter-spacing: .22em; text-transform: uppercase; color: var(--doux); }
+#prix { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 470px; }
+#signature { position: absolute; left: 0; right: 0; top: 1240px; text-align: center; font-size: 104px; opacity: 0; }
+#bouton { position: absolute; left: 50%; top: 1420px; transform: translateX(-50%); white-space: nowrap; background: var(--accent); color: #fff; font-weight: 600; font-size: 48px; padding: 34px 64px; border-radius: 999px; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="scene">
+  <div id="mention">Images générées par IA</div>
+  <div id="compteur"><i></i><span>0:00</span></div>
+  <div class="grain"></div>
+
+  <section class="plan" id="p1">
+    <div id="fil"></div>
+    <div class="voile"></div>
+    <div class="titre-bas serif" id="t1">Vos clients<br>font défiler.</div>
+  </section>
+
+  <section class="plan" id="p2">
+    <video class="couvre" id="vA" src="../../site/public/media/plan-A.mp4" muted preload="auto"></video>
+    <div class="voile"></div>
+    <div id="eclair"></div>
+    <div class="titre-bas serif" id="t2"><em>Sauf ici.</em></div>
+  </section>
+
+  <section class="plan" id="p3">
+    <div id="rangee">
+      <img src="../../site/public/media/plan-A.jpg"><img src="../../site/public/media/plan-B.jpg"><img src="../../site/public/media/plan-C.jpg"><img src="../../site/public/media/plan-D.jpg"><img src="../../site/public/media/film.jpg">
+    </div>
+    <div class="pile-texte serif">
+      <div id="l31">Une pub<br>s'use vite.</div>
+      <div id="l32">Il en faut d'autres.</div>
+      <div id="l33"><em>Tout le temps.</em></div>
+    </div>
+  </section>
+
+  <section class="plan" id="p4">
+    <div class="rideau" id="rh" style="top:0"></div><div class="rideau" id="rb" style="bottom:0"></div>
+    <div id="nom" class="serif"><span><b id="n1">Studio</b></span><span><b id="n2"><em>Accroche</em></b></span></div>
+    <div id="filet"></div>
+  </section>
+
+  <section class="plan" id="p5">
+    <div id="mur">
+      <div><video class="couvre" id="m1" src="../../site/public/media/plan-A.mp4" muted preload="auto"></video></div>
+      <div><video class="couvre" id="m2" src="../../site/public/media/plan-B.mp4" muted preload="auto"></video></div>
+      <div><video class="couvre" id="m3" src="../../site/public/media/plan-C.mp4" muted preload="auto"></video></div>
+      <div><video class="couvre" id="m4" src="../../site/public/media/plan-D.mp4" muted preload="auto"></video></div>
+    </div>
+    <div class="voile"></div>
+    <div class="centre serif"><div id="c1">Nous écrivons<br><em>l'accroche.</em></div><div id="c2">Nous produisons<br><em>la vidéo.</em></div><div id="c3">Sans tournage.<br><em>Sans colis.</em></div></div>
+  </section>
+
+  <section class="plan" id="p6">
+    <div id="trio">
+      <div class="tel" id="ta"><div class="lettre">A</div><div class="ecran"><video class="couvre" id="x1" src="../../site/public/media/plan-A.mp4" muted preload="auto"></video><div class="sous">Arrête d'acheter des gourdes qui fuient</div></div></div>
+      <div class="tel" id="tb"><div class="lettre">B</div><div class="ecran"><video class="couvre" id="x2" src="../../site/public/media/plan-A.mp4" muted preload="auto"></video><div class="sous">Ton eau encore fraîche à 18 h</div></div></div>
+      <div class="tel" id="tc"><div class="lettre">C</div><div class="ecran"><video class="couvre" id="x3" src="../../site/public/media/plan-A.mp4" muted preload="auto"></video><div class="sous">Elle remplace tes bouteilles en plastique</div></div></div>
+    </div>
+    <div id="mots" class="serif"><span id="w1">Un lien.</span> <span id="w2">Trois photos.</span><br><span id="w3"><em>48 heures.</em></span></div>
+  </section>
+
+  <section class="plan" id="p7">
+    <div id="des">Dès</div>
+    <div id="prix" class="serif">25 €</div>
+    <div id="signature" class="serif">Studio <em>Accroche</em></div>
+    <div id="bouton">Commander · lien ci-dessous ↓</div>
+  </section>
+</div>
+
+<script>
+// ——— Chronologie (secondes) ———
+const T = { p1: 0, p2: 2.4, p3: 4.7, p4: 8.7, p5: 10.1, p6: 15.3, p7: 18.3, fin: 22 };
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, d) => clamp((t - a) / d);
+const sortie = (x) => 1 - Math.pow(1 - x, 3);           // décélération
+const entreSortie = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const apparait = (el, t, a, d = .45, dy = 40) => { const k = sortie(prog(t, a, d)); el.style.opacity = k; el.style.transform = `translateY(${(1 - k) * dy}px)`; };
+
+// Fil de cartes ternes
+const fil = $("fil");
+const photos = ["../../production/essai-01/higgsfield/4_produit.jpg", "../../production/essai-01/higgsfield/3_glacons.jpg", "../../production/essai-01/higgsfield/2_sac.jpg"];
+for (let i = 0; i < 9; i++) fil.insertAdjacentHTML("beforeend", `<div class="carte"><div class="photo" style="background-image:url(${photos[i % 3]})"></div><div class="lignes"><b></b><b></b><b></b><b></b></div></div>`);
+
+const videos = [["vA", T.p2, 0.15, 1], ["m1", T.p5, 0.3, 1], ["m2", T.p5, 0.2, 1], ["m3", T.p5, 0.1, 1], ["m4", T.p5, 0.0, 1], ["x1", T.p6, 0.3, 1], ["x2", T.p6, 0.3, 1], ["x3", T.p6, 0.3, 1]];
+const plans = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+
+window.render = async (t) => {
+  const actif = plans.filter((p) => t >= T[p]).pop();
+  for (const p of plans) $(p).style.opacity = p === actif ? 1 : 0;
+
+  // Vidéos du plan actif : calées sur le temps du film
+  const attentes = [];
+  for (const [id, debut, decalage, vitesse] of videos) {
+    const v = $(id);
+    if (v.closest(".plan").id !== actif) continue;
+    const cible = ((t - debut) * vitesse + decalage) % Math.max(0.1, v.duration - 0.05);
+    if (Math.abs(v.currentTime - cible) > 0.001) attentes.push(new Promise((ok) => { v.addEventListener("seeked", ok, { once: true }); v.currentTime = cible; }));
+  }
+
+  // 1 — trois coups de pouce
+  const pas = [[0.05, 0.5], [0.75, 0.5], [1.45, 0.5], [2.05, 0.4]];
+  let y = 0; for (const [a, d] of pas) y += 640 * sortie(prog(t, a, d));
+  fil.style.transform = `translateY(${-y - 120}px)`;
+  apparait($("t1"), t, 0.25, .5);
+
+  // 2 — coupe sèche, éclair, compteur
+  $("eclair").style.opacity = t >= T.p2 ? clamp(1 - (t - T.p2) / 0.14) * .85 : 0;
+  $("vA").style.transform = `scale(${1.08 - .08 * sortie(prog(t, T.p2, 1.6))})`;
+  apparait($("t2"), t, T.p2 + .55, .4);
+  const c = $("compteur");
+  c.style.opacity = t >= T.p2 && t < T.p3 ? 1 : 0;
+  c.querySelector("span").textContent = "0:0" + Math.min(3, 1 + Math.floor((t - T.p2) / 0.72));
+
+  // 3 — les vignettes s'éteignent une à une
+  [...$("rangee").children].forEach((im, i) => {
+    const k = entreSortie(prog(t, T.p3 + .35 + i * .28, .45));
+    im.style.filter = `grayscale(${k}) brightness(${1 - .62 * k})`;
+    im.style.transform = `translateY(${k * 18}px) scale(${1 - .04 * k})`;
+  });
+  apparait($("l31"), t, T.p3 + .15);
+  apparait($("l32"), t, T.p3 + 1.75);
+  apparait($("l33"), t, T.p3 + 3.0);
+
+  // 4 — rideau et nom
+  const r = entreSortie(prog(t, T.p4, .55));
+  $("rh").style.transform = `translateY(${-100 * r}%)`; $("rb").style.transform = `translateY(${100 * r}%)`;
+  $("n1").style.transform = `translateY(${(1 - sortie(prog(t, T.p4 + .15, .5))) * 105}%)`;
+  $("n2").style.transform = `translateY(${(1 - sortie(prog(t, T.p4 + .32, .5))) * 105}%)`;
+  $("filet").style.width = 520 * sortie(prog(t, T.p4 + .6, .5)) + "px";
+
+  // 5 — mur d'extraits
+  $("mur").style.transform = `scale(${1.1 - .1 * sortie(prog(t, T.p5, 5.2))})`;
+  const tranche = (el, a, b) => { const k = sortie(prog(t, a, .4)) * (1 - prog(t, b - .25, .25)); el.style.opacity = k; el.style.transform = `translateY(calc(-50% + ${(1 - sortie(prog(t, a, .4))) * 40}px))`; };
+  tranche($("c1"), T.p5 + .2, T.p5 + 1.75); tranche($("c2"), T.p5 + 1.75, T.p5 + 3.0); tranche($("c3"), T.p5 + 3.0, T.p5 + 5.3);
+
+  // 6 — trois accroches, celle du milieu s'impose
+  ["ta", "tb", "tc"].forEach((id, i) => {
+    const k = sortie(prog(t, T.p6 + .05 + i * .12, .45));
+    const g = id === "tb" ? 1 + .13 * entreSortie(prog(t, T.p6 + 1.7, .5)) : 1 - .06 * entreSortie(prog(t, T.p6 + 1.7, .5));
+    $(id).style.opacity = k * (id === "tb" ? 1 : 1 - .45 * entreSortie(prog(t, T.p6 + 1.7, .5)));
+    $(id).style.transform = `translateY(${(1 - k) * 70}px) scale(${g})`;
+    $(id).querySelector(".ecran").style.boxShadow = id === "tb" && t > T.p6 + 1.7 ? "0 0 0 5px #ff5a2b, 0 40px 70px -20px #000" : "";
+    $(id).querySelector(".lettre").style.color = id === "tb" && t > T.p6 + 1.7 ? "#ff5a2b" : "";
+  });
+  apparait($("w1"), t, T.p6 + .2, .35); apparait($("w2"), t, T.p6 + .7, .35); apparait($("w3"), t, T.p6 + 1.45, .35);
+
+  // 7 — prix puis signature
+  const monte = sortie(prog(t, T.p7, .45));
+  $("p7").style.transform = `translateY(${(1 - monte) * 100}%)`;
+  const z = sortie(prog(t, T.p7 + .2, .6));
+  const repli = entreSortie(prog(t, T.p7 + 1.75, .55));
+  $("prix").style.opacity = z; $("des").style.opacity = z;
+  $("prix").style.transform = `translateY(${-190 * repli}px) scale(${(.82 + .18 * z) * (1 - .34 * repli)})`;
+  $("des").style.transform = `translateY(${-150 * repli}px)`;
+  apparait($("signature"), t, T.p7 + 2.0, .45); 
+  const b = sortie(prog(t, T.p7 + 2.25, .45));
+  $("bouton").style.opacity = b; $("bouton").style.transform = `translateX(-50%) translateY(${(1 - b) * 40}px)`;
+
+  $("mention").style.color = actif === "p1" ? "rgba(243,239,232,.78)" : "";
+  await Promise.all(attentes);
+};
+</script>
+</body>
+</html>

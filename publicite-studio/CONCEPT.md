@@ -165,3 +165,18 @@ Recommandation : option A, en commençant par G3 et G5 (les deux plans parlés, 
 3. Le budget : option A, B, C, ou la version à 0 crédit.
 4. La voix : celle recréée en local, ou une autre.
 5. L'adresse à afficher au dernier plan. Aucun nom de domaine n'est réservé et le site n'est pas en ligne : sans adresse, le plan final ne peut pas être terminé.
+
+## 10. Version 0 — montée sans aucune génération (13/11/2026)
+
+Fichier : `studio-accroche-pub-v0.mp4`, 22 s, 1080×1920, avec voix off et musique.
+
+Elle suit le storyboard avec les seuls éléments existants :
+- plan 1 : fil de fiches produit ternes dessiné au montage, à la place du pouce filmé (G1) ;
+- plan 3 : texte animé et vignettes qui s'éteignent, à la place de la créatrice débordée (G2) ;
+- plan 5 : mur de quatre extraits, tous sur la gourde, faute de bougie et de savon (G3 à G6) ;
+- plan 6 : les trois téléphones montrent la même prise ; seuls les sous-titres diffèrent. C'est une illustration, pas trois vraies vidéos.
+- plan 7 : « lien ci-dessous » à la place d'une adresse, aucun nom de domaine n'étant réservé.
+
+Contrôles : transcription de la bande son conforme au script, niveau −15 LUFS, aucune erreur d'enregistrement. Le son n'a pas été écouté par Claude.
+
+Reconstruire : `node animation/render.js <dossier_images>` puis assemblage FFmpeg. Quand les clips G1 à G6 existeront, ils se branchent dans `animation/film.html` à la place des éléments dessinés.

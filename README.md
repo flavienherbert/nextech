@@ -22,6 +22,8 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `commercial/PLAN.md` | Méthode de présentation, messages types, plan jusqu'au premier client |
 | `production/pipeline/make_site_media.sh` | Fabrique les vidéos du site à partir d'une publicité |
 | `publicite-studio/CONCEPT.md` | Concept, storyboard, script et prompts de la publicité du studio |
+| `publicite-studio/studio-accroche-pub-v0.mp4` | Version sans génération de la publicité (22 s) ; `animation/` contient de quoi la reconstruire |
+| `commercial/ACCROCHES.md` | Trois accroches pour chacun des 8 prospects prioritaires |
 | `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
 | `site/` | Site vitrine (Next.js) |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
