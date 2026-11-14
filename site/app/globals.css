@@ -2139,3 +2139,247 @@ button.bouton-petit {
 .temps-cadre .plan-numero {
   z-index: 1;
 }
+
+/* ——— Démonstration : le résultat livré ——— */
+
+.demo-grille {
+  display: grid;
+  gap: 36px;
+  align-items: center;
+}
+
+.demo-tete {
+  margin-bottom: 0;
+}
+
+.demo-contenu {
+  list-style: none;
+  margin: 0 0 34px;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.demo-contenu li {
+  border-top: 1px solid var(--trait);
+  padding: 16px 0;
+}
+
+.demo-contenu h3 {
+  font-size: 18px;
+}
+
+.demo-contenu p {
+  color: var(--encre-douce);
+  font-size: 15.5px;
+  margin-top: 3px;
+}
+
+.demo-colonne {
+  display: flex;
+  justify-content: center;
+}
+
+.demo-figure {
+  margin: 0;
+  width: min(100%, 340px);
+}
+
+.demo-cadre {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  border-radius: 30px;
+  overflow: hidden;
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 0 0 9px #161413,
+    0 0 0 10px rgba(255, 255, 255, 0.1),
+    0 40px 90px rgba(0, 0, 0, 0.65),
+    0 0 120px rgba(255, 90, 43, 0.13);
+}
+
+.demo-cadre video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.demo-lecture {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s var(--doux), background 0.3s;
+}
+
+.demo-lecture:hover {
+  transform: scale(1.07);
+  background: var(--accent-fonce);
+}
+
+.demo-lecture:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.demo-vide {
+  background:
+    repeating-linear-gradient(135deg, rgba(243, 239, 232, 0.035) 0 12px, transparent 12px 24px),
+    var(--fond-2);
+}
+
+.demo-reserve {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+  color: var(--encre-douce);
+  font-size: 14.5px;
+}
+
+.demo-reserve-titre {
+  font-family: var(--serif);
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--encre);
+}
+
+.demo-reserve-format {
+  margin-top: 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.demo-figure figcaption {
+  margin-top: 26px;
+  font-size: 13px;
+  color: var(--encre-douce);
+  text-align: center;
+}
+
+/* Étiquettes : distinguer nos réalisations des photographies d'illustration */
+
+.etiquette {
+  position: absolute;
+  z-index: 2;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.etiquette-realisation {
+  top: 16px;
+  left: 16px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.etiquette-illustration {
+  right: 10px;
+  bottom: 10px;
+  background: rgba(11, 10, 9, 0.62);
+  color: rgba(243, 239, 232, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 1px rgba(243, 239, 232, 0.16);
+}
+
+.pile {
+  position: relative;
+}
+
+.pile .etiquette-illustration {
+  right: 8px;
+  bottom: 8px;
+  font-size: 9.5px;
+}
+
+/* ——— Pourquoi Studio Accroche ——— */
+
+.raisons {
+  display: grid;
+  gap: 28px;
+}
+
+.raison {
+  border-top: 1px solid var(--encre);
+  padding-top: 18px;
+}
+
+.raison-chiffre {
+  display: block;
+  font-family: var(--serif);
+  font-size: clamp(54px, 7vw, 84px);
+  line-height: 1;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.raison p {
+  color: var(--encre-douce);
+  font-size: 15.5px;
+  margin-top: 6px;
+}
+
+.recoit {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
+  margin: 4px 0 2px;
+}
+
+@media (min-width: 620px) {
+  .raisons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .demo-grille {
+    grid-template-columns: 1.15fr 0.85fr;
+    grid-template-areas: "tete video" "detail video";
+    column-gap: 70px;
+    row-gap: 0;
+  }
+
+  .demo-tete {
+    grid-area: tete;
+    align-self: end;
+  }
+
+  .demo-detail {
+    grid-area: detail;
+    align-self: start;
+    margin-top: 34px;
+  }
+
+  .demo-colonne {
+    grid-area: video;
+  }
+
+  .raisons {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

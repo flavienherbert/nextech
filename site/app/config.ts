@@ -27,6 +27,32 @@ export const site = {
   },
 };
 
+// Vidéo de démonstration de la page d'accueil.
+// Tant que « video » est vide, la page affiche un emplacement réservé, clairement indiqué comme tel.
+// Pour l'activer : déposer les fichiers dans public/media/demo/ puis renseigner les deux chemins.
+//   video  : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus
+//   poster : JPG ou WebP, 720 × 1280 (image affichée avant la lecture)
+export const demonstration = {
+  video: "", // exemple : "/media/demo/demonstration.mp4"
+  poster: "", // exemple : "/media/demo/demonstration.jpg"
+  duree: "15 secondes",
+  // Ce que montre la vidéo et ce que contient chaque livraison.
+  contenu: [
+    { titre: "Une accroche écrite pour votre produit", texte: "Les trois premières secondes, rédigées à partir de votre brief." },
+    { titre: "Un présentateur généré par IA", texte: "Il montre votre produit à l'écran et parle en français." },
+    { titre: "Des sous-titres animés", texte: "Lisibles sans le son, comme la plupart des publicités sont regardées." },
+    { titre: "Un fichier prêt à diffuser", texte: "MP4 vertical 9:16 pour TikTok, Reels et Meta Ads, avec les droits d'exploitation publicitaire." },
+  ],
+};
+
+// Pourquoi commander ici : uniquement des faits vérifiables dans les formules et les conditions.
+export const raisons = [
+  { chiffre: "0", titre: "Tournage, colis, comédien", texte: "Des photos nettes de votre produit suffisent. Vous n'envoyez rien et vous ne filmez rien." },
+  { chiffre: "48 h", titre: "Pour une première vidéo", texte: "Deux jours pour l'essai, trois pour le Pack Test, cinq pour le Pack Campagne, à compter de votre brief." },
+  { chiffre: "3", titre: "Accroches à comparer", texte: "Le Pack Test livre trois débuts différents : vous diffusez, vous gardez celui qui retient." },
+  { chiffre: "1", titre: "Prix, payé une fois", texte: "De 25 € à 129 € selon la formule. Pas d'abonnement, script et retouches inclus." },
+];
+
 // Ajouter ici les vidéos d'exemple une fois produites.
 // La section « Exemples » reste masquée tant que cette liste est vide.
 export const exemples: Exemple[] = [];

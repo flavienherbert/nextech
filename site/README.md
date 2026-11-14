@@ -27,6 +27,18 @@ Parcours à suivre :
 
 Pour repartir de zéro : supprimer le dossier `site/data`.
 
+## Activer la vidéo de démonstration
+
+L'accueil réserve un emplacement à la vidéo de démonstration (section « Voici ce que vous recevez », juste sous la couverture). Tant qu'aucune vidéo n'est renseignée, il affiche « Emplacement réservé ».
+
+1. Déposer la vidéo et son image d'attente dans `public/media/demo/` :
+   - `demonstration.mp4` : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus ;
+   - `demonstration.jpg` : 720 × 1280, l'image affichée avant la lecture.
+2. Dans `app/config.ts`, bloc `demonstration`, renseigner `video: "/media/demo/demonstration.mp4"` et `poster: "/media/demo/demonstration.jpg"`.
+3. Relancer `npm run demo` : l'étiquette devient « Exemple de vidéo livrée » et le bouton de lecture apparaît.
+
+N'y placer qu'une vidéo réellement produite par le studio : c'est le seul endroit du site présenté comme une réalisation. Les photographies portent l'étiquette « Illustration ».
+
 ## Si la page s'affiche mal (sections vides, erreur « unsafe-eval » dans la console)
 
 Presque toujours : un ancien serveur tourne encore et répond à la place du nouveau, ou le dossier n'a pas reçu la dernière version du code.

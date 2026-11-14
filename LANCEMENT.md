@@ -49,7 +49,7 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 1. Vérifications en conditions réelles du § 2, dans cet ordre : Stripe test, stockage, e-mails, hébergeur.
 2. Factures d'avoir en cas de remboursement, facture d'acompte : non gérées.
 3. Sauvegarde du stockage.
-4. Vidéo de démonstration de qualité à remettre sur l'accueil quand elle existera.
+4. Vidéo de démonstration à produire : son emplacement est prêt sur l'accueil (voir site/README.md, « Activer la vidéo de démonstration »). Ne pas publier le site tant qu'il affiche « Emplacement réservé ».
 
 ## 5. Ce qui nécessite ton intervention
 

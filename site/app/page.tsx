@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Reveal from "./components/Reveal";
 import { BandeauMode, Pied } from "./components/Cadre";
-import { angles, engagements, etapes, faq, site, temps } from "./config";
+import DemoVideo from "./components/DemoVideo";
+import { angles, demonstration, engagements, etapes, faq, raisons, site, temps } from "./config";
 import { delaiTexte, euros, formules } from "@/lib/formules";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default function Accueil() {
             Studio <em>Accroche</em>
           </a>
           <nav className="navigation" aria-label="Navigation principale">
+            <a href="#demonstration">Démonstration</a>
             <a href="#anatomie">La méthode</a>
             <a href="#formules">Formules</a>
             <a href="#questions">Questions</a>
@@ -84,7 +86,7 @@ export default function Accueil() {
 
           <div className="conteneur hero-pied">
             <span>Photographie d&apos;illustration</span>
-            <a href="#anatomie" className="defiler">
+            <a href="#demonstration" className="defiler">
               Défiler
             </a>
           </div>
@@ -97,6 +99,62 @@ export default function Accueil() {
             ))}
           </div>
         </div>
+
+        {/* ——— Démonstration : le résultat livré ——— */}
+        <section className="section section-demo" id="demonstration">
+          <div className="conteneur demo-grille">
+            <Reveal className="tete-section demo-tete">
+                <p className="surtitre">Le résultat</p>
+                <h2>
+                  Voici ce que vous <em>recevez.</em>
+                </h2>
+                <p className="intro">
+                  Une publicité verticale de {demonstration.duree} : un présentateur généré par
+                  intelligence artificielle présente votre produit, face caméra, comme dans une
+                  vidéo tournée au téléphone.
+                </p>
+            </Reveal>
+            <Reveal className="demo-colonne">
+              <figure className="demo-figure">
+                <div className={`demo-cadre${demonstration.video ? "" : " demo-vide"}`}>
+                  {demonstration.video ? (
+                    <DemoVideo video={demonstration.video} poster={demonstration.poster} />
+                  ) : (
+                    <div className="demo-reserve">
+                      <span className="demo-reserve-titre">Vidéo de démonstration</span>
+                      <span>en cours de production</span>
+                      <span className="demo-reserve-format">{demonstration.duree} · format 9:16</span>
+                    </div>
+                  )}
+                  <span className="etiquette etiquette-realisation">
+                    {demonstration.video ? "Exemple de vidéo livrée" : "Emplacement réservé"}
+                  </span>
+                </div>
+                <figcaption>
+                  {demonstration.video
+                    ? "Vidéo réalisée par Studio Accroche. Présentateur généré par intelligence artificielle, produit et marque fictifs."
+                    : "La démonstration sera affichée ici. Aucune vidéo d'exemple n'est encore publiée."}
+                </figcaption>
+              </figure>
+            </Reveal>
+
+            <div className="demo-detail">
+              <ul className="demo-contenu">
+                {demonstration.contenu.map((c, i) => (
+                  <Reveal as="li" key={c.titre} delay={i * 80}>
+                    <h3>{c.titre}</h3>
+                    <p>{c.texte}</p>
+                  </Reveal>
+                ))}
+              </ul>
+              <Reveal>
+                <a className="bouton" href="#formules">
+                  Voir les formules
+                </a>
+              </Reveal>
+            </div>
+          </div>
+        </section>
 
         {/* ——— Anatomie ——— */}
         <section className="section" id="anatomie">
@@ -116,6 +174,7 @@ export default function Accueil() {
                   <div className="temps-cadre">
                     <img src={`/media/photos/${t.image}.webp`} alt="" loading="lazy" />
                     <span className="plan-numero">{t.numero}</span>
+                    <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
                   <h3>{t.titre}</h3>
                   <p>{t.texte}</p>
@@ -123,8 +182,9 @@ export default function Accueil() {
               ))}
             </div>
             <p className="mention">
-              Photographies d&apos;illustration. Les vidéos livrées sont réalisées avec un
-              présentateur généré par intelligence artificielle.
+              Ces photographies illustrent la construction d&apos;une publicité : ce ne sont pas
+              des extraits de nos vidéos. Les vidéos livrées sont réalisées avec un présentateur
+              généré par intelligence artificielle.
             </p>
           </div>
         </section>
@@ -155,8 +215,29 @@ export default function Accueil() {
           </div>
         </section>
 
+        {/* ——— Pourquoi Studio Accroche ——— */}
+        <section className="section section-bord" id="pourquoi">
+          <div className="conteneur">
+            <Reveal className="tete-section">
+              <p className="surtitre">Pourquoi Studio Accroche</p>
+              <h2>
+                Une publicité vidéo, <em>sans la production.</em>
+              </h2>
+            </Reveal>
+            <div className="raisons">
+              {raisons.map((r, i) => (
+                <Reveal key={r.titre} delay={i * 90} className="raison">
+                  <span className="raison-chiffre">{r.chiffre}</span>
+                  <h3>{r.titre}</h3>
+                  <p>{r.texte}</p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ——— Parcours ——— */}
-        <section className="section section-bord" id="methode">
+        <section className="section" id="methode">
           <div className="conteneur">
             <Reveal className="tete-section">
               <p className="surtitre">De la commande à la livraison</p>
@@ -195,6 +276,7 @@ export default function Accueil() {
                     {(piles[f.id] ?? []).map((v, k) => (
                       <img key={k} src={`/media/photos/${v}.webp`} alt="" loading="lazy" />
                     ))}
+                    <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
                   {f.misEnAvant && <span className="badge">Le plus utile pour tester</span>}
                   <h3>{f.nom}</h3>
@@ -214,6 +296,7 @@ export default function Accueil() {
                       <dd>{delaiTexte(f).replace("Livré en ", "")}</dd>
                     </div>
                   </dl>
+                  <p className="recoit">Vous recevez</p>
                   <ul>
                     {f.points.slice(1).map((p) => (
                       <li key={p}>{p}</li>
@@ -226,7 +309,9 @@ export default function Accueil() {
               ))}
             </div>
             <p className="mention">
-              Le délai court à partir de la réception de votre brief. TVA non applicable, article
+              Chaque vidéo est livrée en fichier MP4, avec les droits d&apos;exploitation
+              publicitaire. Le délai court à partir de la réception de votre brief. Les visuels
+              des formules sont des photographies d&apos;illustration. TVA non applicable, article
               293 B du CGI.
             </p>
           </div>
