@@ -1,6 +1,47 @@
-# LANCEMENT — état réel au 13 novembre 2026
+# LANCEMENT — état réel au 14 novembre 2026
 
 Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0 € dépensé.
+
+## Bilan en trois catégories
+
+### TERMINÉ (testé en local)
+
+- Site : accueil, démonstration (emplacement prêt), formules 25 / 69 / 129 €, pages légales, affichage ordinateur et mobile sans débordement.
+- Parcours client complet : commande, paiement simulé, brief et dépôt de fichiers, validation du script, livraison, retouche ou validation, facture spécimen. 88 vérifications de bout en bout réussies le 14 novembre.
+- Administration protégée : commandes, statuts, livrables, notes, e-mails archivés.
+- Photographies libres de droits, sources et licences dans `site/IMAGES.md`.
+- Contact affiché dans le pied de toutes les pages dès que l'adresse du studio est renseignée.
+- Prospection préparée : `commercial/DEMARRAGE.md` (client idéal, arguments, présentation, méthode), 25 prospects, 8 messages.
+- Vidéo de démonstration du studio prête dans `site/public/media/demo/` (13,7 s, 1080 × 1920, 4 Mo), non activée : décision du fondateur.
+
+### À FAIRE PAR CLAUDE (dès que les décisions sont prises)
+
+1. Activer la vidéo de démonstration choisie (deux lignes dans `site/app/config.ts`).
+2. Vérifier le site contre les vrais services : Stripe en mode test, stockage, e-mails, hébergeur en préproduction privée.
+3. Compléter mentions légales, conditions de vente et factures avec les informations réelles.
+4. Factures d'avoir en cas de remboursement, sauvegarde du stockage.
+
+### À FAIRE PAR LE FONDATEUR
+
+1. Choisir la vidéo de démonstration.
+2. Lancer la micro-entreprise (SIRET) : rien ne peut être encaissé sans elle.
+3. Créer l'adresse e-mail du studio.
+4. Créer les comptes gratuits (hébergeur, stockage, e-mails) et saisir lui-même les clés.
+5. Acheter le nom de domaine (7 à 12 € par an), seule dépense prévue.
+6. Décider : vente aux professionnels uniquement, ou aussi aux particuliers (médiateur de la consommation obligatoire dans le second cas).
+7. Faire relire les conditions de vente ; envoyer lui-même les messages aux prospects.
+
+### Recherche d'une vidéo de démonstration externe (14 novembre)
+
+Aucune vidéo gratuite ne réunit présentateur IA, produit, voix française, montage publicitaire et droit de réutilisation commerciale.
+- Exemples des éditeurs d'outils (Creatify, HeyGen, Arcads…) : contenus réservés, reproduction interdite sans accord écrit (conditions de Creatify, § 7.2 et 7.4).
+- Banques gratuites (Pexels, Pixabay, Coverr, Mixkit) : usage commercial autorisé, mais ce sont des plans muets de vraies personnes, sans voix ni montage, et leurs licences interdisent de suggérer une recommandation par la personne filmée ou de s'attribuer le contenu.
+- Prestataires sur ComeUp ou Fiverr : leurs exemples leur appartiennent.
+Conclusion : la seule démonstration honnête et gratuite est une vidéo produite par le studio.
+
+---
+
+Le détail ci-dessous date du 13 novembre et reste valable.
 
 ## 1. Terminé et vérifié (fonctionne réellement, en local)
 

@@ -38,6 +38,7 @@ export function Pied() {
           © {new Date().getFullYear()} {site.marque} · Vidéos générées par intelligence artificielle
         </span>
         <nav className="pied-liens" aria-label="Informations légales">
+          {site.email && <a href={`mailto:${site.email}`}>Contact : {site.email}</a>}
           <Link href="/mentions-legales">Mentions légales</Link>
           <Link href="/cgv">Conditions de vente</Link>
           <Link href="/confidentialite">Confidentialité</Link>
