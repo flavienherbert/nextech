@@ -1,8 +1,9 @@
-"use client";
+import type { CSSProperties, ReactNode } from "react";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
-
-// Fait apparaître son contenu quand il entre dans l'écran.
+// Bloc qui apparaît en douceur quand il entre dans l'écran.
+// Ce composant ne contient aucun script : il pose seulement la classe « revele ».
+// L'apparition est pilotée par un petit script autonome (voir app/layout.tsx), indépendant
+// du chargement de l'application : si celle-ci ne démarre pas, le contenu reste visible.
 export default function Reveal({
   children,
   delay = 0,
@@ -14,34 +15,11 @@ export default function Reveal({
   className?: string;
   as?: "div" | "li" | "article" | "section";
 }) {
-  const ref = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (!("IntersectionObserver" in window)) {
-      el.classList.add("vu");
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add("vu");
-            io.unobserve(e.target);
-          }
-        }
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   const style = { "--delai": `${delay}ms` } as CSSProperties;
   return (
-    // @ts-expect-error ref polymorphe
-    <Tag ref={ref} className={`revele ${className}`} style={style}>
+    // Le script d'apparition ajoute la classe « vu » avant le démarrage de l'application :
+    // cet écart d'attribut est attendu.
+    <Tag className={`revele ${className}`} style={style} suppressHydrationWarning>
       {children}
     </Tag>
   );

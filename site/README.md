@@ -35,6 +35,15 @@ npm run test:e2e           # dans un second : parcours complet, fraude, factures
 npm run test:unitaires     # concurrence, factures, purge, e-mails
 ```
 
+Test d'affichage, à lancer aussi contre `npm run demo` (mode développement) :
+
+```bash
+MODE=dev  BASE=http://localhost:3000 npm run test:affichage   # avec « npm run demo »
+MODE=prod BASE=http://localhost:3000 npm run test:affichage   # avec « npm run demo:prod »
+```
+
+Il vérifie que toutes les sections sont réellement visibles sur ordinateur et sur mobile, qu'aucune erreur n'apparaît dans la console, et que `'unsafe-eval'` n'est autorisé qu'en développement.
+
 88 vérifications de bout en bout sur disque, 86 sur stockage objet (émulateur local), et 24 tests ciblés sur chaque stockage. Variables de test : `scripts/env-test.sh`.
 
 ## Documents

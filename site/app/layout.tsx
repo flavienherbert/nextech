@@ -25,18 +25,32 @@ export const viewport: Viewport = {
   themeColor: "#0b0a09",
 };
 
+const SCRIPT_APPARITION = `(function(){
+  try {
+    if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var io = new IntersectionObserver(function(entrees){
+      entrees.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add("vu"); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    var vus = new WeakSet();
+    function suivre(){ document.querySelectorAll(".revele").forEach(function(el){ if (!vus.has(el)) { vus.add(el); io.observe(el); } }); }
+    suivre();
+    document.documentElement.classList.add("anim");
+    new MutationObserver(suivre).observe(document.body, { childList: true, subtree: true });
+  } catch (e) { document.documentElement.classList.remove("anim"); }
+})();`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body>
-        <noscript>
-          <style>{`.revele{opacity:1!important;transform:none!important}`}</style>
-        </noscript>
         {children}
+        {/* Apparition des blocs au défilement. Script autonome, sans dépendance :
+            il ne masque les blocs (classe « anim ») qu'après avoir vérifié qu'il sait les révéler. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_APPARITION }} />
       </body>
     </html>
   );

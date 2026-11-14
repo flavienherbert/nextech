@@ -52,6 +52,8 @@
 - **13/11** — Revue de sécurité : 7 défauts corrigés, risques restants listés dans `site/SECURITE.md`.
 - **13/11** — Hébergement : proposition Netlify gratuit + R2, repli Render ou Fly.io. Aucun déploiement.
 
+- **14/11** — Défaut signalé par le fondateur : sections vides avec `npm run demo`. Cause : politique de contenu sans `'unsafe-eval'`, incompatible avec le mode développement, jamais testé. Corrigé ; apparition des blocs rendue indépendante de l'application ; test d'affichage ajouté pour les deux modes.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

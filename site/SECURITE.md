@@ -19,7 +19,7 @@ Revue faite par lecture du code et par tests automatisés. Ce n'est pas un audit
 | Paiement | Webhook signé, anti-rejeu, relecture de la session, montant et rattachement contrôlés, traitement unique | 12 tests de fraude |
 | Opérations simultanées | Écritures conditionnelles : pas d'écrasement, pas de double numéro de facture | Tests à 20, 25 et 30 opérations simultanées, sur un et trois processus |
 | Contenu saisi par les clients | Échappé à l'affichage et dans les e-mails | Test avec du code injecté dans le brief |
-| Navigateur | Politique de contenu, interdiction d'affichage dans un cadre, HTTPS imposé, pas d'en-tête révélant la technologie | Test |
+| Navigateur | Politique de contenu, interdiction d'affichage dans un cadre, HTTPS imposé, pas d'en-tête révélant la technologie. L'exécution de code par évaluation (`'unsafe-eval'`) n'est autorisée qu'en mode développement, jamais dans la version compilée. | Tests d'affichage dans les deux modes |
 | Moteurs de recherche | Administration, commandes et API exclues | Test |
 | Création de commandes en rafale | 8 par adresse et par quart d'heure | Lecture du code (désactivé pendant les tests) |
 | Dépendances | Aucune vulnérabilité connue après correction d'une dépendance | `npm audit` : 0 |
@@ -35,6 +35,8 @@ Revue faite par lecture du code et par tests automatisés. Ce n'est pas un audit
 5. La limite d'essais de connexion comptait aussi les connexions réussies. Corrigé.
 6. Aucun en-tête de sécurité n'était envoyé. Ajoutés.
 7. Une dépendance de compilation avait une vulnérabilité connue. Version corrigée imposée.
+
+8. La politique de contenu, testée seulement sur la version compilée, bloquait l'application en mode développement (`npm run demo`) : les sections animées restaient invisibles. Corrigé le 14/11 ; un test d'affichage couvre désormais les deux modes, et le contenu reste visible même si un script est bloqué.
 
 ## Risques qui restent, à connaître
 

@@ -80,15 +80,21 @@ a {
 
 /* ——— Apparitions ——— */
 
+/* Le contenu est visible par défaut. Il n'est masqué en attendant l'animation que si le
+   script d'apparition (app/layout.tsx) a démarré et posé la classe « anim » sur la page :
+   si un script est bloqué ou plante, rien ne reste invisible. */
 .revele {
-  opacity: 0;
-  transform: translateY(28px);
   transition:
     opacity 0.9s var(--doux) var(--delai, 0ms),
     transform 0.9s var(--doux) var(--delai, 0ms);
 }
 
-.revele.vu {
+html.anim .revele {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+html.anim .revele.vu {
   opacity: 1;
   transform: none;
 }
@@ -1148,11 +1154,11 @@ details p {
     transform: translateY(-14px);
   }
 
-  .formule-avant.revele {
+  html.anim .formule-avant.revele {
     transform: translateY(14px);
   }
 
-  .formule-avant.revele.vu {
+  html.anim .formule-avant.revele.vu {
     transform: translateY(-14px);
   }
 }
@@ -1162,7 +1168,7 @@ details p {
     scroll-behavior: auto;
   }
 
-  .revele,
+  html.anim .revele,
   .monte,
   .ligne > span {
     opacity: 1 !important;

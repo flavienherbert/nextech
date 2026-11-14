@@ -10,7 +10,8 @@
     "demo:prod": "next build && node scripts/demo.mjs prod",
     "test:e2e": "node scripts/e2e.mjs",
     "test:unitaires": "tsx scripts/tests-unitaires.mts",
-    "verifier:stripe": "node --env-file=.env.local scripts/verifier-stripe.mjs"
+    "verifier:stripe": "node --env-file=.env.local scripts/verifier-stripe.mjs",
+    "test:affichage": "node scripts/test-affichage.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1169.0",
