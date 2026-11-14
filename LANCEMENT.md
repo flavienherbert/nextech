@@ -12,19 +12,19 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 - Photographies libres de droits, sources et licences dans `site/IMAGES.md`.
 - Contact affiché dans le pied de toutes les pages dès que l'adresse du studio est renseignée.
 - Prospection préparée : `commercial/DEMARRAGE.md` (client idéal, arguments, présentation, méthode), 25 prospects, 8 messages.
-- Vidéo de démonstration du studio prête dans `site/public/media/demo/` (13,7 s, 1080 × 1920, 4 Mo), non activée : décision du fondateur.
+- Vidéo de démonstration du studio activée sur l'accueil (13,7 s, 1080 × 1920, 4 Mo), choix validé par le fondateur le 14 novembre.
 
 ### À FAIRE PAR CLAUDE (dès que les décisions sont prises)
 
-1. Activer la vidéo de démonstration choisie (deux lignes dans `site/app/config.ts`).
+1. (Fait) Vidéo de démonstration activée.
 2. Vérifier le site contre les vrais services : Stripe en mode test, stockage, e-mails, hébergeur en préproduction privée.
 3. Compléter mentions légales, conditions de vente et factures avec les informations réelles.
 4. Factures d'avoir en cas de remboursement, sauvegarde du stockage.
 
 ### À FAIRE PAR LE FONDATEUR
 
-1. Choisir la vidéo de démonstration.
-2. Lancer la micro-entreprise (SIRET) : rien ne peut être encaissé sans elle.
+1. (Fait) Vidéo de démonstration choisie.
+2. Micro-entreprise : en cours (déclaré par le fondateur le 14 novembre). Rien ne peut être encaissé avant le SIRET.
 3. Créer l'adresse e-mail du studio.
 4. Créer les comptes gratuits (hébergeur, stockage, e-mails) et saisir lui-même les clés.
 5. Acheter le nom de domaine (7 à 12 € par an), seule dépense prévue.
@@ -90,7 +90,7 @@ Le détail ci-dessous date du 13 novembre et reste valable.
 1. Vérifications en conditions réelles du § 2, dans cet ordre : Stripe test, stockage, e-mails, hébergeur.
 2. Factures d'avoir en cas de remboursement, facture d'acompte : non gérées.
 3. Sauvegarde du stockage.
-4. Vidéo de démonstration à produire : son emplacement est prêt sur l'accueil (voir site/README.md, « Activer la vidéo de démonstration »). Ne pas publier le site tant qu'il affiche « Emplacement réservé ».
+4. Seconde démonstration dans une autre catégorie de produit (bougie ou soin), à produire plus tard.
 
 ## 5. Ce qui nécessite ton intervention
 

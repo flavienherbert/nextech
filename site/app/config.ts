@@ -33,8 +33,8 @@ export const site = {
 //   video  : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus
 //   poster : JPG ou WebP, 720 × 1280 (image affichée avant la lecture)
 export const demonstration = {
-  video: "", // exemple : "/media/demo/demonstration.mp4"
-  poster: "", // exemple : "/media/demo/demonstration.jpg"
+  video: "/media/demo/demonstration.mp4",
+  poster: "/media/demo/demonstration.jpg",
   duree: "15 secondes",
   // Ce que montre la vidéo et ce que contient chaque livraison.
   contenu: [
