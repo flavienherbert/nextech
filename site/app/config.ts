@@ -33,8 +33,17 @@ export const site = {
 //   video  : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus
 //   poster : JPG ou WebP, 720 × 1280 (image affichée avant la lecture)
 export const demonstration = {
-  video: "/media/demo/demonstration.mp4",
-  poster: "/media/demo/demonstration.jpg",
+  video: "", // vidéo du studio : "/media/demo/demonstration.mp4" (désactivée le 14 novembre 2026, jugée insuffisante)
+  poster: "", // "/media/demo/demonstration.jpg"
+  // Solution PROVISOIRE : exemple d'un autre créateur, montré par le lecteur officiel YouTube.
+  // « autorisee » ne passe à true qu'après accord ÉCRIT du créateur (voir DEMO-CANDIDATS.md).
+  // À remplacer par une vidéo du studio dès qu'il en existe une : renseigner « video » ci-dessus.
+  externe: {
+    autorisee: false,
+    youtubeId: "c4yaPVdYr4U",
+    chaine: "Slow Machine Studio",
+    lien: "https://www.youtube.com/shorts/c4yaPVdYr4U",
+  },
   duree: "15 secondes",
   // Ce que montre la vidéo et ce que contient chaque livraison.
   contenu: [

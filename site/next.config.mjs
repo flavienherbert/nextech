@@ -18,6 +18,8 @@ export function politiqueContenu(developpement) {
     `connect-src 'self' ${process.env.S3_PUBLIC_ORIGIN || ""}${developpement ? " ws: wss:" : ""}`.replace(/\s+/g, " ").trim(),
     // La page de paiement simulée n'est autorisée que si un simulateur local est configuré.
     `form-action 'self' https://checkout.stripe.com ${/^http:\/\/localhost:\d+$/.test(process.env.STRIPE_API_HOST || "") ? process.env.STRIPE_API_HOST : ""}`.trim(),
+    // Seul cadre externe admis : le lecteur YouTube sans cookie (exemple externe provisoire de l'accueil).
+    "frame-src https://www.youtube-nocookie.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "object-src 'none'",

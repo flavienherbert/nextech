@@ -2,6 +2,7 @@ import Link from "next/link";
 import Reveal from "./components/Reveal";
 import { BandeauMode, Pied } from "./components/Cadre";
 import DemoVideo from "./components/DemoVideo";
+import DemoYoutube from "./components/DemoYoutube";
 import { angles, demonstration, engagements, etapes, faq, raisons, site, temps } from "./config";
 import { delaiTexte, euros, formules } from "@/lib/formules";
 
@@ -14,6 +15,14 @@ const piles: Record<string, string[]> = {
   test: ["test-1", "test-2", "test-3"],
   campagne: ["campagne-1", "campagne-2", "campagne-3", "campagne-4", "campagne-5", "campagne-6"],
 };
+
+// Ce que montre le cadre de démonstration : une vidéo du studio en priorité,
+// sinon un exemple externe autorisé par écrit, sinon un emplacement réservé.
+const demo: "studio" | "externe" | "vide" = demonstration.video
+  ? "studio"
+  : demonstration.externe.autorisee && demonstration.externe.youtubeId
+    ? "externe"
+    : "vide";
 
 export default function Accueil() {
   return (
@@ -104,36 +113,55 @@ export default function Accueil() {
         <section className="section section-demo" id="demonstration">
           <div className="conteneur demo-grille">
             <Reveal className="tete-section demo-tete">
-                <p className="surtitre">Le résultat</p>
-                <h2>
-                  Voici ce que vous <em>recevez.</em>
-                </h2>
+                <p className="surtitre">{demo === "externe" ? "Le format" : "Le résultat"}</p>
+                {demo === "externe" ? (
+                  <h2>
+                    Une publicité générée par IA, <em>en exemple.</em>
+                  </h2>
+                ) : (
+                  <h2>
+                    Voici ce que vous <em>recevez.</em>
+                  </h2>
+                )}
                 <p className="intro">
                   Une publicité verticale de {demonstration.duree} : un présentateur généré par
                   intelligence artificielle présente votre produit, face caméra, comme dans une
                   vidéo tournée au téléphone.
+                  {demo === "externe" &&
+                    " L'exemple ci-contre a été créé par un autre studio : il illustre le format, pas notre travail."}
                 </p>
             </Reveal>
             <Reveal className="demo-colonne">
               <figure className="demo-figure">
-                <div className={`demo-cadre${demonstration.video ? "" : " demo-vide"}`}>
-                  {demonstration.video ? (
-                    <DemoVideo video={demonstration.video} poster={demonstration.poster} />
-                  ) : (
+                <div className={`demo-cadre${demo === "studio" ? "" : " demo-vide"}`}>
+                  {demo === "studio" && <DemoVideo video={demonstration.video} poster={demonstration.poster} />}
+                  {demo === "externe" && (
+                    <DemoYoutube id={demonstration.externe.youtubeId} chaine={demonstration.externe.chaine} />
+                  )}
+                  {demo === "vide" && (
                     <div className="demo-reserve">
                       <span className="demo-reserve-titre">Vidéo de démonstration</span>
                       <span>en cours de production</span>
                       <span className="demo-reserve-format">{demonstration.duree} · format 9:16</span>
                     </div>
                   )}
-                  <span className="etiquette etiquette-realisation">
-                    {demonstration.video ? "Exemple de vidéo livrée" : "Emplacement réservé"}
+                  <span className={`etiquette ${demo === "externe" ? "etiquette-externe" : "etiquette-realisation"}`}>
+                    {demo === "studio" ? "Exemple de vidéo livrée" : demo === "externe" ? "Exemple externe" : "Emplacement réservé"}
                   </span>
                 </div>
                 <figcaption>
-                  {demonstration.video
-                    ? "Vidéo réalisée par Studio Accroche. Présentateur généré par intelligence artificielle, produit et marque fictifs."
-                    : "La démonstration sera affichée ici. Aucune vidéo d'exemple n'est encore publiée."}
+                  {demo === "studio" &&
+                    "Vidéo réalisée par Studio Accroche. Présentateur généré par intelligence artificielle, produit et marque fictifs."}
+                  {demo === "externe" && (
+                    <>
+                      Exemple externe de publicité générée par IA — non réalisée par Studio Accroche. Vidéo de{" "}
+                      <a href={demonstration.externe.lien} target="_blank" rel="noopener noreferrer">
+                        {demonstration.externe.chaine}
+                      </a>
+                      , affichée avec son accord par le lecteur YouTube.
+                    </>
+                  )}
+                  {demo === "vide" && "La démonstration sera affichée ici. Aucune vidéo d'exemple n'est encore publiée."}
                 </figcaption>
               </figure>
             </Reveal>

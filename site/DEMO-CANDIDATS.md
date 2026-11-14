@@ -1,6 +1,12 @@
 # Vidéo de démonstration externe — candidats et conditions
 
-Relevé du 14 novembre 2026. Rien n'a été téléchargé ni intégré. La vidéo du studio reste en place tant qu'aucun choix n'est validé.
+Relevé du 14 novembre 2026. Rien n'a été téléchargé.
+
+**Décision du fondateur (14 novembre)** : exemple externe accepté à titre provisoire, sous réserve d'un accord écrit du créateur. Candidat retenu : n° 1, Slow Machine Studio (contact public sur sa chaîne : andrii@slowmachinestudio.com, site slowmachinestudio.com). Repli : n° 2.
+
+**État** : intégration prête mais inactive (`app/config.ts`, `demonstration.externe.autorisee: false`). La vidéo du studio est désactivée ; l'accueil affiche « Emplacement réservé ». Pour activer après accord écrit : passer `autorisee` à `true`, et conserver l'e-mail d'accord. À retirer dès qu'une vidéo du studio existe (renseigner `demonstration.video`, qui est prioritaire).
+
+**Non vérifié** : dans l'environnement de test, le lecteur YouTube s'est chargé mais a affiché « Video unavailable », sans doute parce que YouTube bloque la lecture automatisée. À contrôler sur un vrai navigateur avant activation.
 
 ## Limites de ce relevé
 

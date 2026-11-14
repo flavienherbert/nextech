@@ -12,7 +12,7 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 - Photographies libres de droits, sources et licences dans `site/IMAGES.md`.
 - Contact affiché dans le pied de toutes les pages dès que l'adresse du studio est renseignée.
 - Prospection préparée : `commercial/DEMARRAGE.md` (client idéal, arguments, présentation, méthode), 25 prospects, 8 messages.
-- Vidéo de démonstration du studio activée sur l'accueil (13,7 s, 1080 × 1920, 4 Mo), choix validé par le fondateur le 14 novembre.
+- Démonstration : vidéo du studio désactivée (jugée insuffisante). Exemple externe provisoire prêt mais inactif, en attente de l'accord écrit du créateur (`site/DEMO-CANDIDATS.md`). Ne pas publier le site tant que l'accueil affiche « Emplacement réservé ».
 
 ### À FAIRE PAR CLAUDE (dès que les décisions sont prises)
 
