@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     description: site.sousTitre,
     locale: "fr_FR",
     type: "website",
-    images: ["/media/accueil-large.jpg"],
+    images: ["/media/photos/couverture-partage.jpg"],
   },
 };
 

@@ -157,8 +157,8 @@ export const angles = [
 
 // Les quatre temps d'une publicité, illustrés par des images fixes.
 export const temps = [
-  { image: "presentatrice", numero: "01", titre: "L'accroche", texte: "Un problème, dit face caméra, en trois secondes." },
-  { image: "sac", numero: "02", titre: "La preuve", texte: "Le geste qui montre le bénéfice avant de le dire." },
-  { image: "glacons", numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
-  { image: "produit", numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
+  { image: "temps-01-accroche", numero: "01", titre: "L'accroche", texte: "Un problème, dit face caméra, en trois secondes." },
+  { image: "temps-02-preuve", numero: "02", titre: "La preuve", texte: "Le geste qui montre le bénéfice avant de le dire." },
+  { image: "temps-03-benefice", numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
+  { image: "temps-04-offre", numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
 ];

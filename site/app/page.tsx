@@ -7,7 +7,12 @@ import { delaiTexte, euros, formules } from "@/lib/formules";
 export const dynamic = "force-dynamic";
 
 const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", "Format 9:16", "Livré en 48 h"];
-const pile = ["presentatrice", "sac", "glacons", "produit", "presentatrice", "glacons"];
+// Une pile de photographies propre à chaque formule : une, trois, puis six, toutes différentes.
+const piles: Record<string, string[]> = {
+  essai: ["essai-1"],
+  test: ["test-1", "test-2", "test-3"],
+  campagne: ["campagne-1", "campagne-2", "campagne-3", "campagne-4", "campagne-5", "campagne-6"],
+};
 
 export default function Accueil() {
   return (
@@ -32,11 +37,18 @@ export default function Accueil() {
       <main id="haut">
         {/* ——— Ouverture ——— */}
         <section className="hero">
-          <div className="hero-media hero-images" aria-hidden="true">
+          <div className="hero-media hero-photo" aria-hidden="true">
             {/* eslint-disable @next/next/no-img-element */}
-            <img src="/media/img/sac.jpg" alt="" />
-            <img src="/media/img/presentatrice.jpg" alt="" />
-            <img src="/media/img/glacons.jpg" alt="" />
+            <picture>
+              <source media="(max-width: 819px)" srcSet="/media/photos/couverture-mobile.webp" />
+              <img
+                src="/media/photos/couverture-1920.webp"
+                srcSet="/media/photos/couverture-1280.webp 1280w, /media/photos/couverture-1920.webp 1920w"
+                sizes="100vw"
+                alt=""
+                fetchPriority="high"
+              />
+            </picture>
           </div>
           <div className="hero-voile" aria-hidden="true" />
           <div className="grain" aria-hidden="true" />
@@ -71,7 +83,7 @@ export default function Accueil() {
           </div>
 
           <div className="conteneur hero-pied">
-            <span>Images de démonstration générées par IA</span>
+            <span>Photographie d&apos;illustration</span>
             <a href="#anatomie" className="defiler">
               Défiler
             </a>
@@ -95,15 +107,14 @@ export default function Accueil() {
                 Quinze secondes, <em>quatre temps.</em>
               </h2>
               <p className="intro">
-                Chaque vidéo que nous livrons suit la même construction. Voici celle de notre
-                produit de démonstration, plan par plan.
+                Chaque vidéo que nous livrons suit la même construction, plan par plan.
               </p>
             </Reveal>
             <div className="temps">
               {temps.map((t, i) => (
                 <Reveal as="article" key={t.numero} delay={i * 110} className="temps-carte">
                   <div className="temps-cadre">
-                    <img src={`/media/img/${t.image}.jpg`} alt="" loading="lazy" />
+                    <img src={`/media/photos/${t.image}.webp`} alt="" loading="lazy" />
                     <span className="plan-numero">{t.numero}</span>
                   </div>
                   <h3>{t.titre}</h3>
@@ -112,8 +123,8 @@ export default function Accueil() {
               ))}
             </div>
             <p className="mention">
-              Produit et marque fictifs, créés pour cette démonstration. Présentatrice et décors
-              générés par intelligence artificielle.
+              Photographies d&apos;illustration. Les vidéos livrées sont réalisées avec un
+              présentateur généré par intelligence artificielle.
             </p>
           </div>
         </section>
@@ -181,8 +192,8 @@ export default function Accueil() {
               {formules.map((f, i) => (
                 <Reveal as="article" key={f.id} delay={i * 110} className={`formule${f.misEnAvant ? " formule-avant" : ""}`}>
                   <div className={`pile pile-${f.videos}`} aria-hidden="true">
-                    {pile.slice(0, f.videos).map((v, k) => (
-                      <img key={k} src={`/media/img/${v}-p.jpg`} alt="" loading="lazy" />
+                    {(piles[f.id] ?? []).map((v, k) => (
+                      <img key={k} src={`/media/photos/${v}.webp`} alt="" loading="lazy" />
                     ))}
                   </div>
                   {f.misEnAvant && <span className="badge">Le plus utile pour tester</span>}
