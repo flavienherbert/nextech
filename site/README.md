@@ -27,7 +27,30 @@ Parcours à suivre :
 
 Pour repartir de zéro : supprimer le dossier `site/data`.
 
+## Si la page s'affiche mal (sections vides, erreur « unsafe-eval » dans la console)
+
+Presque toujours : un ancien serveur tourne encore et répond à la place du nouveau, ou le dossier n'a pas reçu la dernière version du code.
+
+```bash
+npm run diagnostic   # dit quelle version du code est dans ce dossier, qui occupe les ports, et quels en-têtes sont réellement servis
+npm run stop         # arrête tout serveur de démonstration resté ouvert
+npm run demo         # refuse de démarrer si un port est occupé, et affiche la politique réellement servie
+```
+
+### Mettre à jour le code
+
+```bash
+git status                # doit indiquer la branche claude/autonomous-profitable-business-5u6yv9
+git pull                  # si git refuse à cause de fichiers modifiés : git stash, puis git pull
+npm install
+```
+
 ## Tests automatiques
+
+```bash
+npm run test:csp           # autonome (2 min) : en-têtes en développement et en version compilée, rendu réel, arrêt des processus
+```
+
 
 ```bash
 npm run demo:prod          # dans un premier terminal

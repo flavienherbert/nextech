@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "demo": "node scripts/demo.mjs",
-    "demo:prod": "next build && node scripts/demo.mjs prod",
+    "demo:prod": "node scripts/demo.mjs prod",
     "test:e2e": "node scripts/e2e.mjs",
     "test:unitaires": "tsx scripts/tests-unitaires.mts",
     "verifier:stripe": "node --env-file=.env.local scripts/verifier-stripe.mjs",
-    "test:affichage": "node scripts/test-affichage.mjs"
+    "test:affichage": "node scripts/test-affichage.mjs",
+    "stop": "node scripts/stop.mjs",
+    "diagnostic": "node scripts/diagnostic.mjs",
+    "test:csp": "node scripts/test-csp.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1169.0",

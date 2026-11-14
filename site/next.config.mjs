@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
 
 // Politique de sécurité de contenu.
@@ -15,11 +16,20 @@ export function politiqueContenu(developpement) {
     "font-src 'self'",
     // Envoi direct des fichiers vers le stockage objet, si configuré.
     `connect-src 'self' ${process.env.S3_PUBLIC_ORIGIN || ""}${developpement ? " ws: wss:" : ""}`.replace(/\s+/g, " ").trim(),
-    "form-action 'self' https://checkout.stripe.com http://localhost:4242",
+    // La page de paiement simulée n'est autorisée que si un simulateur local est configuré.
+    `form-action 'self' https://checkout.stripe.com ${/^http:\/\/localhost:\d+$/.test(process.env.STRIPE_API_HOST || "") ? process.env.STRIPE_API_HOST : ""}`.trim(),
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "object-src 'none'",
   ].join("; ");
+}
+
+function versionDuCode() {
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"], encoding: "utf8" }).trim() || "inconnue";
+  } catch {
+    return "inconnue";
+  }
 }
 
 const prive = [
@@ -38,7 +48,10 @@ export default function config(phase) {
     { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
     { key: "Content-Security-Policy", value: politiqueContenu(developpement) },
     // Inutile et gênant sur un poste de développement en HTTP.
-    ...(developpement ? [] : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
+    ...(developpement
+      ? // Aide au diagnostic sur un poste de développement : quelle version du code répond réellement.
+        [{ key: "X-Studio-Version", value: versionDuCode() }]
+      : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
   ];
   /** @type {import('next').NextConfig} */
   return {
