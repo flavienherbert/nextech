@@ -1,9 +1,13 @@
-# Réglages de mise en ligne sur Netlify. Le site est dans le sous-dossier « site » du dépôt.
+# Réglages de mise en ligne sur Netlify. Ce fichier est dans le dossier « site » : c'est le dossier à déployer
+# (en cas d'import depuis GitHub, indiquer « site » comme dossier de base dans l'interface de Netlify).
 # Aucune clé ni mot de passe ici : ils se saisissent dans l'interface de Netlify (variables d'environnement).
 [build]
-  base = "site"
   command = "npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Adaptateur Next.js de Netlify : rend les pages, les routes d'API et le contrôle d'accès.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

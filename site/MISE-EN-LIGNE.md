@@ -6,6 +6,22 @@ Coût : 0 €. Aucun nom de domaine n'est nécessaire à ce stade (adresse fourn
 
 Règle : les clés et mots de passe se saisissent uniquement dans les interfaces des services. Ne les copiez jamais dans la conversation ni dans un fichier du projet.
 
+## État au 15 novembre 2026
+
+Préproduction en ligne : https://studio-accroche-preprod.netlify.app (protégée par mot de passe ; les mots de passe sont dans les variables d'environnement du projet Netlify, pas dans ce dépôt).
+
+| Élément | État |
+|---|---|
+| Site déployé sur Netlify (offre gratuite), adaptateur Next.js | Vérifié en ligne : pages, images, formules, sans erreur, ordinateur et mobile |
+| Accès protégé par mot de passe, webhook Stripe exempté | Vérifié en ligne : 401 sans mot de passe, 200 avec |
+| En-têtes de sécurité (CSP stricte, HSTS, X-Frame-Options) | Vérifiés en ligne |
+| Administration | Connexion vérifiée en ligne |
+| Stockage durable | NON : Cloudflare R2 n'est pas activé sur le compte (demande un moyen de paiement). Le site écrit dans un dossier temporaire : les données ne sont pas conservées |
+| E-mails | NON envoyés : la clé Brevo n'est pas saisie dans Netlify. Expéditeur déjà validé chez Brevo |
+| Paiement | Fermé : aucune clé Stripe. Le connecteur Stripe ne donne accès qu'à un compte en mode réel, non utilisé |
+
+Déploiement : manuel, depuis le dossier `site` (le dépôt GitHub n'est pas relié à Netlify).
+
 ## Ce qui est déjà prêt dans le code
 
 | Élément | État |
