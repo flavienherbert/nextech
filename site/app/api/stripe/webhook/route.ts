@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { store } from "@/lib/store";
 import { confirmerPaiement, marquerPaiementInabouti } from "@/lib/commandes";
 import { courriels } from "@/lib/mail";
+import { alerter } from "@/lib/alertes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,11 @@ export async function POST(req: Request) {
     // Erreur de notre côté : on libère l'événement pour que Stripe puisse le renvoyer.
     await store.oublierEvenement(evenement.id);
     console.error("[webhook]", (e as Error).message);
+    await alerter({
+      cle: `webhook-erreur-${evenement.type}`, titre: "Paiement à vérifier : erreur de traitement",
+      message: "Un événement de paiement n'a pas pu être traité. Stripe va réessayer automatiquement ; vérifiez le diagnostic si l'alerte se répète.",
+      details: `${evenement.type} (${evenement.id}) : ${(e as Error).message}`, lien: `${env.baseUrl()}/admin/diagnostic`, urgence: "haute", fenetreMs: 3600_000,
+    });
     return new Response("Erreur de traitement", { status: 500 });
   }
 }

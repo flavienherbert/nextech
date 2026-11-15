@@ -2412,3 +2412,158 @@ button.bouton-petit {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ───── Administration : tableau de bord des commandes ───── */
+.compteurs-vues a {
+  border: 1px solid var(--trait);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.compteurs-vues a strong {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.compteurs-vues a span {
+  font-size: 13.5px;
+  color: var(--encre-douce);
+}
+
+.compteurs-vues a:hover {
+  border-color: var(--encre-douce);
+}
+
+.compteurs-vues a.actif {
+  border-color: var(--encre);
+  background: rgba(243, 239, 232, 0.07);
+}
+
+.compteurs-vues a.urgent strong {
+  color: #ff9b7c;
+}
+
+.compteurs-vues a.urgent {
+  border-color: rgba(255, 90, 43, 0.6);
+}
+
+.resume-ventes {
+  margin: -8px 0 18px;
+}
+
+.recherche {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.recherche .champ {
+  flex: 1 1 280px;
+  margin: 0;
+}
+
+.titre-vue {
+  font-size: 26px;
+  margin: 22px 0 4px;
+}
+
+.titre-vue small {
+  font-size: 15px;
+  color: var(--encre-douce);
+}
+
+.vide {
+  margin: 18px 0;
+}
+
+.pastille {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  color: #ff9b7c;
+  vertical-align: middle;
+}
+
+.pastille-nouveau {
+  background: var(--accent);
+  color: #1a0d08;
+}
+
+.pastille-retard {
+  border-color: #ff6b6b;
+  color: #ff9a9a;
+}
+
+.pagination {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  margin: 22px 0 6px;
+  font-size: 14.5px;
+}
+
+.etape {
+  border-color: rgba(255, 90, 43, 0.55);
+  margin-bottom: 22px;
+}
+
+.etape .actions {
+  margin-top: 10px;
+}
+
+.etape form {
+  margin-top: 10px;
+}
+
+.historique .echec {
+  color: #ff9a9a;
+}
+
+.avis-ok {
+  border-color: rgba(111, 191, 139, 0.55);
+  background: rgba(111, 191, 139, 0.1);
+  color: #cdeed8;
+}
+
+.aide-etapes {
+  counter-reset: etape;
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.aide-etapes li {
+  counter-increment: etape;
+  padding-left: 40px;
+  position: relative;
+}
+
+.aide-etapes li::before {
+  content: counter(etape);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  color: #ff9b7c;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}

@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { purger } from "@/lib/purge";
+import { veille } from "@/lib/veille";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +16,8 @@ export async function POST(req: Request) {
   if (attendu.length < 24 || !crypto.timingSafeEqual(empreinte(recu), empreinte(attendu))) return new Response("Introuvable", { status: 404 });
   try {
     const bilan = await purger(true);
-    return Response.json({ ok: true, bilan });
+    const suivi = await veille();
+    return Response.json({ ok: true, bilan, veille: suivi });
   } catch (e) {
     console.error("[tache quotidienne]", (e as Error).message);
     return Response.json({ ok: false }, { status: 500 });

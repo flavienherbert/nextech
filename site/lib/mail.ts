@@ -1,9 +1,11 @@
-// Envoi des e-mails. Deux pilotes :
-//  - « fichier » (par défaut) : rien n'est envoyé, le message est archivé et lisible dans l'administration ;
-//  - « resend » : envoi réel par l'API Resend si RESEND_API_KEY et MAIL_FROM sont définis.
+// Envoi des e-mails. Chaque message est TOUJOURS archivé (lisible dans l'administration), puis envoyé par le premier
+// service qui répond, dans l'ordre : Brevo (BREVO_API_KEY), Resend (RESEND_API_KEY), SMTP (SMTP_USER + SMTP_PASSWORD,
+// par défaut le compte Gmail du studio). MAIL_FROM est requis. Sans aucun service : archivage seul.
 import crypto from "node:crypto";
 import { env } from "./env";
 import { store, maintenant, nomStatut, type Commande, type Courriel } from "./store";
+import nodemailer from "nodemailer";
+import { alerter } from "./alertes";
 import { formuleParId, euros, delaiTexte } from "./formules";
 
 const esc = (s: string) =>
@@ -25,52 +27,102 @@ function expediteur() {
   return m ? { nom: m[1] || "Studio Accroche", adresse: m[2] } : { nom: "Studio Accroche", adresse: env.mailFrom().trim() };
 }
 
-type Pilote = { nom: string; envoyer: (a: string, objet: string, html: string, texte: string) => Promise<Response> };
+type Resultat = { ok: boolean; erreur?: string };
+type Transport = { nom: string; envoyer: (a: string, objet: string, html: string, texte: string) => Promise<Resultat> };
 
-function pilote(): Pilote | null {
-  if (!env.mailFrom()) return null;
+const delai = () => Number(process.env.MAIL_TIMEOUT_MS) || 8000;
+const viaHttp = async (requete: Promise<Response>): Promise<Resultat> => {
+  try {
+    const r = await requete;
+    return r.ok ? { ok: true } : { ok: false, erreur: `échec ${r.status} : ${(await r.text()).slice(0, 200)}` };
+  } catch (e) {
+    return { ok: false, erreur: `échec : ${(e as Error).message}` };
+  }
+};
+
+// Messagerie classique (SMTP) : par défaut le compte Gmail du studio avec un « mot de passe d'application ».
+// Sert de voie de secours si Brevo refuse l'envoi, ou de voie principale s'il n'est pas configuré.
+export const smtpConfigure = () => Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+
+// Services d'envoi dans l'ordre d'essai : le suivant prend le relais quand le précédent échoue.
+function transports(): Transport[] {
+  if (!env.mailFrom()) return [];
   const e = expediteur();
+  const liste: Transport[] = [];
   const brevo = process.env.BREVO_API_KEY;
   if (brevo)
-    return {
+    liste.push({
       nom: "brevo",
       envoyer: (a, objet, html, texte) =>
-        fetch(`${process.env.BREVO_API_BASE || "https://api.brevo.com"}/v3/smtp/email`, {
+        viaHttp(fetch(`${process.env.BREVO_API_BASE || "https://api.brevo.com"}/v3/smtp/email`, {
           method: "POST",
-          signal: AbortSignal.timeout(Number(process.env.MAIL_TIMEOUT_MS) || 8000),
+          signal: AbortSignal.timeout(delai()),
           headers: { "api-key": brevo, "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ sender: { name: e.nom, email: e.adresse }, to: [{ email: a }], subject: objet, htmlContent: html, textContent: texte, ...(env.legal().email ? { replyTo: { email: env.legal().email } } : {}) }),
-        }),
-    };
+        })),
+    });
   if (env.resendKey())
-    return {
+    liste.push({
       nom: "resend",
       envoyer: (a, objet, html, texte) =>
-        fetch(`${process.env.RESEND_API_BASE || "https://api.resend.com"}/emails`, {
+        viaHttp(fetch(`${process.env.RESEND_API_BASE || "https://api.resend.com"}/emails`, {
           method: "POST",
-          signal: AbortSignal.timeout(Number(process.env.MAIL_TIMEOUT_MS) || 8000),
+          signal: AbortSignal.timeout(delai()),
           headers: { Authorization: `Bearer ${env.resendKey()}`, "Content-Type": "application/json" },
           body: JSON.stringify({ from: `${e.nom} <${e.adresse}>`, to: [a], subject: objet, html, text: texte, ...(env.legal().email ? { reply_to: env.legal().email } : {}) }),
-        }),
-    };
-  return null;
+        })),
+    });
+  if (smtpConfigure())
+    liste.push({
+      nom: "smtp",
+      envoyer: async (a, objet, html, texte) => {
+        try {
+          const port = Number(process.env.SMTP_PORT) || 465;
+          const t = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465,
+            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+            connectionTimeout: delai(), greetingTimeout: delai(), socketTimeout: delai() + 4000,
+          });
+          await t.sendMail({ from: `"${e.nom}" <${e.adresse}>`, to: a, subject: objet, html, text: texte, ...(env.legal().email ? { replyTo: env.legal().email } : {}) });
+          return { ok: true };
+        } catch (err) {
+          return { ok: false, erreur: `échec smtp : ${(err as Error).message.slice(0, 200)}` };
+        }
+      },
+    });
+  return liste;
 }
 
-export const envoiReel = () => pilote()?.nom ?? null;
+// Noms des services d'envoi configurés, dans l'ordre d'essai (vide : aucun envoi réel).
+export const servicesEnvoi = () => transports().map((t) => t.nom);
+export const envoiReel = () => servicesEnvoi().join(" puis ") || null;
 
-// Un e-mail qui échoue ne doit jamais faire échouer la commande : l'échec est archivé et visible.
+// Un e-mail qui échoue ne doit jamais faire échouer la commande : l'échec est archivé, visible, et prévient l'administrateur.
 async function envoyer(a: string, objet: string, html: string, commande?: string) {
   const m: Courriel = { id: crypto.randomBytes(6).toString("hex"), date: maintenant(), a, objet, html, texte: enTexte(html), commande, pilote: "fichier", resultat: "archivé (aucun envoi réel)" };
-  const p = pilote();
+  const ts = transports();
   if (!a) {
     m.resultat = "non envoyé : destinataire manquant";
-  } else if (p) {
-    m.pilote = p.nom;
-    try {
-      const r = await p.envoyer(a, objet, html, m.texte);
-      m.resultat = r.ok ? "envoyé" : `échec ${r.status} : ${(await r.text()).slice(0, 200)}`;
-    } catch (e) {
-      m.resultat = `échec : ${(e as Error).message}`;
+  } else if (ts.length) {
+    const essais: string[] = [];
+    for (const t of ts) {
+      const r = await t.envoyer(a, objet, html, m.texte);
+      m.pilote = t.nom;
+      if (r.ok) { m.resultat = "envoyé"; break; }
+      m.resultat = r.erreur || "échec";
+      essais.push(`${t.nom} : ${m.resultat}`);
+    }
+    if (essais.length) m.essais = essais;
+    if (m.resultat !== "envoyé") {
+      // Le téléphone prévient quand l'e-mail ne passe pas (l'e-mail ne peut pas signaler sa propre panne).
+      await alerter({
+        cle: `email-echec-${commande || objet}`,
+        titre: "E-mail non envoyé",
+        message: a === env.adminEmail() ? "Une notification qui vous était destinée n'a pas pu partir par e-mail." : "Un e-mail destiné à un client n'a pas pu partir. Ouvrez l'administration pour le renvoyer.",
+        details: `Destinataire : ${a}\nObjet : ${objet}\n${essais.join("\n")}`,
+        lien: `${env.baseUrl()}/admin/courriels`,
+        urgence: "haute", email: false,
+      });
     }
   }
   await store.archiverCourriel(m).catch((e) => console.error("[courriel] archivage impossible :", (e as Error).message));
@@ -85,6 +137,11 @@ function recap(c: Commande) {
   const f = formuleParId(c.formule)!;
   return `<table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0"><tr><td style="padding:6px 0;color:#777">Commande</td><td style="padding:6px 0;text-align:right"><strong>${esc(c.id)}</strong></td></tr><tr><td style="padding:6px 0;color:#777">Formule</td><td style="padding:6px 0;text-align:right">${esc(f.nom)} — ${f.videos} vidéo${f.videos > 1 ? "s" : ""}</td></tr><tr><td style="padding:6px 0;color:#777">Montant payé</td><td style="padding:6px 0;text-align:right">${euros(c.montantCents)}</td></tr><tr><td style="padding:6px 0;color:#777">Délai</td><td style="padding:6px 0;text-align:right">${esc(delaiTexte(f))} après réception du brief</td></tr></table>`;
 }
+
+// Tableau « libellé / valeur » des e-mails.
+const tableau = (lignes: [string, string][]) =>
+  `<table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0">${lignes.map(([k, v]) => `<tr><td style="padding:6px 10px 6px 0;color:#777;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0;text-align:right"><strong>${esc(v)}</strong></td></tr>`).join("")}</table>`;
+const dateFr = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 
 function briefHtml(c: Commande) {
   const b = c.brief;
@@ -121,18 +178,44 @@ export const courriels = {
     envoyer(destinataire(c), `Commande ${c.id} — production lancée`,
       gabarit("Votre commande est en production", `<p>La réalisation a commencé. Vous recevrez un e-mail dès que le résultat sera prêt à être validé.</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
 
-  aValider: (c: Commande) =>
-    envoyer(destinataire(c), `Commande ${c.id} — à valider`,
-      gabarit("C'est prêt, à vous de valider", `<p>Votre livraison est disponible. Regardez-la, puis validez-la ou demandez une retouche depuis votre espace.</p>`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
+  aValider: (c: Commande, correction = false) =>
+    envoyer(destinataire(c), `Commande ${c.id} — ${correction ? "version corrigée à valider" : "à valider"}`,
+      gabarit(correction ? "Votre version corrigée est prête" : "C'est prêt, à vous de valider", `<p>${correction ? "Nous avons pris en compte votre retouche : la nouvelle version est disponible." : "Votre livraison est disponible."} Regardez-la, puis validez-la ou demandez une retouche depuis votre espace.</p>`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
 
   livree: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — vos fichiers sont disponibles`,
       gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement depuis votre lien privé. Ils y restent disponibles 90 jours : pensez à les enregistrer.</p>${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
 
   // — Administrateur —
-  adminPaiement: (c: Commande) =>
-    envoyer(env.adminEmail(), `[Studio Accroche] Paiement reçu — ${c.id} — ${euros(c.montantCents)}`,
-      gabarit("Nouveau paiement confirmé", `${recap(c)}<p>E-mail saisi au paiement : ${esc(c.paiement.emailStripe || "—")}</p><p>Le client doit encore transmettre son brief.</p>`, { texte: "Ouvrir la commande", url: lienAdmin(c) }), c.id),
+  // Envoyé UNIQUEMENT quand Stripe a confirmé le paiement (jamais pour une commande seulement créée).
+  adminPaiement: (c: Commande) => {
+    const f = formuleParId(c.formule)!;
+    return envoyer(env.adminEmail(), `[Studio Accroche] Nouvelle commande payée — ${c.id} — ${f.nom} — ${euros(c.montantCents)}`,
+      gabarit("Nouvelle commande payée", `<p>Un client vient de payer : le paiement est confirmé par Stripe.</p>${tableau([
+        ["Commande", c.id],
+        ["Client", c.brief?.nom || c.paiement.nomStripe || "non renseigné"],
+        ["E-mail", c.brief?.email || c.paiement.emailStripe || "non renseigné"],
+        ["Offre", `${f.nom} — ${f.videos} vidéo${f.videos > 1 ? "s" : ""}`],
+        ["Montant payé", euros(c.montantCents)],
+        ["Payée le", dateFr(c.paiement.payeLe || c.creeLe)],
+        ["Délai promis", `${delaiTexte(f)} après réception du brief`],
+      ])}<p><strong>Et maintenant ?</strong> Le client vient de recevoir un e-mail pour remplir son brief. Vous serez prévenu dès qu'il l'aura envoyé : vous n'avez rien à faire d'ici là.</p>`, { texte: "Ouvrir la commande", url: lienAdmin(c) }), c.id);
+  },
+
+  // Alerte à l'administrateur (problème technique, paiement à vérifier, e-mail en échec…).
+  adminAlerte: (titre: string, details: string, lien?: string) =>
+    envoyer(env.adminEmail(), `[Studio Accroche] ⚠ ${titre}`,
+      gabarit(titre, `<p>${esc(details).replace(/\n/g, "<br>")}</p>`, lien ? { texte: "Ouvrir l'administration", url: lien } : undefined)),
+
+  // Récapitulatif du matin : seulement ce qui attend une action.
+  adminResume: (lignes: { titre: string; elements: string[] }[], lien: string) =>
+    envoyer(env.adminEmail(), `[Studio Accroche] Récap du jour — ${lignes.reduce((n, l) => n + l.elements.length, 0)} point${lignes.reduce((n, l) => n + l.elements.length, 0) > 1 ? "s" : ""} à traiter`,
+      gabarit("Ce qui vous attend aujourd'hui", lignes.map((l) => `<h3 style="margin:18px 0 6px;font-size:16px">${esc(l.titre)} (${l.elements.length})</h3><ul style="margin:0;padding-left:18px">${l.elements.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>`).join(""), { texte: "Ouvrir l'administration", url: lien })),
+
+  // Relance automatique d'un client qui a payé sans envoyer son brief.
+  relanceBrief: (c: Commande) =>
+    envoyer(destinataire(c), `Commande ${c.id} — il nous manque encore votre brief`,
+      gabarit("Nous attendons votre brief", `<p>Votre paiement est bien enregistré, mais nous n'avons pas encore reçu les informations sur votre produit. Sans elles, nous ne pouvons pas commencer, et le délai de livraison ne démarre qu'à leur réception.</p><p>Cela prend cinq minutes : lien du produit, trois photos, quelques arguments.</p>`, { texte: "Remplir mon brief", url: lienClient(c) }), c.id),
 
   adminBrief: (c: Commande) =>
     envoyer(env.adminEmail(), `[Studio Accroche] Brief reçu — ${c.id} — ${c.brief?.marque || ""}`,

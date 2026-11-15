@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigerAdmin } from "@/lib/auth";
+import { testerNotification } from "../actions";
 import { executerDiagnostic, type Etat } from "@/lib/diagnostic";
 
 export const dynamic = "force-dynamic";
@@ -10,8 +11,10 @@ export const metadata: Metadata = { title: "Diagnostic — Administration", robo
 const SYMBOLE: Record<Etat, string> = { ok: "✓", ko: "✗", avert: "⚠", info: "•" };
 const COULEUR: Record<Etat, string> = { ok: "#7bd88f", ko: "#ff7b6b", avert: "#f2c14e", info: "#a8a094" };
 
-export default async function Diagnostic() {
+export default async function Diagnostic({ searchParams }: { searchParams: Promise<{ test?: string; sanspush?: string }> }) {
   await exigerAdmin();
+  const q = await searchParams;
+  const [push, mail] = (q.test || "").split("-");
   const r = await executerDiagnostic();
   return (
     <main className="page admin">
@@ -22,6 +25,14 @@ export default async function Diagnostic() {
         <p className="avis">
           Exécuté sur le serveur ({r.plateforme}) le {new Date(r.date).toLocaleString("fr-FR")}. Aucune clé n&apos;est affichée ; les fichiers et lignes de test sont supprimés à la fin.
         </p>
+        {q.test && (
+          <p className={`avis ${push === "ko" || mail === "ko" ? "avis-erreur" : "avis-ok"}`} role="status">
+            Test de notification — téléphone : {push === "ok" ? "envoyé ✓" : push === "ko" ? "ÉCHEC ✗" : "non activé"} · e-mail : {mail === "ok" ? `envoyé ✓ (vérifiez votre boîte)` : mail === "ko" ? "ÉCHEC ✗ (voir la section E-mails)" : "non configuré"}.
+          </p>
+        )}
+        <form action={testerNotification}>
+          <button className="bouton bouton-fantome bouton-petit" type="submit">Envoyer une notification de test</button>
+        </form>
         <p className="aide">
           <strong style={{ color: COULEUR.ok }}>{r.synthese.ok} réussies</strong> · <strong style={{ color: COULEUR.ko }}>{r.synthese.ko} échec{r.synthese.ko > 1 ? "s" : ""}</strong> · <strong style={{ color: COULEUR.avert }}>{r.synthese.avert} avertissement{r.synthese.avert > 1 ? "s" : ""}</strong> · {r.synthese.info} information{r.synthese.info > 1 ? "s" : ""}
         </p>

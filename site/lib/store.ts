@@ -61,6 +61,7 @@ export type Commande = {
     intentId?: string;
     payeLe?: string;
     emailStripe?: string;
+    nomStripe?: string; // nom saisi par le client sur la page de paiement
     mode: string;
   };
   brief?: Brief;
@@ -69,7 +70,9 @@ export type Commande = {
   facture?: Facture;
   livreeLe?: string;
   fichiersPurgesLe?: string;
-  retouchesDemandees: { date: string; message: string }[];
+  retouchesDemandees: { date: string; message: string; traiteeLe?: string }[];
+  vueLe?: string; // première ouverture de la commande par l'administrateur (sert au repère « Nouvelle »)
+  relanceBriefLe?: string; // relance automatique envoyée au client qui n'a pas transmis son brief
   valideeLe?: string;
   notes: string;
   historique: { date: string; evenement: string }[];
@@ -85,6 +88,7 @@ export type Courriel = {
   commande?: string;
   pilote: string;
   resultat: string;
+  essais?: string[]; // échecs des services d'envoi essayés avant celui qui a fonctionné (ou avant l'échec final)
 };
 
 const sur = (s: string) => /^[A-Za-z0-9_-]+$/.test(s);

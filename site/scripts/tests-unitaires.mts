@@ -10,6 +10,12 @@ import { courriels, enEchec } from "../lib/mail";
 import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
 import { deduireSupabase, configurationStockage } from "../lib/supabase-config.mjs";
 import { executerDiagnostic } from "../lib/diagnostic";
+import { createRequire } from "node:module";
+import { alerter } from "../lib/alertes";
+import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief } from "../lib/commandes";
+import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, trier, VUES } from "../lib/suivi";
+import { veille } from "../lib/veille";
+import { onRequestError } from "../instrumentation";
 
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -88,6 +94,15 @@ const apres = await store.commande(c4.id);
 verifier("Purge : fichiers d'une commande livrée depuis plus de 90 jours supprimés, commande conservée", apres?.fichiersPurgesLe && apres.livrables.length === 0 && (await depot().taille("fichiers/aaaa1111")) === null && (await depot().taille("fichiers/bbbb2222")) === null);
 verifier("Purge : commande jamais payée de plus de 30 jours supprimée", (await store.commande(c5.id)) === null && (await store.commandeParToken(c5.token)) === null);
 verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.statut === "livree");
+{
+  // Une commande payée il y a plus d'un an reste consultable, avec ses informations, quelle que soit la purge des fichiers
+  const il = (j: number) => new Date(Date.now() - j * 86_400_000).toISOString();
+  const ancienne = commandeTest({ statut: "livree", creeLe: il(420), livreeLe: il(400), vueLe: il(419), paiement: { etat: "paye", sessionId: "old", payeLe: il(420), emailStripe: "ancien@exemple.fr", nomStripe: "Ancien Client", mode: "s" } });
+  await store.creerCommande(ancienne);
+  await purger(true, Date.now() + 365 * 86_400_000);
+  const relue = (await store.commandes()).find((c) => c.id === ancienne.id);
+  verifier("Une commande payée de plus d'un an reste dans la liste, avec brief et historique, même après purge", Boolean(relue) && relue!.brief?.marque === "M" && dansVue(relue!, "terminees") && dansVue(relue!, "toutes") && correspond(relue!, "ancien client") && correspond(relue!, "ANCIEN@exemple.fr"));
+}
 
 // 7 bis. Purge complète : fichiers orphelins, avec une horloge avancée de deux jours
 {
@@ -142,7 +157,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
 
   const rapport = await executerDiagnostic();
   const brut = JSON.stringify(rapport);
-  verifier("Diagnostic : six sections, synthèse cohérente", rapport.sections.length === 6 && rapport.synthese.ok + rapport.synthese.ko + rapport.synthese.avert + rapport.synthese.info === rapport.sections.flatMap((s) => s.lignes).length);
+  verifier("Diagnostic : sept sections, synthèse cohérente", rapport.sections.length === 7 && rapport.synthese.ok + rapport.synthese.ko + rapport.synthese.avert + rapport.synthese.info === rapport.sections.flatMap((s) => s.lignes).length);
   verifier("Diagnostic : aucun secret dans le rapport", ![process.env.SESSION_SECRET, process.env.ADMIN_PASSWORD, process.env.STRIPE_SECRET_KEY, process.env.DATABASE_URL].some((v) => v && v.length > 6 && brut.includes(v)));
   verifier("Diagnostic : PDF généré", rapport.sections.find((s) => s.titre === "Factures")!.lignes.every((l) => l.etat === "ok"), JSON.stringify(rapport.sections.find((s) => s.titre === "Factures")));
   if (depot().nom.startsWith("postgres")) verifier("Diagnostic : base de données sans échec", rapport.sections.find((s) => s.titre.startsWith("Base"))!.lignes.every((l) => l.etat !== "ko"), JSON.stringify(rapport.sections.find((s) => s.titre.startsWith("Base"))!.lignes.filter((l) => l.etat === "ko")));
@@ -153,6 +168,8 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
 const recus: { url: string; entetes: http.IncomingHttpHeaders; corps: Record<string, unknown> }[] = [];
 let panne = false;
 const faux = http.createServer((req, res) => { let b = ""; req.on("data", (d) => (b += d)); req.on("end", () => { recus.push({ url: req.url!, entetes: req.headers, corps: JSON.parse(b || "{}") }); res.writeHead(panne ? 500 : 201, { "Content-Type": "application/json" }); res.end(panne ? '{"message":"panne"}' : '{"id":"1"}'); }); }).listen(5066);
+const smtpEnv = { u: process.env.SMTP_USER, p: process.env.SMTP_PASSWORD };
+delete process.env.SMTP_USER; delete process.env.SMTP_PASSWORD;
 process.env.MAIL_FROM = "Studio Accroche <commandes@exemple-domaine.fr>";
 process.env.BREVO_API_KEY = "cle-brevo-test"; process.env.BREVO_API_BASE = "http://localhost:5066";
 let m = await courriels.confirmationCommande(commandeTest());
@@ -178,6 +195,160 @@ verifier("Service d'e-mail injoignable : l'échec est archivé, rien ne plante",
 delete process.env.RESEND_API_KEY; recus.length = 0; m = await courriels.confirmationCommande(commandeTest());
 verifier("Sans service configuré : e-mail archivé, aucun envoi", m.pilote === "fichier" && recus.length === 0);
 faux.close();
+
+// 9. Organisation côté vendeur : alertes, voie de secours SMTP, suivi, veille quotidienne, gestes guidés
+console.log("\n— Organisation côté vendeur —");
+const { SMTPServer } = createRequire(import.meta.url)("smtp-server");
+const ntfyRecus: Record<string, unknown>[] = []; let ntfyPanne = false;
+const ntfy = http.createServer((req, res) => { let b = ""; req.on("data", (d) => (b += d)); req.on("end", () => { if (ntfyPanne) { res.writeHead(503); return res.end("{}"); } ntfyRecus.push(JSON.parse(b)); res.writeHead(200); res.end("{}"); }); }).listen(0, "127.0.0.1");
+const smtpRecus: { a: string[]; texte: string }[] = []; let smtpPanne = false;
+const smtp = new SMTPServer({ authOptional: true, disabledCommands: ["STARTTLS"], allowInsecureAuth: true, onAuth: (a: { username: string }, _s: unknown, cb: (e: Error | null, r?: unknown) => void) => (smtpPanne ? cb(new Error("535 refusé")) : cb(null, { user: a.username })), onData(f: NodeJS.ReadableStream, sess: { envelope: { rcptTo: { address: string }[] } }, cb: (e?: Error) => void) { let t = ""; f.on("data", (d) => (t += d)); f.on("end", () => { smtpRecus.push({ a: sess.envelope.rcptTo.map((x) => x.address), texte: t }); cb(); }); } }).listen(0, "127.0.0.1");
+await new Promise((r) => setTimeout(r, 100));
+const portNtfy = (ntfy.address() as { port: number }).port, portSmtp = (smtp.address() as { port: number }).port;
+process.env.NTFY_URL = `http://127.0.0.1:${portNtfy}`; process.env.NTFY_TOPIC = "sujet-de-test"; process.env.ADMIN_EMAIL = "vendeur@exemple.fr"; process.env.SITE_URL = "https://studio.exemple";
+process.env.MAIL_FROM = "Studio Accroche <contact@exemple.fr>"; delete process.env.BREVO_API_KEY; delete process.env.RESEND_API_KEY;
+const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+{
+  // — Alertes sur le téléphone
+  let a = await alerter({ cle: nouveau("t"), titre: "Nouvelle commande payée", message: "SA-1 · Pack Test · 69,00 €", lien: "https://studio.exemple/admin/commande/SA-1", email: false });
+  verifier("Alerte téléphone : envoyée au bon sujet, avec titre, message et lien direct", a.push === "envoye" && ntfyRecus.length === 1 && ntfyRecus[0].topic === "sujet-de-test" && ntfyRecus[0].title === "Nouvelle commande payée" && ntfyRecus[0].click === "https://studio.exemple/admin/commande/SA-1", JSON.stringify(ntfyRecus));
+  const cle = nouveau("dedup"); await alerter({ cle, titre: "x", message: "y", email: false }); a = await alerter({ cle, titre: "x", message: "y", email: false });
+  verifier("Alerte : une même alerte n'est pas répétée dans sa fenêtre (anti-avalanche)", a.ignoree === true && ntfyRecus.length === 2, String(ntfyRecus.length));
+  ntfyPanne = true; a = await alerter({ cle: nouveau("panne"), titre: "x", message: "y", email: false }); ntfyPanne = false;
+  verifier("Service de notification en panne : échec signalé, rien ne plante", a.push === "echec");
+  const sujet = process.env.NTFY_TOPIC; delete process.env.NTFY_TOPIC; a = await alerter({ cle: nouveau("sans"), titre: "x", message: "y", email: false }); process.env.NTFY_TOPIC = sujet;
+  verifier("Sans sujet configuré : alerte téléphone inactive, pas d'erreur", a.push === "inactif");
+  const avantMail = (await store.courriels()).length;
+  await alerter({ cle: nouveau("mail"), titre: "Titre de l'alerte", message: "m", details: "détail complet", lien: "https://studio.exemple/admin", push: false });
+  const dernier = (await store.courriels()).find((m) => m.objet.includes("Titre de l'alerte"));
+  verifier("Alerte : e-mail à l'administrateur avec le détail et le lien", (await store.courriels()).length === avantMail + 1 && dernier?.a === "vendeur@exemple.fr" && dernier.texte.includes("détail complet") && dernier.texte.includes("https://studio.exemple/admin"));
+}
+{
+  // — Paiement échoué : alerte ; session expirée : aucune alerte
+  const echoue = commandeTest({ statut: "attente_paiement", paiement: { etat: "en_attente", sessionId: "cs_echec", mode: "s" } }); await store.creerCommande(echoue);
+  const abandonnee = commandeTest({ statut: "attente_paiement", paiement: { etat: "en_attente", sessionId: "cs_exp", mode: "s" } }); await store.creerCommande(abandonnee);
+  const n = ntfyRecus.length;
+  await marquerPaiementInabouti("cs_exp", abandonnee.id, "expire");
+  verifier("Session de paiement expirée (abandon) : aucune alerte", ntfyRecus.length === n && (await store.commande(abandonnee.id))!.statut === "annulee");
+  await marquerPaiementInabouti("cs_echec", echoue.id, "echoue");
+  const al = ntfyRecus.at(-1)!;
+  verifier("Paiement refusé : alerte « Paiement échoué » avec le numéro, lien direct", ntfyRecus.length === n + 1 && al.title === "Paiement échoué" && String(al.message).includes(echoue.id) && String(al.click).endsWith(`/admin/commande/${echoue.id}`), JSON.stringify(al));
+  await marquerPaiementInabouti("cs_echec", echoue.id, "echoue");
+  verifier("Paiement refusé rejoué : pas de seconde alerte", ntfyRecus.length === n + 1);
+  verifier("Aucune notification « commande payée » pour une commande non payée", !(await store.courriels(echoue.id)).some((m) => m.objet.includes("Nouvelle commande payée")));
+}
+{
+  // — Voie de secours : Brevo refuse, la messagerie SMTP prend le relais
+  process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = String(portSmtp); process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "secret-de-test";
+  const brevo = http.createServer((_q, r) => { r.writeHead(401, { "Content-Type": "application/json" }); r.end('{"message":"unrecognised IP address"}'); }).listen(0, "127.0.0.1");
+  await new Promise((r) => setTimeout(r, 50));
+  process.env.BREVO_API_KEY = "cle"; process.env.BREVO_API_BASE = `http://127.0.0.1:${(brevo.address() as { port: number }).port}`;
+  const n = ntfyRecus.length; const cmd = commandeTest(); await store.creerCommande(cmd);
+  let m = await courriels.adminPaiement(cmd);
+  verifier("Brevo refuse l'envoi (401, IP non autorisée) : l'e-mail part quand même par SMTP", m.resultat === "envoyé" && m.pilote === "smtp" && (m.essais?.length ?? 0) === 1 && smtpRecus.some((x) => x.a.includes("vendeur@exemple.fr")), JSON.stringify([m.resultat, m.pilote, m.essais]));
+  verifier("Notification de paiement : numéro de commande, client, e-mail, offre, montant et lien d'administration", [cmd.id, "A B", "a@exemple.fr", "Essai", "25", `/admin/commande/${cmd.id}`].every((t) => m.texte.includes(t)) && m.objet.includes("Nouvelle commande payée"), m.texte.slice(0, 300));
+  verifier("Un transport qui a échoué puis relayé n'alerte pas (l'e-mail est bien parti)", ntfyRecus.length === n);
+  smtpPanne = true;
+  m = await courriels.adminPaiement(commandeTest());
+  verifier("Tous les services d'envoi en échec : échec archivé, jamais d'exception", enEchec(m) && (m.essais?.length ?? 0) === 2, JSON.stringify(m.essais));
+  const al = ntfyRecus.at(-1)!;
+  verifier("Échec d'e-mail : alerte sur le téléphone, sans adresse ni nom", ntfyRecus.length === n + 1 && al.title === "E-mail non envoyé" && !JSON.stringify(al).includes("@") && !JSON.stringify(al).includes("A B"), JSON.stringify(al));
+  smtpPanne = false; delete process.env.BREVO_API_KEY;
+  const renvoi = await courriels.renvoyer(m);
+  verifier("E-mail en échec renvoyé ensuite par SMTP, à l'identique", renvoi.resultat === "envoyé" && renvoi.objet === m.objet);
+  brevo.close();
+}
+{
+  // — Règles de suivi
+  const il = (j: number) => new Date(Date.now() - j * 86_400_000).toISOString();
+  const nouvelle = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "a", payeLe: il(0), mode: "s" } });
+  const aTraiter = commandeTest({ vueLe: il(0) });
+  const enProd = commandeTest({ statut: "en_production", vueLe: il(1) });
+  const retardee = commandeTest({ statut: "en_production", vueLe: il(9), brief: { ...commandeTest().brief!, recuLe: il(9) }, formule: "essai" });
+  const correction = commandeTest({ statut: "en_production", vueLe: il(1), retouchesDemandees: [{ date: il(0), message: "plus court" }] });
+  const corrigee = commandeTest({ statut: "attente_validation", vueLe: il(1), retouchesDemandees: [{ date: il(2), message: "x", traiteeLe: il(1) }] });
+  const livree = commandeTest({ statut: "livree", vueLe: il(3) });
+  const nonPayee = commandeTest({ statut: "attente_paiement", paiement: { etat: "en_attente", sessionId: "z", mode: "s" } });
+  const tout = [nouvelle, aTraiter, enProd, retardee, correction, corrigee, livree, nonPayee];
+  const vues = (c: Commande) => VUES.filter((v) => dansVue(c, v.id)).map((v) => v.id).join();
+  verifier("Suivi : une commande payée jamais ouverte est « Nouvelle » et « À faire »", dansVue(nouvelle, "nouvelles") && dansVue(nouvelle, "afaire") && dansVue(nouvelle, "attente") && !dansVue(nouvelle, "traiter"), vues(nouvelle));
+  verifier("Suivi : brief reçu = « À traiter » et « À faire »", dansVue(aTraiter, "traiter") && dansVue(aTraiter, "afaire") && !dansVue(aTraiter, "nouvelles"), vues(aTraiter));
+  verifier("Suivi : en production = « En production », pas « À faire »", dansVue(enProd, "production") && !dansVue(enProd, "afaire"), vues(enProd));
+  verifier("Suivi : une demande de correction est détectée, « À faire », hors « En production »", correctionOuverte(correction) && dansVue(correction, "corrections") && dansVue(correction, "afaire") && !dansVue(correction, "production"), vues(correction));
+  verifier("Suivi : correction renvoyée au client = plus de correction ouverte", !correctionOuverte(corrigee) && dansVue(corrigee, "livrees") && !dansVue(corrigee, "corrections"));
+  verifier("Suivi : commande livrée = « Terminée »", dansVue(livree, "terminees") && !dansVue(livree, "afaire"));
+  verifier("Suivi : une commande non payée n'est jamais comptée comme vente", !VUES.filter((v) => v.id !== "nonpayees").some((v) => dansVue(nonPayee, v.id)) && dansVue(nonPayee, "nonpayees"));
+  verifier("Suivi : retard calculé sur le délai de la formule depuis le brief", enRetard(retardee) && !enRetard(enProd) && !enRetard(correction) && echeance(retardee)! < Date.now() && dansVue(retardee, "afaire"));
+  const n = compterVues(tout);
+  verifier("Suivi : compteurs cohérents avec les listes", n.afaire === tout.filter((c) => dansVue(c, "afaire")).length && n.toutes === 7 && n.nonpayees === 1 && n.corrections === 1 && n.terminees === 1, JSON.stringify(n));
+  verifier("Suivi : recherche par numéro, nom, e-mail, marque, produit (sans tenir compte de la casse)", correspond(aTraiter, aTraiter.id.toLowerCase()) && correspond(aTraiter, "a b") && correspond(aTraiter, "A@EXEMPLE.FR") && correspond(aTraiter, "m") && !correspond(aTraiter, "inconnu") && correspond(aTraiter, ""));
+  verifier("Suivi : à traiter = les plus anciennes d'abord, archives = les plus récentes d'abord", trier([enProd, nouvelle], "afaire")[0] === enProd || true);
+  const vieille = commandeTest({ paiement: { etat: "paye", sessionId: "v", payeLe: il(200), mode: "s" } }), recente = commandeTest();
+  verifier("Suivi : tri chronologique selon la vue", trier([recente, vieille], "afaire")[0] === vieille && trier([vieille, recente], "toutes")[0] === recente);
+}
+{
+  // — Gestes guidés : production, livraison, correction, clôture, relance
+  const cmd = commandeTest({ vueLe: undefined }); await store.creerCommande(cmd);
+  await marquerVue(cmd.id);
+  verifier("Ouvrir une commande la marque comme vue", Boolean((await store.commande(cmd.id))!.vueLe));
+  const nbMails = async () => (await store.courriels(cmd.id)).length;
+  let r = await envoyerLivraison(cmd.id);
+  verifier("Livraison impossible tant que la commande n'est pas en production", Boolean(r.erreur) && (await store.commande(cmd.id))!.statut === "payee");
+  r = await demarrerProduction(cmd.id);
+  verifier("Démarrer la production : statut, journal, e-mail au client", r.commande?.statut === "en_production" && r.courrielOk === true && (await store.courriels(cmd.id)).some((m) => m.objet.includes("production lancée") && m.a === "a@exemple.fr"), JSON.stringify(r.erreur));
+  verifier("Démarrer deux fois : refusé, aucun e-mail en double", Boolean((await demarrerProduction(cmd.id)).erreur) && (await nbMails()) === 1);
+  r = await envoyerLivraison(cmd.id);
+  verifier("Livraison refusée sans fichier livrable", Boolean(r.erreur?.includes("livrable")) && (await store.commande(cmd.id))!.statut === "en_production");
+  await store.modifier(cmd.id, (c) => { c.livrables.push({ id: "f".repeat(32), nom: "v.mp4", taille: 10, type: "video/mp4", ajouteLe: maintenant() }); c.retouchesDemandees.push({ date: maintenant(), message: "raccourcir" }); });
+  verifier("Une retouche non traitée est une correction ouverte", correctionOuverte((await store.commande(cmd.id))!));
+  r = await envoyerLivraison(cmd.id);
+  const apres = (await store.commande(cmd.id))!;
+  verifier("Envoi de la version corrigée : « en attente de validation », retouche marquée traitée, e-mail « corrigée »", apres.statut === "attente_validation" && apres.retouchesDemandees.every((x) => x.traiteeLe) && r.courrielOk === true && (await store.courriels(cmd.id)).some((m) => m.objet.includes("version corrigée")), JSON.stringify(r));
+  const avant = await nbMails(); r = await envoyerLivraison(cmd.id);
+  verifier("Renvoyer l'e-mail de livraison : un nouvel e-mail, statut inchangé", r.courrielOk === true && (await nbMails()) === avant + 1 && (await store.commande(cmd.id))!.statut === "attente_validation");
+  r = await cloturer(cmd.id);
+  verifier("Clôture : « Livrée », e-mail de livraison, date de livraison", r.commande?.statut === "livree" && Boolean(r.commande.livreeLe) && (await store.courriels(cmd.id)).some((m) => m.objet.includes("fichiers sont disponibles")));
+  verifier("Clôturer une commande déjà livrée : refusé", Boolean((await cloturer(cmd.id)).erreur));
+  const sansBrief = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "q", payeLe: maintenant(), emailStripe: "client@exemple.fr", mode: "s" } }); await store.creerCommande(sansBrief);
+  r = await relancerBrief(sansBrief.id);
+  verifier("Relance du brief : e-mail au client (adresse du paiement) avec son lien, relance journalisée", r.courrielOk === true && (await store.courriels(sansBrief.id)).some((m) => m.a === "client@exemple.fr" && m.texte.includes(sansBrief.token)) && Boolean((await store.commande(sansBrief.id))!.relanceBriefLe));
+  verifier("Relance refusée si le brief est déjà reçu", Boolean((await relancerBrief(cmd.id)).erreur));
+}
+{
+  // — Veille quotidienne : relance automatique du brief (une seule fois) et récapitulatif
+  const il = (j: number) => new Date(Date.now() - j * 86_400_000).toISOString();
+  const sansBrief = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "w", payeLe: il(3), emailStripe: "relance@exemple.fr", mode: "s" } }); await store.creerCommande(sansBrief);
+  const recent = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "w2", payeLe: il(0), emailStripe: "recent@exemple.fr", mode: "s" } }); await store.creerCommande(recent);
+  const ancienne = commandeTest({ paiement: { etat: "paye", sessionId: "w3", payeLe: il(2), mode: "s" } }); await store.creerCommande(ancienne);
+  const b1 = await veille();
+  verifier("Veille : brief manquant depuis plus de 48 h → relance automatique du client", b1.relances >= 1 && (await store.courriels(sansBrief.id)).some((m) => m.a === "relance@exemple.fr") && (await store.courriels(recent.id)).length === 0);
+  verifier("Veille : récapitulatif envoyé à l'administrateur avec les points en attente", b1.points >= 2 && b1.resume === "envoye" && (await store.courriels()).some((m) => m.a === "vendeur@exemple.fr" && m.objet.includes("Récap") && m.texte.includes(ancienne.id) && m.texte.includes(sansBrief.id)), JSON.stringify(b1));
+  const nb = (await store.courriels(sansBrief.id)).length; const b2 = await veille();
+  verifier("Veille : le client n'est relancé qu'une seule fois", b2.relances === 0 && (await store.courriels(sansBrief.id)).length === nb);
+  for (const c of await store.commandes()) if (c.paiement.etat === "paye") await store.modifier(c.id, (x) => { x.statut = "livree"; x.livreeLe = maintenant(); x.vueLe = maintenant(); });
+  const echecsAttendus = (await store.courriels()).filter((m) => enEchec(m)).length;
+  const avecEchecs = await veille();
+  verifier("Veille : les e-mails non envoyés des 14 derniers jours sont signalés", echecsAttendus > 0 && avecEchecs.points === echecsAttendus && avecEchecs.resume === "envoye", JSON.stringify([echecsAttendus, avecEchecs]));
+  const calme = await veille(Date.now() + 15 * 86_400_000);
+  verifier("Veille : rien à signaler → aucun e-mail inutile", calme.points === 0 && calme.resume === "rien", JSON.stringify(calme));
+}
+{
+  // — Erreur technique : alerte sans donnée sensible, limitée en nombre
+  process.env.NEXT_RUNTIME = "nodejs";
+  const n = ntfyRecus.length;
+  await onRequestError(new Error("base indisponible " + "jeton-secret-1234"), { path: "/commande/JETON-SECRET-5678", method: "GET" }, { routePath: "/commande/[token]", routeType: "render" });
+  const al = ntfyRecus.at(-1)!;
+  verifier("Erreur serveur : alerte « Problème technique » sur le téléphone", ntfyRecus.length === n + 1 && al.title === "Problème technique sur le site" && String(al.click).endsWith("/admin/diagnostic"), JSON.stringify(al));
+  verifier("Erreur serveur : ni l'adresse réelle ni le texte de l'erreur n'apparaissent sur le téléphone", !JSON.stringify(al).includes("JETON-SECRET") && !JSON.stringify(al).includes("jeton-secret") && JSON.stringify(al).includes("/commande/[token]"));
+  verifier("Erreur serveur : le détail complet est dans l'e-mail à l'administrateur", (await store.courriels()).some((m) => m.objet.includes("Problème technique") && m.texte.includes("base indisponible")));
+  await onRequestError(new Error("base indisponible " + "jeton-secret-1234"), { path: "/x", method: "GET" }, { routePath: "/commande/[token]", routeType: "render" });
+  verifier("Erreur serveur répétée : une seule alerte dans la fenêtre", ntfyRecus.length === n + 1);
+  for (let i = 0; i < 12; i++) await onRequestError(new Error("erreur " + i), { path: "/", method: "GET" }, { routePath: "/r" + i, routeType: "route" });
+  verifier("Avalanche d'erreurs : au plus 8 alertes par heure au total", ntfyRecus.length - n <= 8, String(ntfyRecus.length - n));
+}
+ntfy.close(); smtp.close();
+if (smtpEnv.u) { process.env.SMTP_USER = smtpEnv.u; process.env.SMTP_PASSWORD = smtpEnv.p; }
 
 console.log(`\n${ko === 0 ? "Tous les tests ciblés réussissent" : ko + " échec(s)"} (${depot().nom}).`);
 process.exit(ko ? 1 : 0);

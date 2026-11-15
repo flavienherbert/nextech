@@ -65,7 +65,7 @@ export default function config(phase) {
   /** @type {import('next').NextConfig} */
   return {
     poweredByHeader: false,
-    serverExternalPackages: ["pdfkit", "pg"],
+    serverExternalPackages: ["pdfkit", "pg", "nodemailer"],
     // pdfkit charge ses polices par des imports dynamiques (« #standard-fonts/… ») que le traçage automatique
     // ne voit pas : sans cette ligne, les fichiers de polices manquent dans le déploiement et aucune facture
     // PDF ne peut être générée (constaté sur Netlify, voir le diagnostic).

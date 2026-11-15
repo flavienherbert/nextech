@@ -1,5 +1,7 @@
 import { store, journal, maintenant } from "@/lib/store";
 import { courriels } from "@/lib/mail";
+import { alerter } from "@/lib/alertes";
+import { env } from "@/lib/env";
 import { facturerSiPossible, retouchesMax } from "@/lib/commandes";
 
 export const runtime = "nodejs";
@@ -38,7 +40,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       cmd.statut = "en_production";
       journal(cmd, "Retouche demandée par le client.");
     });
-    if (maj) await courriels.adminRetouche(maj, message);
+    if (maj) {
+      await courriels.adminRetouche(maj, message);
+      await alerter({ cle: `retouche-${maj.id}-${maj.retouchesDemandees.length}`, titre: "Correction demandée", message: `${maj.id} : le client demande une retouche.`, lien: `${env.baseUrl()}/admin/commande/${maj.id}`, email: false, urgence: "haute", fenetreMs: 30 * 86_400_000 });
+    }
     return Response.json({ ok: true });
   }
   return Response.json({ erreur: "Action inconnue." }, { status: 400 });

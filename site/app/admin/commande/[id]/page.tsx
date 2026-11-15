@@ -1,28 +1,47 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { creerFacture, majNotes, majStatut, retirerLivrable } from "../../actions";
+import { cloturerCommande, creerFacture, lancerProduction, livrerAuClient, majNotes, majStatut, relancerClient, retirerLivrable } from "../../actions";
 import Livrable from "../../Livrable";
 import { LIVRABLE_MAX_MO } from "@/lib/fichiers";
 import { obstaclesFacture } from "@/lib/factures";
 import { exigerAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { delaiTexte, euros, formuleParId } from "@/lib/formules";
+import { marquerVue } from "@/lib/commandes";
+import { enEchec } from "@/lib/mail";
 import { nomStatut, store, STATUTS } from "@/lib/store";
+import { correctionOuverte, echeance, enRetard, payee } from "@/lib/suivi";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Commande — Administration", robots: { index: false, follow: false } };
 
 const quand = (iso?: string) => (iso ? new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
+const MESSAGES: Record<string, string> = {
+  production: "Production lancée.",
+  livraison: "Livraison envoyée au client.",
+  cloture: "Commande clôturée.",
+  relance: "Client relancé.",
+  statut: "Statut enregistré.",
+  notes: "Notes enregistrées.",
+  retire: "Livrable retiré.",
+  facture: "Facture émise.",
+};
 const mo = (n: number) => `${(n / 1048576).toFixed(1)} Mo`;
 
-export default async function Detail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; erreur?: string }> }) {
+export default async function Detail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; erreur?: string; mail?: string }> }) {
   await exigerAdmin();
   const { id } = await params;
   const q = await searchParams;
   const c = await store.commande(id);
   if (!c) notFound();
+  // Ouvrir la commande la marque comme vue : elle n'est plus « Nouvelle » dans le tableau de bord.
+  if (payee(c) && !c.vueLe) await marquerVue(c.id).catch((e) => console.error("[vue]", (e as Error).message));
   const f = formuleParId(c.formule)!;
+  const correction = correctionOuverte(c);
+  const retard = enRetard(c);
+  const limite = echeance(c);
+  const dernierRetour = c.retouchesDemandees.at(-1);
   const b = c.brief;
   const courriels = await store.courriels(c.id);
   const lienClient = `${env.baseUrl()}/commande/${c.token}`;
@@ -39,8 +58,59 @@ export default async function Detail({ params, searchParams }: { params: Promise
           </div>
           <span className={`etat etat-${c.statut}`}>{nomStatut(c.statut)}</span>
         </div>
-        {q.ok && <p className="avis">Modification enregistrée.</p>}
-        {q.erreur && <p className="avis avis-erreur">{q.erreur}</p>}
+        {q.ok && <p className="avis avis-ok" role="status">{MESSAGES[q.ok] || "Modification enregistrée."}</p>}
+        {q.mail === "non" && <p className="avis avis-erreur" role="alert">⚠ L&apos;e-mail au client n&apos;a pas pu être envoyé. Rien n&apos;est perdu : il est archivé ci-dessous, vous pourrez le renvoyer depuis « Notifications et e-mails », ou transmettre le lien privé au client.</p>}
+        {q.mail === "oui" && <p className="avis avis-ok" role="status">✓ E-mail envoyé au client.</p>}
+        {q.erreur && <p className="avis avis-erreur" role="alert">{q.erreur}</p>}
+
+        {payee(c) && (
+          <section className="bloc etape" aria-label="Prochaine étape">
+            <h2>Prochaine étape</h2>
+            {c.statut === "attente_infos" && (
+              <>
+                <p>Le client a payé mais n&apos;a pas encore envoyé son brief. Rien à produire tant qu&apos;il n&apos;est pas arrivé.</p>
+                <p className="aide">{c.relanceBriefLe ? `Il a déjà été relancé le ${quand(c.relanceBriefLe)}.` : "Une relance automatique part après 48 h sans brief."}</p>
+                <form action={relancerClient}><input type="hidden" name="id" value={c.id} /><button className="bouton bouton-fantome" type="submit">Relancer le client maintenant</button></form>
+              </>
+            )}
+            {c.statut === "payee" && (
+              <>
+                <p><strong>1.</strong> Téléchargez les fichiers du client (colonne de gauche, « Fichiers du client »). <strong>2.</strong> Démarrez la production : le client en est prévenu par e-mail.</p>
+                <form action={lancerProduction}><input type="hidden" name="id" value={c.id} /><button className="bouton" type="submit">Démarrer la production</button></form>
+              </>
+            )}
+            {c.statut === "en_production" && (
+              <>
+                {correction ? (
+                  <>
+                    <p><strong>Le client demande une correction</strong> ({quand(dernierRetour?.date)}) :</p>
+                    <p className="citation">{dernierRetour?.message}</p>
+                    <p>Faites la modification, ajoutez la nouvelle version dans « Livrables » (retirez l&apos;ancienne si besoin), puis renvoyez-la au client.</p>
+                  </>
+                ) : (
+                  <p>Réalisez la vidéo, ajoutez les fichiers terminés dans « Livrables » (colonne de droite), puis envoyez la livraison au client.</p>
+                )}
+                {limite && <p className="aide">À livrer avant le {quand(new Date(limite).toISOString())}{retard ? " — en retard" : ""}.</p>}
+                {c.livrables.length === 0 ? (
+                  <p className="aide">Ajoutez d&apos;abord au moins un fichier dans « Livrables » : le bouton d&apos;envoi s&apos;activera.</p>
+                ) : (
+                  <form action={livrerAuClient}><input type="hidden" name="id" value={c.id} /><button className="bouton" type="submit">{correction ? "Envoyer la version corrigée au client" : "Envoyer la livraison au client"}</button></form>
+                )}
+              </>
+            )}
+            {c.statut === "attente_validation" && (
+              <>
+                <p>La livraison est chez le client. Il peut la valider ou demander une retouche depuis son lien privé : vous serez prévenu dans les deux cas.</p>
+                <div className="actions">
+                  <form action={livrerAuClient}><input type="hidden" name="id" value={c.id} /><button className="bouton bouton-fantome" type="submit">Renvoyer l&apos;e-mail de livraison</button></form>
+                  <form action={cloturerCommande}><input type="hidden" name="id" value={c.id} /><button className="bouton bouton-fantome" type="submit">Clôturer : considérer comme validée</button></form>
+                </div>
+              </>
+            )}
+            {c.statut === "livree" && <p>✓ Commande terminée{c.livreeLe ? ` (livrée le ${quand(c.livreeLe)})` : ""}. Les fichiers restent téléchargeables par le client pendant 90 jours, puis sont supprimés automatiquement.</p>}
+          </section>
+        )}
+        {!payee(c) && <p className="avis">Cette commande n&apos;est pas payée : ce n&apos;est pas une vente. Rien à faire.</p>}
 
         <div className="admin-grille">
           <div>
@@ -94,7 +164,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
               <section className="bloc">
                 <h2>Retouches demandées</h2>
                 {c.retouchesDemandees.map((r) => (
-                  <p key={r.date} className="citation"><small>{quand(r.date)}</small><br />{r.message}</p>
+                  <p key={r.date} className="citation"><small>{quand(r.date)} — {r.traiteeLe ? `traitée le ${quand(r.traiteeLe)}` : "à traiter"}</small><br />{r.message}</p>
                 ))}
               </section>
             )}
@@ -104,9 +174,10 @@ export default async function Detail({ params, searchParams }: { params: Promise
               <ul className="historique">
                 {c.historique.map((h, i) => (<li key={i}><small>{quand(h.date)}</small> {h.evenement}</li>))}
               </ul>
-              <h3>E-mails ({courriels.length})</h3>
+              <h3>Notifications et e-mails ({courriels.length})</h3>
+              {courriels.some(enEchec) && <p className="avis avis-erreur">⚠ Un ou plusieurs e-mails ne sont pas partis. <Link href="/admin/courriels">Voir et renvoyer</Link>.</p>}
               <ul className="historique">
-                {courriels.map((m) => (<li key={m.id}><small>{quand(m.date)}</small> à {m.a || "—"} — {m.objet} <em>({m.resultat})</em></li>))}
+                {courriels.map((m) => (<li key={m.id} className={enEchec(m) ? "echec" : ""}><small>{quand(m.date)}</small> à {m.a || "—"} — {m.objet} <em>({m.resultat}{m.pilote ? `, via ${m.pilote}` : ""})</em></li>))}
               </ul>
             </section>
           </div>
@@ -114,6 +185,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
           <aside>
             <section className="bloc">
               <h2>Statut</h2>
+              <p className="aide">Les boutons « Prochaine étape » suffisent au quotidien. Ce formulaire sert aux cas particuliers (retour en arrière, annulation).</p>
               <form action={majStatut} className="formulaire">
                 <input type="hidden" name="id" value={c.id} />
                 <label className="champ">
@@ -144,7 +216,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
                 </ul>
               )}
               <Livrable commande={c.id} maxMo={LIVRABLE_MAX_MO} />
-              <p className="aide">Pour livrer : ajoutez les fichiers, puis passez le statut à « En attente de validation » (le client valide ou demande une retouche) ou directement à « Livrée ».</p>
+              <p className="aide">Ajoutez ici les vidéos et PDF terminés (jusqu&apos;à {LIVRABLE_MAX_MO} Mo par fichier), puis utilisez le bouton « Envoyer la livraison au client » en haut de page.</p>
             </section>
 
             <section className="bloc">

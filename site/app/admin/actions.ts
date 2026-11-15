@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { adresseClient } from "@/lib/limiteur";
 import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
-import { changerStatut } from "@/lib/commandes";
+import { alerter, pushConfigure } from "@/lib/alertes";
+import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
+import { env } from "@/lib/env";
 import { courriels, enEchec } from "@/lib/mail";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
@@ -81,4 +83,47 @@ export async function creerFacture(form: FormData) {
   const r = await emettreFacture(id);
   if (r.obstacles) redirect(`/admin/commande/${id}?erreur=${encodeURIComponent("Facture impossible : " + r.obstacles.join(" ; "))}`);
   redirect(`/admin/commande/${id}?ok=facture`);
+}
+
+// ───── Gestes guidés de la page d'une commande ─────
+const retour = (id: string, r: Suite, ok: string): never => {
+  if (r.erreur) redirect(`/admin/commande/${id}?erreur=${encodeURIComponent(r.erreur)}`);
+  // « mail=non » : le changement est fait mais l'e-mail au client n'est pas parti (visible et renvoyable depuis la page).
+  redirect(`/admin/commande/${id}?ok=${ok}${r.courrielOk === false ? "&mail=non" : r.courrielOk ? "&mail=oui" : ""}`);
+};
+
+export async function lancerProduction(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await demarrerProduction(id), "production");
+}
+
+export async function livrerAuClient(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await envoyerLivraison(id), "livraison");
+}
+
+export async function cloturerCommande(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await cloturer(id), "cloture");
+}
+
+export async function relancerClient(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await relancerBrief(id), "relance");
+}
+
+// Envoie une alerte de test (téléphone + e-mail) pour vérifier que les notifications arrivent bien.
+export async function testerNotification() {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const r = await alerter({
+    cle: `test-${Date.now()}`, titre: "Test de notification", message: "Si vous lisez ceci, les notifications fonctionnent.",
+    details: "Ceci est un test envoyé depuis la page Diagnostic. Aucune commande n'est concernée.",
+    lien: `${env.baseUrl()}/admin`, fenetreMs: 1000,
+  });
+  const etat = (e: string) => (e === "envoye" ? "ok" : e === "echec" ? "ko" : "non");
+  redirect(`/admin/diagnostic?test=${etat(r.push)}-${etat(r.email)}${pushConfigure() ? "" : "&sanspush=1"}`);
 }

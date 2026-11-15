@@ -2,10 +2,12 @@
 import type Stripe from "stripe";
 import { env, modePaiement } from "./env";
 import { stripe } from "./stripe";
-import { courriels } from "./mail";
+import { alerter } from "./alertes";
+import { courriels, enEchec } from "./mail";
 import { emettreFacture } from "./factures";
-import { formuleParId, type FormuleId } from "./formules";
-import { store, journal, maintenant, nouveauNumero, nouveauToken, type Brief, type Commande, type Statut } from "./store";
+import { euros, formuleParId, type FormuleId } from "./formules";
+import { correctionOuverte } from "./suivi";
+import { store, journal, maintenant, nouveauNumero, nouveauToken, type Brief, type Commande, type Courriel, type Statut } from "./store";
 
 export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ url: string; commande: Commande }> {
   const f = formuleParId(formuleId);
@@ -62,23 +64,44 @@ export async function confirmerPaiement(sessionEvenement: Stripe.Checkout.Sessio
     cmd.paiement.payeLe = maintenant();
     cmd.paiement.intentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
     cmd.paiement.emailStripe = session.customer_details?.email || undefined;
+    cmd.paiement.nomStripe = session.customer_details?.name || undefined;
     cmd.statut = cmd.brief ? "payee" : "attente_infos";
     journal(cmd, "Paiement confirmé par Stripe (webhook signé, session revérifiée).");
   });
   if (c && premiere) {
-    await courriels.confirmationCommande(c);
+    // Notification immédiate de l'administrateur : e-mail détaillé + message sur le téléphone (sans donnée personnelle).
     await courriels.adminPaiement(c);
+    await alerter({
+      cle: `paiement-${c.id}`,
+      titre: "Nouvelle commande payée",
+      message: `${c.id} · ${formuleParId(c.formule)?.nom ?? c.formule} · ${euros(c.montantCents)}`,
+      lien: `${env.baseUrl()}/admin/commande/${c.id}`,
+      email: false, fenetreMs: 30 * 86_400_000,
+    });
+    await courriels.confirmationCommande(c);
   }
   return { ok: true };
 }
 
 export async function marquerPaiementInabouti(sessionId: string, commandeId: string, etat: "expire" | "echoue") {
+  let change = false;
   await store.modifier(commandeId, (c) => {
     if (c.paiement.sessionId !== sessionId || c.paiement.etat === "paye") return false;
+    change = true;
     c.paiement.etat = etat;
     c.statut = "annulee";
     journal(c, etat === "expire" ? "Session de paiement expirée sans paiement." : "Paiement échoué.");
   });
+  // Un abandon (session expirée) n'est pas une alerte ; un paiement refusé par la banque l'est.
+  if (change && etat === "echoue") {
+    await alerter({
+      cle: `paiement-echoue-${commandeId}`,
+      titre: "Paiement échoué",
+      message: `La commande ${commandeId} n'a pas été payée : paiement refusé.`,
+      lien: `${env.baseUrl()}/admin/commande/${commandeId}`,
+      urgence: "haute", fenetreMs: 30 * 86_400_000,
+    });
+  }
 }
 
 const propre = (v: unknown, max: number) => String(v ?? "").replace(/\u0000/g, "").trim().slice(0, max);
@@ -124,31 +147,101 @@ export async function enregistrerBrief(c: Commande, brief: Brief): Promise<Comma
   return maj;
 }
 
-export async function changerStatut(id: string, statut: Statut, prevenirClient: boolean): Promise<Commande | null> {
+export async function changerStatutAvecCourriel(id: string, statut: Statut, prevenirClient: boolean): Promise<{ commande: Commande | null; courriel?: Courriel }> {
   let change = false;
   const c = await store.modifier(id, (cmd) => {
     if (cmd.statut === statut) return false;
     change = true;
     cmd.statut = statut;
     if (statut === "livree") cmd.livreeLe = maintenant();
+    // Les retouches demandées sont traitées dès que le client reçoit une nouvelle version ou que la commande est close.
+    if (statut === "attente_validation" || statut === "livree") for (const r of cmd.retouchesDemandees) if (!r.traiteeLe) r.traiteeLe = maintenant();
     journal(cmd, `Statut passé à « ${statut} » par l'administrateur.`);
   });
+  let courriel: Courriel | undefined;
   if (c && change && statut === "livree") await facturerSiPossible(id);
   if (c && change && prevenirClient) {
-    if (statut === "en_production") await courriels.enProduction(c);
-    if (statut === "attente_validation") await courriels.aValider(c);
-    if (statut === "livree") await courriels.livree(c);
+    if (statut === "en_production") courriel = await courriels.enProduction(c);
+    if (statut === "attente_validation") courriel = await courriels.aValider(c);
+    if (statut === "livree") courriel = await courriels.livree((await store.commande(id)) || c);
   }
-  return c;
+  return { commande: c, courriel };
+}
+
+export async function changerStatut(id: string, statut: Statut, prevenirClient: boolean): Promise<Commande | null> {
+  return (await changerStatutAvecCourriel(id, statut, prevenirClient)).commande;
+}
+
+// ───── Gestes quotidiens de l'administrateur (boutons guidés de la page d'une commande) ─────
+export type Suite = { commande: Commande | null; courrielOk: boolean | null; erreur?: string };
+const suite = (commande: Commande | null, m?: Courriel, erreur?: string): Suite => ({ commande, courrielOk: m ? !enEchec(m) : null, erreur });
+
+// Marque la commande comme vue : elle n'est plus « Nouvelle » dans le tableau de bord.
+export async function marquerVue(id: string) {
+  await store.modifier(id, (c) => {
+    if (c.vueLe) return false;
+    c.vueLe = maintenant();
+  });
+}
+
+export async function demarrerProduction(id: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.statut !== "payee") return suite(c0, undefined, "Cette commande n'est pas prête à démarrer (le brief doit d'abord être reçu).");
+  const { commande, courriel } = await changerStatutAvecCourriel(id, "en_production", true);
+  return suite(commande, courriel);
+}
+
+// Envoie (ou renvoie) la livraison au client : fichiers prêts, statut « en attente de validation », e-mail avec le lien.
+export async function envoyerLivraison(id: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.livrables.length === 0) return suite(c0, undefined, "Ajoutez au moins un fichier livrable avant d'envoyer la livraison.");
+  if (!["en_production", "attente_validation"].includes(c0.statut)) return suite(c0, undefined, "Cette commande n'est pas en production : rien à livrer.");
+  const correction = correctionOuverte(c0);
+  const renvoi = c0.statut === "attente_validation";
+  const c = await store.modifier(id, (cmd) => {
+    for (const r of cmd.retouchesDemandees) if (!r.traiteeLe) r.traiteeLe = maintenant();
+    if (cmd.statut === "en_production") cmd.statut = "attente_validation";
+    journal(cmd, renvoi ? "E-mail de livraison renvoyé au client." : correction ? "Version corrigée envoyée au client." : "Livraison envoyée au client.");
+  });
+  const m = c ? await courriels.aValider(c, correction) : undefined;
+  return suite(c, m);
+}
+
+// Clôture une commande en attente de validation (validation reçue hors du site, ou délai écoulé).
+export async function cloturer(id: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.statut !== "attente_validation") return suite(c0, undefined, "Seule une livraison en attente de validation peut être clôturée.");
+  const { commande, courriel } = await changerStatutAvecCourriel(id, "livree", true);
+  return suite(commande, courriel);
+}
+
+// Relance manuelle d'un client qui n'a pas envoyé son brief.
+export async function relancerBrief(id: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.statut !== "attente_infos") return suite(c0, undefined, "Le client a déjà envoyé son brief.");
+  const c = await store.modifier(id, (cmd) => {
+    cmd.relanceBriefLe = maintenant();
+    journal(cmd, "Relance du brief envoyée au client par l'administrateur.");
+  });
+  return suite(c, c ? await courriels.relanceBrief(c) : undefined);
 }
 
 // À la livraison, la facture est émise si toutes les informations sont réunies.
 // Une facture impossible ne bloque jamais la livraison : elle reste à émettre depuis l'administration.
 export async function facturerSiPossible(id: string) {
   try {
-    await emettreFacture(id);
+    const r = await emettreFacture(id);
+    // Hors ventes réelles, une facture impossible est normale (identité du vendeur non renseignée) ; en vente réelle, c'est une alerte.
+    if (r.obstacles && modePaiement().mode === "reel") {
+      await alerter({ cle: `facture-${id}`, titre: "Facture non émise", message: `La facture de la commande ${id} n'a pas pu être émise.`, details: r.obstacles.join(" ; "), lien: `${env.baseUrl()}/admin/commande/${id}`, urgence: "haute", fenetreMs: 86_400_000 });
+    }
   } catch (e) {
     console.error("[facture]", id, (e as Error).message);
+    await alerter({ cle: `facture-${id}`, titre: "Facture non émise", message: `La facture de la commande ${id} a échoué techniquement.`, details: (e as Error).message, lien: `${env.baseUrl()}/admin/commande/${id}`, urgence: "haute", fenetreMs: 86_400_000 });
   }
 }
 

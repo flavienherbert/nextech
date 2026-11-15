@@ -3,6 +3,7 @@ import { creerCommandeEtSession } from "@/lib/commandes";
 import { formuleParId } from "@/lib/formules";
 import { env, modePaiement } from "@/lib/env";
 import { adresseClient, enregistrer } from "@/lib/limiteur";
+import { alerter } from "@/lib/alertes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
     return NextResponse.redirect(url, 303);
   } catch (e) {
     console.error("[checkout]", (e as Error).message);
+    await alerter({ cle: "checkout-erreur", titre: "Problème technique : un client n'a pas pu payer", message: "La création d'un paiement a échoué : des ventes peuvent être perdues. Vérifiez le diagnostic.", details: (e as Error).message, lien: `${env.baseUrl()}/admin/diagnostic`, urgence: "haute", fenetreMs: 1800_000 });
     return retour("erreur=paiement");
   }
 }

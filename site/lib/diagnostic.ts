@@ -15,9 +15,11 @@ import { env, modePaiement } from "./env";
 import { composerPdf, vendeur } from "./factures";
 import { configurationStockage } from "./supabase-config.mjs";
 import { LIVRABLE_MAX_MO } from "./fichiers";
-import { envoiReel } from "./mail";
+import nodemailer from "nodemailer";
+import { pushConfigure } from "./alertes";
+import { enEchec, envoiReel, servicesEnvoi } from "./mail";
 import { stripe } from "./stripe";
-import type { Commande } from "./store";
+import { store, type Commande } from "./store";
 
 export type Etat = "ok" | "ko" | "avert" | "info";
 export type Ligne = { nom: string; etat: Etat; detail?: string };
@@ -229,11 +231,27 @@ async function pdf(): Promise<Section> {
 async function courriel(): Promise<Section> {
   const l: Ligne[] = [];
   const pilote = envoiReel();
+  const services = servicesEnvoi();
   const expediteur = env.mailFrom().match(/<([^>]+)>/)?.[1] || env.mailFrom().trim();
-  if (!pilote) return { titre: "E-mails", lignes: [avert("Service d'envoi", "aucun : les e-mails sont archivés mais jamais envoyés (BREVO_API_KEY et MAIL_FROM absents)")] };
-  l.push(ok("Service d'envoi configuré", pilote));
+  if (!pilote) return { titre: "E-mails", lignes: [avert("Service d'envoi", "aucun : les e-mails sont archivés mais jamais envoyés (il manque MAIL_FROM, ou la clé Brevo, ou SMTP_USER + SMTP_PASSWORD)")] };
+  l.push(ok("Service d'envoi configuré", services.length > 1 ? `${pilote} (le suivant prend le relais si le précédent échoue)` : pilote));
+  if (services.length === 1 && services[0] === "brevo") l.push(avert("Voie de secours", "aucune : si Brevo refuse un envoi, l'e-mail n'est pas expédié (alerte sur le téléphone). Ajoutez SMTP_USER + SMTP_PASSWORD pour un relais Gmail."));
   l.push(expediteur ? ok("Expéditeur (MAIL_FROM)", expediteur) : ko("Expéditeur (MAIL_FROM)", "absent"));
-  if (pilote === "brevo") {
+  if (services.includes("smtp")) {
+    l.push(...(await essayer("Messagerie SMTP", async () => {
+      const port = Number(process.env.SMTP_PORT) || 465;
+      const t = nodemailer.createTransport({ host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }, connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000 });
+      try {
+        await t.verify(); // connexion + authentification, sans envoyer d'e-mail
+        return ok("Messagerie SMTP : connexion et mot de passe valides", `${process.env.SMTP_HOST || "smtp.gmail.com"}:${port} avec ${process.env.SMTP_USER}`);
+      } catch (e) {
+        const m = court(e);
+        const aide = /535|auth|credentials|password/i.test(m) ? " : mot de passe refusé. Pour Gmail il faut un « mot de passe d'application » à 16 caractères (compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications), pas le mot de passe habituel." : "";
+        return ko("Messagerie SMTP", `${m}${aide}`);
+      }
+    })));
+  }
+  if (services.includes("brevo")) {
     const entetes = { "api-key": process.env.BREVO_API_KEY || "", Accept: "application/json" };
     const base = process.env.BREVO_API_BASE || "https://api.brevo.com";
     l.push(...(await essayer("Clé Brevo", async () => {
@@ -257,10 +275,25 @@ async function courriel(): Promise<Section> {
       const libre = /@(gmail|outlook|hotmail|yahoo|icloud)\./i.test(expediteur);
       return m.active ? (libre ? avert("Expéditeur validé chez Brevo", "validé, mais adresse d'un service gratuit : les e-mails risquent de finir en indésirables, un nom de domaine au nom du studio règle cela") : ok("Expéditeur validé chez Brevo")) : ko("Expéditeur validé chez Brevo", "non activé");
     })));
-  } else {
-    l.push(info("Vérification du service d'envoi", "non automatisée pour ce service"));
   }
+  if (services.includes("resend")) l.push(info("Resend", "vérification non automatisée"));
   return { titre: "E-mails", lignes: l };
+}
+
+// ───────────────────────── Notifications ─────────────────────────
+async function notifications(): Promise<Section> {
+  const l: Ligne[] = [];
+  l.push(env.adminEmail() ? ok("Adresse qui reçoit les commandes (ADMIN_EMAIL)", env.adminEmail()) : ko("Adresse qui reçoit les commandes (ADMIN_EMAIL)", "absente : vous ne seriez pas prévenu par e-mail"));
+  l.push(pushConfigure() ? ok("Notifications sur le téléphone (ntfy)", "actives") : avert("Notifications sur le téléphone (ntfy)", "non activées : NTFY_TOPIC absent. Sans elles, si l'envoi d'e-mails tombe en panne, rien ne vous prévient."));
+  l.push(process.env.TACHES_SECRET && process.env.TACHES_SECRET.length >= 24 ? ok("Tâche quotidienne (récap, relance du brief, purge)", "secret configuré") : avert("Tâche quotidienne (récap, relance du brief, purge)", "TACHES_SECRET absent ou trop court (24 caractères minimum) : la tâche est désactivée"));
+  const recent = Date.now() - 14 * 86_400_000;
+  try {
+    const echecs = (await store.courriels()).filter((m) => enEchec(m) && new Date(m.date).getTime() > recent).length;
+    l.push(echecs === 0 ? ok("E-mails non envoyés (14 derniers jours)", "aucun") : ko("E-mails non envoyés (14 derniers jours)", `${echecs} : ouvrez la page E-mails pour les renvoyer`));
+  } catch (e) {
+    l.push(ko("Lecture de l'archive des e-mails", court(e)));
+  }
+  return { titre: "Notifications", lignes: l };
 }
 
 // ───────────────────────── Stripe (mode test uniquement) ─────────────────────────
@@ -290,8 +323,8 @@ async function paiement(): Promise<Section> {
 
 // ───────────────────────── Ensemble ─────────────────────────
 export async function executerDiagnostic(): Promise<Rapport> {
-  const [bd, st, pd, ml, pm] = await Promise.all([base(), stockage(), pdf(), courriel(), paiement()]);
-  const sections = [configuration(), bd, st, pd, ml, pm];
+  const [bd, st, pd, ml, nt, pm] = await Promise.all([base(), stockage(), pdf(), courriel(), notifications(), paiement()]);
+  const sections = [configuration(), bd, st, pd, ml, nt, pm];
   const synthese: Record<Etat, number> = { ok: 0, ko: 0, avert: 0, info: 0 };
   for (const s of sections) for (const x of s.lignes) synthese[x.etat]++;
   return { date: new Date().toISOString(), plateforme: surNetlify() ? "Netlify" : "local", sections, synthese };

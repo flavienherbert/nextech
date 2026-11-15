@@ -69,7 +69,7 @@ c = commande(c.id);
 verifier("Commande marquée payée par le webhook", c.paiement.etat === "paye" && c.statut === "attente_infos" && c.paiement.emailStripe === "marie@exemple-marque.fr");
 let m = courriels(c.id);
 verifier("E-mail de confirmation rédigé pour le client", m.some((x) => x.a === "marie@exemple-marque.fr" && x.objet.includes(c.id) && x.texte.includes("/commande/" + c.token)));
-verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Paiement reçu") && x.objet.includes("69") && x.texte.includes("Pack Test")));
+verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Nouvelle commande payée") && x.objet.includes("69") && x.texte.includes("Pack Test")));
 await cap(page, "03-brief");
 
 // Brief : validation des champs, dépôt de fichiers
@@ -219,7 +219,7 @@ verifier("Paiement d'une commande présenté pour une autre : non appliqué", re
 // Doublon : le même événement livré deux fois
 const ev4 = evenement("checkout.session.completed", s4, "evt_test_doublon_" + crypto.randomBytes(4).toString("hex"));
 const d1 = await (await webhook(ev4, signer(ev4))).json(); const d2 = await (await webhook(ev4, signer(ev4))).json();
-verifier("Événement légitime appliqué une fois, ignoré la seconde (idempotence)", d1.applique === true && d2.doublon === true && commande(f4.c.id).paiement.etat === "paye" && courriels(f4.c.id).filter((x) => x.objet.includes("Paiement reçu")).length === 1, JSON.stringify([d1, d2]));
+verifier("Événement légitime appliqué une fois, ignoré la seconde (idempotence)", d1.applique === true && d2.doublon === true && commande(f4.c.id).paiement.etat === "paye" && courriels(f4.c.id).filter((x) => x.objet.includes("Nouvelle commande payée")).length === 1, JSON.stringify([d1, d2]));
 const ev5 = evenement("checkout.session.completed", s4);
 const d3 = await (await webhook(ev5, signer(ev5))).json();
 verifier("Second événement pour une commande déjà payée : aucun e-mail en double", d3.applique === true && courriels(f4.c.id).filter((x) => x.objet.includes("confirmée")).length === 1);
@@ -306,7 +306,7 @@ verifier("Commande avec un faux lien : 404", (await fetch(`${BASE}/commande/${"a
 verifier("Diagnostic : refusé sans session administrateur (401)", (await fetch(`${BASE}/api/admin/diagnostic`)).status === 401);
 const rDiag = await fetch(`${BASE}/api/admin/diagnostic`, { headers: { Cookie: cookies } });
 const diag = rDiag.status === 200 ? await rDiag.json() : null;
-verifier("Diagnostic : rapport complet pour l'administrateur, sans secret", Boolean(diag) && diag.sections.length === 6 && !JSON.stringify(diag).includes(process.env.SESSION_SECRET || "∅") && !JSON.stringify(diag).includes(process.env.ADMIN_PASSWORD || "∅"), String(rDiag.status));
+verifier("Diagnostic : rapport complet pour l'administrateur, sans secret", Boolean(diag) && diag.sections.length === 7 && !JSON.stringify(diag).includes(process.env.SESSION_SECRET || "∅") && !JSON.stringify(diag).includes(process.env.ADMIN_PASSWORD || "∅"), String(rDiag.status));
 verifier("Diagnostic : les lignes de test sont supprimées", !diag || !diag.sections.some((s) => s.lignes.some((l) => l.etat === "ko" && /Nettoyage/.test(l.nom))));
 {
   // Limiteur de connexion partagé : 5 échecs puis blocage, même avec le bon mot de passe. Adresse fictive aléatoire : ne bloque pas les autres tests.
@@ -332,7 +332,7 @@ verifier("Tâche quotidienne : introuvable sans secret (404)", (await tache({}))
 verifier("Tâche quotidienne : introuvable avec un mauvais secret (404)", (await tache({ "x-taches-secret": "faux" })).status === 404);
 const rTache = await tache({ "x-taches-secret": process.env.TACHES_SECRET });
 const bilanTache = rTache.status === 200 ? await rTache.json() : null;
-verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de purge renvoyé", bilanTache?.ok === true && typeof bilanTache.bilan === "object", String(rTache.status));
+verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de purge et de veille renvoyés", bilanTache?.ok === true && typeof bilanTache.bilan === "object" && typeof bilanTache.veille === "object", String(rTache.status));
 verifier("Livrable : demande d'envoi refusée sans session administrateur (401)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status === 401);
 verifier("Livrable : requête venant d'un autre site refusée (403)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookies, Origin: "https://site-malveillant.example" }, body: "{}" })).status === 403);
 const faux2 = (await adminCtx.cookies()).find((k) => k.name === "sa_admin").value.replace(/^\d+/, String(Math.floor(Date.now() / 1000) + 999999));
@@ -344,6 +344,214 @@ verifier("Administration et pages de commande exclues des moteurs de recherche",
 const t0 = Date.now();
 const ech = await fetch(`${BASE}/admin/connexion`, { redirect: "manual" });
 verifier("Page de connexion accessible, sans indice sur le mot de passe", ech.status === 200 && !(await ech.text()).includes(MDP));
+
+// ───────────── 7 bis. Organisation côté vendeur : notifications, tableau de bord, traitement, livraison ─────────────
+console.log("\n— Organisation côté vendeur (notifications, tableau de bord, traitement, livraison) —");
+const FAUX = process.env.FAUX || "http://localhost:4343";
+const fauxJson = async (chemin, methode = "GET") => (await fetch(`${FAUX}${chemin}`, { method: methode })).json();
+const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+const attendrePush = async (pred, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const x = (await fauxJson("/_recus")).find(pred); if (x) return x; await attendre(250); } return null; };
+let fauxActif = false;
+try { await fauxJson("/_vider", "POST"); fauxActif = true; } catch { /* absent */ }
+verifier("Faux services de notification et de messagerie disponibles (scripts/faux-services.mjs)", fauxActif);
+if (fauxActif) {
+  const payerParWebhook = async (cmd, detail = { email: "client.test@example.com", name: "Client Test" }) => {
+    await fetch(`${MOCK}/_test/modifier`, { method: "POST", body: JSON.stringify({ session: cmd.paiement.sessionId, patch: { payment_status: "paid", status: "complete", customer_details: detail } }) });
+    const ev = evenement("checkout.session.completed", await session(cmd.paiement.sessionId));
+    return (await webhook(ev, signer(ev))).status;
+  };
+  const idsVue = async (vue, q = "") => { await admin.goto(`${BASE}/admin?vue=${vue}${q ? "&q=" + encodeURIComponent(q) : ""}`); return admin.locator('.tableau a[href^="/admin/commande/"]').evaluateAll((els) => els.map((e) => e.getAttribute("href").split("/").pop())); };
+  const mails = async () => fauxJson("/_courriels");
+  const SITE = (process.env.SITE_URL || BASE).replace(/\/$/, "");
+
+  // — Commande non payée : aucune notification de vente, aucune alerte
+  await fauxJson("/_vider", "POST");
+  const NP = await commandeNonPayee("test");
+  verifier("Commande créée mais non payée : ni notification de vente, ni e-mail, ni alerte", (await mails()).length === 0 && (await fauxJson("/_recus")).length === 0 && courriels(NP.c.id).length === 0);
+
+  // — Commande payée : notification immédiate (e-mail + téléphone)
+  const A0 = await commandeNonPayee("campagne");
+  const statutWebhook = await payerParWebhook(A0.c, { email: "claire@exemple-boutique.fr", name: "Claire Boutique" });
+  const A = commande(A0.c.id);
+  verifier("Paiement confirmé par le webhook signé : commande payée, en attente du brief", statutWebhook === 200 && A.paiement.etat === "paye" && A.statut === "attente_infos" && A.paiement.nomStripe === "Claire Boutique");
+  const recusMail = await mails();
+  const notif = recusMail.find((m) => m.objet.includes("Nouvelle commande payée") && m.objet.includes(A.id));
+  verifier("E-mail réellement expédié au vendeur dès le paiement (adresse administrateur)", Boolean(notif) && notif.a.includes("admin@example.com"), JSON.stringify(recusMail.map((m) => m.objet)));
+  verifier("E-mail vendeur : numéro, nom du client, e-mail du client, offre, montant payé, accès direct à la commande", notif && [A.id, "Claire Boutique", "claire@exemple-boutique.fr", "Pack Campagne", "129", `${SITE}/admin/commande/${A.id}`].every((t) => notif.texte.includes(t)), notif?.texte.slice(0, 400));
+  verifier("Le client reçoit aussi sa confirmation avec son lien privé", recusMail.some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes(A.id) && m.texte.includes(`/commande/${A.token}`)));
+  const push = await attendrePush((x) => x.title === "Nouvelle commande payée" && String(x.message).includes(A.id));
+  verifier("Notification sur le téléphone : titre, numéro, offre, montant et lien direct", push && String(push.message).includes("Pack Campagne") && String(push.message).includes("129") && String(push.click) === `${SITE}/admin/commande/${A.id}` && push.topic === "sa-test-notifications", JSON.stringify(push));
+  verifier("Notification téléphone : aucune donnée personnelle (ni nom, ni e-mail)", push && !/claire|boutique|@/i.test(JSON.stringify(push)));
+  const rejoue = evenement("checkout.session.completed", await session(A.paiement.sessionId)); await webhook(rejoue, signer(rejoue));
+  verifier("Webhook rejoué : une seule notification de vente (e-mail et téléphone)", (await mails()).filter((m) => m.objet.includes("Nouvelle commande payée") && m.objet.includes(A.id)).length === 1 && (await fauxJson("/_recus")).filter((x) => x.title === "Nouvelle commande payée" && String(x.message).includes(A.id)).length === 1);
+
+  // — Tableau de bord : catégories, recherche, ouverture
+  const compteur = async (nom) => Number(await admin.locator(".compteurs-vues a", { hasText: nom }).locator("strong").textContent());
+  const afaire = await idsVue("afaire");
+  verifier("Tableau de bord : la nouvelle commande est dans « À faire maintenant »", afaire.includes(A.id) && (await compteur("À faire maintenant")) === afaire.length, afaire.join());
+  verifier("Tableau de bord : elle est « Nouvelle » (jamais ouverte) et « En attente du client »", (await idsVue("nouvelles")).includes(A.id) && (await idsVue("attente")).includes(A.id) && !(await idsVue("traiter")).includes(A.id));
+  verifier("Tableau de bord : la commande non payée n'apparaît dans aucune catégorie de vente", ![...afaire, ...(await idsVue("toutes"))].includes(NP.c.id) && (await idsVue("nonpayees")).includes(NP.c.id));
+  verifier("Recherche par e-mail, par nom, par numéro ; une recherche sans résultat est signalée", (await idsVue("toutes", "claire@exemple")).includes(A.id) && (await idsVue("toutes", "claire boutique")).includes(A.id) && (await idsVue("toutes", A.id.toLowerCase())).join() === A.id && (await idsVue("toutes", "zzz-introuvable")).length === 0 && (await admin.locator(".vide").textContent()).includes("Aucune commande"));
+  verifier("Recherche : les commandes anciennes et terminées restent retrouvables (par marque)", (await idsVue("toutes", "Exemple Marque")).includes(idCommande) && (await idsVue("terminees")).includes(idCommande));
+  await cap(admin, "10-admin-tableau");
+
+  // — Ouverture de la commande : étape suivante, relance
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  verifier("Commande ouverte : le panneau « Prochaine étape » explique quoi faire", (await admin.locator(".etape").textContent()).includes("n'a pas encore envoyé son brief"));
+  verifier("Ouvrir la commande la marque comme vue (plus « Nouvelle »)", !(await idsVue("nouvelles")).includes(A.id) && Boolean(commande(A.id).vueLe));
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  await admin.click("button:has-text('Relancer le client maintenant')");
+  await admin.waitForURL(/ok=relance&mail=oui/);
+await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
+  verifier("Relance du client en un clic : retour visible « E-mail envoyé », e-mail parti, journal tenu", (await admin.locator(".avis-ok").allTextContents()).join(" ").includes("E-mail envoyé au client") && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.texte.includes(`/commande/${A.token}`) && /brief/i.test(m.objet)) && commande(A.id).historique.some((h) => /Relance du brief/.test(h.evenement)));
+
+  // — Le client envoie son brief et un fichier ; vérification de l'association fichier ↔ commande
+  const pngA = Buffer.concat([png, Buffer.from("-fichier-de-claire")]);
+  await page.goto(`${BASE}/commande/${A.token}`);
+  await page.waitForSelector("form.formulaire");
+  await page.setInputFiles("#depot", [{ name: "claire-produit.png", mimeType: "image/png", buffer: pngA }]);
+  await page.waitForFunction(() => document.querySelectorAll(".depots li").length === 1);
+  await page.fill('input[name="nom"]', "Claire Boutique"); await page.fill('input[name="marque"]', "Boutique Claire");
+  await page.fill('input[name="nomFacture"]', "Boutique Claire SARL"); await page.fill('textarea[name="adresseFacture"]', "5 avenue du Test\n33000 Bordeaux");
+  await page.fill('input[name="lien"]', "https://boutique-claire.fr/bougie"); await page.fill('input[name="produit"]', "Bougie parfumée");
+  await page.selectOption('select[name="style"]', "Complice");
+  await page.click('form.formulaire button[type="submit"]');
+  await page.waitForSelector(".jalons");
+  const A2 = commande(A.id);
+  verifier("Brief reçu : commande « Payée — brief reçu », fichier rattaché à CETTE commande", A2.statut === "payee" && A2.brief.marque === "Boutique Claire" && A2.fichiersClient.length === 1 && A2.fichiersClient[0].nom === "claire-produit.png");
+  verifier("Notification vendeur « Brief reçu » expédiée, avec le fichier du client", (await mails()).some((m) => m.objet.includes("Brief reçu") && m.objet.includes(A.id) && m.texte.includes("claire-produit.png")));
+  const premier = commande(idCommande);
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  const texteA = await admin.locator(".admin-grille").textContent();
+  verifier("Page de la commande : tous les éléments du client (brief, fichier), et aucun fichier d'une autre commande", ["Boutique Claire", "Bougie parfumée", "claire-produit.png", "boutique-claire.fr"].every((t) => texteA.includes(t)) && !texteA.includes("produit-face.png") && !texteA.includes("logo.png"));
+  const [dlA] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${A.id}/"]`).first().click()]);
+  const octetsA = fs.readFileSync(await dlA.path());
+  verifier("Téléchargement du fichier du client : contenu identique à celui déposé", dlA.suggestedFilename() === "claire-produit.png" && octetsA.equals(pngA));
+  verifier("Un fichier d'une commande est introuvable via une autre commande (404, dans les deux sens)", (await fetch(`${BASE}/api/admin/fichier/${A.id}/${premier.fichiersClient[0].id}`, { headers: { Cookie: cookies } })).status === 404 && (await fetch(`${BASE}/api/admin/fichier/${premier.id}/${A2.fichiersClient[0].id}`, { headers: { Cookie: cookies } })).status === 404);
+  await admin.goto(`${BASE}/admin/commande/${premier.id}`);
+  verifier("La première commande ne montre que ses propres fichiers", !(await admin.locator(".admin-grille").textContent()).includes("claire-produit.png"));
+  verifier("Tableau de bord : brief reçu → « À traiter »", (await idsVue("traiter")).includes(A.id) && !(await idsVue("attente")).includes(A.id));
+
+  // — Production
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  verifier("Panneau « Prochaine étape » : démarrer la production", (await admin.locator(".etape").textContent()).includes("Démarrez la production"));
+  await admin.click("button:has-text('Démarrer la production')");
+  await admin.waitForURL(/ok=production&mail=oui/);
+await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
+  verifier("Production démarrée : statut, retour visible, e-mail au client expédié", commande(A.id).statut === "en_production" && (await admin.locator(".avis-ok").allTextContents()).join(" ").includes("Production lancée") && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("production lancée")));
+  verifier("Sans livrable, l'envoi de la livraison est impossible (bouton absent, explication affichée)", (await admin.locator("button:has-text('Envoyer la livraison au client')").count()) === 0 && (await admin.locator(".etape").textContent()).includes("Ajoutez d'abord"));
+
+  // — Dépôt des livrables (vidéo + PDF) et livraison
+  const videoA = Buffer.concat([Buffer.from("00000018667479706d703432", "hex"), crypto.randomBytes(512 * 1024)]);
+  const pdfA = Buffer.concat([Buffer.from("%PDF-1.4\n"), crypto.randomBytes(2048)]);
+  await admin.setInputFiles("#livrable", [{ name: "claire-video.mp4", mimeType: "video/mp4", buffer: videoA }, { name: "claire-script.pdf", mimeType: "application/pdf", buffer: pdfA }]);
+  await admin.waitForFunction(() => [...document.querySelectorAll(".telechargements a")].filter((a) => a.textContent.trim() === "Voir").length === 2, null, { timeout: 20000 });
+  await attendre(500);
+  const A3 = commande(A.id);
+  verifier("Vidéo et PDF déposés dans les livrables de la bonne commande", A3.livrables.map((x) => x.nom).sort().join() === "claire-script.pdf,claire-video.mp4" && commande(premier.id).livrables.every((x) => !/claire/.test(x.nom)));
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  await admin.click("button:has-text('Envoyer la livraison au client')");
+  await admin.waitForURL(/ok=livraison&mail=oui/);
+  const A4 = commande(A.id);
+  verifier("Livraison envoyée : « En attente de validation », e-mail du lien privé expédié au client, journal tenu", A4.statut === "attente_validation" && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && m.texte.includes(`/commande/${A.token}`)) && A4.historique.some((h) => /Livraison envoyée/.test(h.evenement)));
+  verifier("Tableau de bord : la commande est dans « Livrées »", (await idsVue("livrees")).includes(A.id) && !(await idsVue("afaire")).includes(A.id));
+  const rVideo = await fetch(`${BASE}/api/commande/${A.token}/fichier/${A4.livrables.find((x) => x.nom.endsWith(".mp4")).id}`);
+  verifier("Le client télécharge sa vidéo par son lien : fichier intact", rVideo.status === 200 && Buffer.from(await rVideo.arrayBuffer()).equals(videoA));
+
+  // — Demande de correction du client
+  await fauxJson("/_vider", "POST");
+  await page.goto(`${BASE}/commande/${A.token}`);
+  await page.click("text=Demander une retouche");
+  await page.fill(".validation textarea", "Merci de mettre le prix en début de vidéo.");
+  await page.click("text=Envoyer la demande");
+  await page.waitForSelector(".jalons li.courant:has-text('En production')");
+  const pushCorrection = await attendrePush((x) => x.title === "Correction demandée" && String(x.message).includes(A.id));
+  verifier("Correction demandée : alerte sur le téléphone avec lien direct, sans le texte du client", pushCorrection && String(pushCorrection.click).endsWith(`/admin/commande/${A.id}`) && !/prix|Claire|@/i.test(JSON.stringify(pushCorrection)), JSON.stringify(pushCorrection));
+  verifier("Correction demandée : e-mail au vendeur avec le message du client", (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Retouche demandée") && m.texte.includes("prix en début de vidéo")));
+  verifier("Tableau de bord : « Corrections demandées » et « À faire » contiennent la commande", (await idsVue("corrections")).includes(A.id) && (await idsVue("afaire")).includes(A.id) && (await compteur("Corrections demandées")) >= 1);
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  verifier("Page de la commande : la demande est citée en haut, retouche « à traiter »", (await admin.locator(".etape").textContent()).includes("prix en début de vidéo") && (await admin.locator(".admin-grille").textContent()).includes("à traiter"));
+  await admin.click("button:has-text('Envoyer la version corrigée au client')");
+  await admin.waitForURL(/ok=livraison&mail=oui/);
+  const A5 = commande(A.id);
+  verifier("Version corrigée envoyée : retouche marquée traitée, e-mail « version corrigée » expédié", A5.statut === "attente_validation" && A5.retouchesDemandees.every((r) => r.traiteeLe) && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("version corrigée")));
+  verifier("Tableau de bord : plus dans « Corrections demandées »", !(await idsVue("corrections")).includes(A.id) && (await idsVue("livrees")).includes(A.id));
+  const avantRenvoi = (await mails()).length;
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  await admin.getByRole("button", { name: /Renvoyer l.e-mail de livraison/ }).click();
+  await admin.waitForURL(/ok=livraison&mail=oui/);
+  verifier("Renvoi de l'e-mail de livraison au client : un nouvel e-mail, statut inchangé", (await mails()).length === avantRenvoi + 1 && commande(A.id).statut === "attente_validation");
+  await page.goto(`${BASE}/commande/${A.token}`);
+  await page.click("text=Je valide la livraison");
+  await page.waitForSelector("h1:has-text('livrée')");
+  verifier("Validation par le client → « Terminées » dans le tableau de bord, facture émise", commande(A.id).statut === "livree" && (await idsVue("terminees")).includes(A.id) && Boolean(commande(A.id).facture));
+  await admin.goto(`${BASE}/admin/commande/${A.id}`);
+  const histoA = await admin.locator(".admin-grille").textContent();
+  verifier("Historique complet de la commande : paiement, brief, production, livraison, correction, validation, e-mails", ["Paiement confirmé", "Brief reçu", "Statut passé à « en_production »", "Livraison envoyée", "Notifications et e-mails", "Retouche"].every((t) => histoA.includes(t)) && /\(envoyé, via smtp\)/.test(histoA), histoA.slice(histoA.indexOf("Historique"), histoA.indexOf("Historique") + 600));
+  await cap(admin, "11-admin-commande-terminee");
+
+  // — Paiement échoué / session expirée
+  await fauxJson("/_vider", "POST");
+  const PF = await commandeNonPayee("essai");
+  const evEchec = evenement("checkout.session.async_payment_failed", await session(PF.c.paiement.sessionId));
+  await webhook(evEchec, signer(evEchec));
+  const pushEchec = await attendrePush((x) => x.title === "Paiement échoué" && String(x.message).includes(PF.c.id));
+  verifier("Paiement refusé : alerte sur le téléphone et e-mail au vendeur, commande non vendue", pushEchec && commande(PF.c.id).paiement.etat === "echoue" && (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Paiement échoué")) && !(await mails()).some((m) => m.objet.includes("Nouvelle commande payée")), JSON.stringify(pushEchec));
+  verifier("Paiement échoué : visible dans « Non payées / annulées », absent de « À faire »", (await idsVue("nonpayees")).includes(PF.c.id) && !(await idsVue("afaire")).includes(PF.c.id));
+  const PX = await commandeNonPayee("essai"); await fauxJson("/_vider", "POST");
+  const evExp = evenement("checkout.session.expired", await session(PX.c.paiement.sessionId)); await webhook(evExp, signer(evExp));
+  await attendre(600);
+  verifier("Session de paiement simplement expirée (abandon du client) : aucune alerte", (await fauxJson("/_recus")).length === 0 && (await mails()).length === 0);
+
+  // — Problème technique : alerte immédiate, sans donnée sensible
+  await fauxJson("/_vider", "POST");
+  const rErr = await fetch(`${BASE}/api/test-erreur`);
+  const pushErr = await attendrePush((x) => x.title === "Problème technique sur le site", 10000);
+  verifier("Erreur serveur : le client reçoit une erreur, le vendeur est alerté sur le téléphone avec lien vers le diagnostic", rErr.status === 500 && pushErr && String(pushErr.click).endsWith("/admin/diagnostic") && !String(pushErr.message).includes("erreur volontaire"), `${rErr.status} ${JSON.stringify(pushErr)}`);
+  verifier("Erreur serveur : détail technique complet dans l'e-mail du vendeur", (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Problème technique") && m.texte.includes("erreur volontaire de test")));
+  await fetch(`${BASE}/api/test-erreur`); await attendre(1500);
+  verifier("Même erreur répétée : une seule alerte (pas d'avalanche)", (await fauxJson("/_recus")).filter((x) => x.title === "Problème technique sur le site").length === 1);
+
+  // — Panne de la messagerie : le téléphone prévient, rien n'est perdu, renvoi possible
+  await fauxJson("/_vider", "POST"); await fetch(`${FAUX}/_panne?smtp=1`, { method: "POST" });
+  const MP = await commandeNonPayee("essai");
+  await payerParWebhook(MP.c, { email: "panne@exemple.fr", name: "Client Panne" });
+  const pushVente = await attendrePush((x) => x.title === "Nouvelle commande payée" && String(x.message).includes(MP.c.id));
+  const pushMail = await attendrePush((x) => x.title === "E-mail non envoyé");
+  verifier("Messagerie en panne : la vente est enregistrée ET le téléphone prévient quand même (vente + e-mail non envoyé)", commande(MP.c.id).paiement.etat === "paye" && Boolean(pushVente) && Boolean(pushMail) && !/panne@|Client Panne/.test(JSON.stringify(pushMail)), JSON.stringify([pushVente, pushMail]));
+  const archiveMP = courriels(MP.c.id).find((m) => m.objet.includes("Nouvelle commande payée"));
+  verifier("Messagerie en panne : la notification est archivée comme « échec », avec le détail des essais", archiveMP && /^échec/.test(archiveMP.resultat) && archiveMP.essais?.length >= 1, JSON.stringify(archiveMP?.resultat));
+  await admin.goto(`${BASE}/admin`);
+  verifier("Tableau de bord : bandeau d'alerte « e-mail non envoyé » avec lien pour renvoyer", (await admin.locator(".avis-erreur").allTextContents()).join(" ").includes("non envoyé") && (await admin.locator('a[href="/admin/courriels"]').count()) >= 1);
+  await fetch(`${FAUX}/_panne?smtp=0`, { method: "POST" });
+  await admin.goto(`${BASE}/admin/courriels`);
+  const bloc = admin.locator("details.courriel").filter({ hasText: MP.c.id }).filter({ hasText: "Nouvelle commande payée" }).filter({ hasText: "échec" }).first();
+  await bloc.locator("summary").click();
+  await bloc.locator("button:has-text('Renvoyer cet e-mail')").click();
+  await admin.waitForURL(/ok=renvoi/);
+  verifier("Service rétabli : l'e-mail en échec est renvoyé en un clic et arrive au vendeur", (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Nouvelle commande payée") && m.objet.includes(MP.c.id)));
+
+  // — Diagnostic et notification de test
+  await admin.goto(`${BASE}/admin/diagnostic`);
+  const texteDiag = await admin.locator("main").textContent();
+  verifier("Diagnostic : messagerie SMTP vérifiée, notifications téléphone et adresse vendeur contrôlées", texteDiag.includes("Messagerie SMTP : connexion et mot de passe valides") && texteDiag.includes("Notifications sur le téléphone (ntfy)") && texteDiag.includes("Adresse qui reçoit les commandes"), texteDiag.slice(0, 300));
+  await fauxJson("/_vider", "POST");
+  await admin.click("button:has-text('Envoyer une notification de test')");
+  await admin.waitForURL(/test=ok-ok/);
+  verifier("Notification de test : téléphone et e-mail reçus", (await attendrePush((x) => x.title === "Test de notification")) && (await mails()).some((m) => m.objet.includes("Test de notification")));
+  await admin.goto(`${BASE}/admin/aide`);
+  verifier("Page « Mode d'emploi » dans l'administration", (await admin.locator("main").textContent()).includes("Je livre les vidéos ici"));
+
+  // — Tâche quotidienne : récapitulatif
+  await fauxJson("/_vider", "POST");
+  const rQ = await fetch(`${BASE}/api/taches/quotidienne`, { method: "POST", headers: { "x-taches-secret": process.env.TACHES_SECRET } });
+  const bQ = await rQ.json();
+  verifier("Tâche quotidienne : récapitulatif envoyé au vendeur avec ce qui attend (e-mail non envoyé signalé)", bQ.ok && bQ.veille?.points >= 1 && bQ.veille.resume === "envoye" && (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Récap")), JSON.stringify(bQ.veille));
+
+  // — Aucune donnée personnelle sur le téléphone, jamais
+  const tous = JSON.stringify(await fauxJson("/_recus"));
+  verifier("Bilan : aucun nom ni e-mail de client dans les messages envoyés sur le téléphone", !/claire|panne@|Client Panne|marie@|durand|@/i.test(tous));
+}
 
 // ───────────── 8. Divers ─────────────
 console.log("\n— Pages et liens —");

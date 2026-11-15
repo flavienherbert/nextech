@@ -38,7 +38,7 @@ const page = (s) => `<!doctype html><html lang="fr"><meta charset="utf-8"><meta 
 <body style="font-family:system-ui,sans-serif;background:#f6f8fa;margin:0;padding:40px 20px;color:#1a1f36"><div style="max-width:440px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.08)">
 <p style="background:#fff4e5;border:1px solid #f5c26b;padding:10px 12px;border-radius:8px;font-size:14px;margin:0 0 22px"><strong>Simulateur de paiement.</strong> Cette page remplace Stripe en préproduction. Aucune carte n'est demandée, rien n'est débité.</p>
 <p style="color:#697386;margin:0">${s.line_items_nom}</p><p style="font-size:38px;font-weight:600;margin:6px 0 24px">${(s.amount_total / 100).toFixed(2).replace(".", ",")} €</p>
-<form method="post" action="/pay/${s.id}"><label style="font-size:14px;display:block;margin-bottom:6px">E-mail</label><input name="email" type="email" required value="client.test@example.com" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #d5dbe1;border-radius:6px;font-size:16px;margin-bottom:18px">
+<form method="post" action="/pay/${s.id}"><label style="font-size:14px;display:block;margin-bottom:6px">E-mail</label><input name="email" type="email" required value="client.test@example.com" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #d5dbe1;border-radius:6px;font-size:16px;margin-bottom:18px"><label style="font-size:14px;display:block;margin-bottom:6px">Nom sur la carte</label><input name="nom" type="text" value="Marie Durand" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #d5dbe1;border-radius:6px;font-size:16px;margin-bottom:18px">
 <button name="action" value="payer" style="width:100%;padding:13px;background:#635bff;color:#fff;border:0;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer">Payer (carte de test acceptée)</button>
 <button name="action" value="annuler" formnovalidate style="width:100%;padding:11px;background:none;border:0;color:#697386;margin-top:10px;cursor:pointer;font-size:14px">← Annuler et revenir au site</button>
 <button name="action" value="expirer" formnovalidate style="width:100%;padding:8px;background:none;border:0;color:#a3acb9;cursor:pointer;font-size:13px">Simuler une session expirée</button></form></div></body></html>`;
@@ -73,7 +73,7 @@ http.createServer(async (req, res) => {
     const f = new URLSearchParams(corps);
     const action = f.get("action");
     if (action === "payer" && s.status === "open") {
-      Object.assign(s, { status: "complete", payment_status: "paid", payment_intent: `pi_sim_${crypto.randomBytes(8).toString("hex")}`, customer_details: { email: f.get("email") || null } });
+      Object.assign(s, { status: "complete", payment_status: "paid", payment_intent: `pi_sim_${crypto.randomBytes(8).toString("hex")}`, customer_details: { email: f.get("email") || null, name: f.get("nom") || null } });
       await webhook("checkout.session.completed", s).catch((e) => console.error("[simulateur] webhook non livré :", e.message));
       res.writeHead(303, { Location: s.success_url }); return res.end();
     }
