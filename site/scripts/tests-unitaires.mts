@@ -6,7 +6,10 @@ import { store, maintenant, nouveauNumero, nouveauToken, type Commande } from ".
 import { obstaclesFacture, emettreFacture } from "../lib/factures";
 import { signatureConforme } from "../lib/fichiers";
 import { purger } from "../lib/purge";
-import { courriels } from "../lib/mail";
+import { courriels, enEchec } from "../lib/mail";
+import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
+import { deduireSupabase, configurationStockage } from "../lib/supabase-config.mjs";
+import { executerDiagnostic } from "../lib/diagnostic";
 
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -86,6 +89,66 @@ verifier("Purge : fichiers d'une commande livrée depuis plus de 90 jours suppri
 verifier("Purge : commande jamais payée de plus de 30 jours supprimée", (await store.commande(c5.id)) === null && (await store.commandeParToken(c5.token)) === null);
 verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.statut === "livree");
 
+// 7 bis. Purge complète : fichiers orphelins, avec une horloge avancée de deux jours
+{
+  const id32 = (c: string) => c.repeat(32), orphelin = id32("c"), reference = id32("e"), etranger = "pas-un-identifiant";
+  await depot().ecrire(`fichiers/${orphelin}`, "x"); await depot().ecrire(`fichiers/${reference}`, "x"); await depot().ecrire(`fichiers/${etranger}`, "x");
+  const cmd = commandeTest({ fichiersClient: [{ id: reference, nom: "r.png", taille: 1, type: "image/png", ajouteLe: maintenant() }] });
+  await store.creerCommande(cmd);
+  await purger(true);
+  verifier("Purge : un fichier non rattaché mais récent (moins de 24 h) est conservé", (await depot().taille(`fichiers/${orphelin}`)) !== null);
+  const bilan = await purger(true, Date.now() + 2 * 86_400_000);
+  verifier("Purge : un fichier orphelin de plus de 24 h est supprimé", (await depot().taille(`fichiers/${orphelin}`)) === null && (bilan?.orphelins ?? 0) >= 1, JSON.stringify(bilan));
+  verifier("Purge : un fichier rattaché à une commande n'est jamais supprimé", (await depot().taille(`fichiers/${reference}`)) !== null);
+  verifier("Purge : un fichier dont le nom n'est pas un identifiant n'est pas touché", (await depot().taille(`fichiers/${etranger}`)) !== null);
+  await depot().ecrire("commandes/illisible.json", depot().nom.startsWith("postgres") ? "{}" : "ceci n'est pas du json");
+  if (!depot().nom.startsWith("postgres")) {
+    await depot().ecrire(`fichiers/${id32("b")}`, "x");
+    await purger(true, Date.now() + 2 * 86_400_000);
+    verifier("Purge : une commande illisible annule le nettoyage des orphelins (jamais de suppression dans le doute)", (await depot().taille(`fichiers/${id32("b")}`)) !== null);
+  }
+  await depot().supprimer("commandes/illisible.json"); await depot().supprimer(`fichiers/${reference}`); await depot().supprimer(`fichiers/${etranger}`); await depot().supprimer(`fichiers/${id32("b")}`);
+}
+
+// 7 ter. Limiteur partagé, lectures groupées, configuration Supabase
+{
+  const id = "visiteur-" + Date.now();
+  const totaux = (await Promise.all(Array.from({ length: 6 }, () => enregistrer("essai", id, 60_000)))).sort((a, b) => a - b);
+  verifier("Limiteur : 6 événements simultanés comptés exactement, sans perte", totaux.join() === "1,2,3,4,5,6", totaux.join());
+  verifier("Limiteur : le compteur relu donne 6", (await compte("essai", id, 60_000)) === 6);
+  verifier("Limiteur : l'adresse n'est jamais conservée en clair", !(await depot().lister("limites")).some((k) => k.includes(id)));
+  await remettreAZero("essai", id);
+  verifier("Limiteur : remise à zéro", (await compte("essai", id, 60_000)) === 0);
+  await enregistrer("essai-court", id, 1); await new Promise((r) => setTimeout(r, 15));
+  verifier("Limiteur : la fenêtre expirée repart de zéro", (await compte("essai-court", id, 1)) === 0 && (await enregistrer("essai-court", id, 1)) === 1);
+  await remettreAZero("essai-court", id);
+
+  for (const k of ["a", "b", "c"]) await depot().ecrire(`testlire/${k}.json`, JSON.stringify({ k }));
+  const tous = await depot().lireTous("testlire");
+  verifier("Lecture groupée : tous les documents, clés par ordre décroissant, contenu intact", tous.map((e) => e.cle).join() === "testlire/c.json,testlire/b.json,testlire/a.json" && JSON.parse(tous[0].corps.toString()).k === "c", tous.map((e) => e.cle).join());
+  verifier("Lecture groupée : limite respectée", (await depot().lireTous("testlire", 2)).length === 2);
+  const inv = await depot().inventaire("testlire");
+  verifier("Inventaire : clés, dates récentes et tailles", inv.length === 3 && inv.every((x) => Math.abs(Date.now() - x.modifieLe) < 600_000 && x.taille > 0), JSON.stringify(inv));
+  for (const k of ["a", "b", "c"]) await depot().supprimer(`testlire/${k}.json`);
+
+  const pooler = "postgresql://postgres.abcdefghij:p%40ss@aws-0-eu-central-1.pooler.supabase.com:6543/postgres";
+  const cfg = configurationStockage({ DATABASE_URL: pooler, S3_ACCESS_KEY_ID: "k", S3_SECRET_ACCESS_KEY: "s" });
+  verifier("Supabase : référence et région déduites de l'adresse du pooler", JSON.stringify(deduireSupabase(pooler)) === JSON.stringify({ ref: "abcdefghij", region: "eu-central-1" }));
+  verifier("Supabase : adresse directe → référence seule", deduireSupabase("postgresql://postgres:x@db.abcdefghij.supabase.co:5432/postgres")?.ref === "abcdefghij" && deduireSupabase("postgresql://u:x@exemple.fr/db") === null && deduireSupabase("") === null);
+  verifier("Supabase : stockage déduit (adresse, région, bucket, style des adresses, origine)", cfg.endpoint === "https://abcdefghij.storage.supabase.co/storage/v1/s3" && cfg.region === "eu-central-1" && cfg.bucket === "studio-accroche" && cfg.pathStyle && cfg.origine === "https://abcdefghij.storage.supabase.co", JSON.stringify(cfg));
+  const explicite = configurationStockage({ DATABASE_URL: pooler, S3_ENDPOINT: "https://autre.exemple/s3", S3_REGION: "us-east-1", S3_BUCKET: "mon-bucket", S3_PATH_STYLE: "non" });
+  verifier("Supabase : les variables explicites l'emportent sur la déduction", explicite.endpoint === "https://autre.exemple/s3" && explicite.region === "us-east-1" && explicite.bucket === "mon-bucket" && !explicite.pathStyle && explicite.origine === "https://autre.exemple");
+  verifier("Supabase : sans Supabase ni variable, rien n'est déduit", configurationStockage({}).bucket === "" && configurationStockage({ S3_REGION: "auto" }).region === "auto");
+
+  const rapport = await executerDiagnostic();
+  const brut = JSON.stringify(rapport);
+  verifier("Diagnostic : six sections, synthèse cohérente", rapport.sections.length === 6 && rapport.synthese.ok + rapport.synthese.ko + rapport.synthese.avert + rapport.synthese.info === rapport.sections.flatMap((s) => s.lignes).length);
+  verifier("Diagnostic : aucun secret dans le rapport", ![process.env.SESSION_SECRET, process.env.ADMIN_PASSWORD, process.env.STRIPE_SECRET_KEY, process.env.DATABASE_URL].some((v) => v && v.length > 6 && brut.includes(v)));
+  verifier("Diagnostic : PDF généré", rapport.sections.find((s) => s.titre === "Factures")!.lignes.every((l) => l.etat === "ok"), JSON.stringify(rapport.sections.find((s) => s.titre === "Factures")));
+  if (depot().nom.startsWith("postgres")) verifier("Diagnostic : base de données sans échec", rapport.sections.find((s) => s.titre.startsWith("Base"))!.lignes.every((l) => l.etat !== "ko"), JSON.stringify(rapport.sections.find((s) => s.titre.startsWith("Base"))!.lignes.filter((l) => l.etat === "ko")));
+  verifier("Diagnostic : tout ce qui a été écrit pour le test est supprimé", (await depot().lister("__diagnostic__")).length === 0);
+}
+
 // 8. E-mails : forme des requêtes envoyées aux deux services, et résistance aux pannes
 const recus: { url: string; entetes: http.IncomingHttpHeaders; corps: Record<string, unknown> }[] = [];
 let panne = false;
@@ -100,6 +163,16 @@ m = await courriels.confirmationCommande(commandeTest()); r = recus.pop()!;
 verifier("Resend : requête conforme", m.resultat === "envoyé" && r.url === "/emails" && r.entetes.authorization === "Bearer cle-resend-test" && r.corps.from === "Studio Accroche <commandes@exemple-domaine.fr>" && (r.corps.to as string[])[0] === "a@exemple.fr");
 panne = true; m = await courriels.confirmationCommande(commandeTest());
 verifier("Service d'e-mail en panne : l'échec est archivé, rien ne plante", m.resultat.startsWith("échec 500"));
+panne = false; const renvoi = await courriels.renvoyer(m);
+verifier("Renvoi d'un e-mail en échec : renvoyé à l'identique, l'échec d'origine est reconnu", enEchec(m) && renvoi.resultat === "envoyé" && renvoi.objet === m.objet && renvoi.a === m.a && renvoi.html === m.html, renvoi.resultat);
+verifier("Un e-mail seulement archivé n'est pas un échec", !enEchec({ ...m, resultat: "archivé (aucun envoi réel)" }));
+{
+  const muet = http.createServer(() => {}).listen(0); const portMuet = (muet.address() as { port: number }).port;
+  const ancienne = process.env.RESEND_API_BASE; process.env.RESEND_API_BASE = `http://127.0.0.1:${portMuet}`; process.env.MAIL_TIMEOUT_MS = "300";
+  const t0 = Date.now(); const lent = await courriels.confirmationCommande(commandeTest()); const duree = Date.now() - t0;
+  verifier("Service d'e-mail qui ne répond pas : abandon au délai maximal, échec archivé", enEchec(lent) && duree < 3000, `${duree} ms, ${lent.resultat}`);
+  delete process.env.MAIL_TIMEOUT_MS; process.env.RESEND_API_BASE = ancienne; muet.closeAllConnections(); muet.close();
+}
 process.env.RESEND_API_BASE = "http://localhost:1"; m = await courriels.confirmationCommande(commandeTest());
 verifier("Service d'e-mail injoignable : l'échec est archivé, rien ne plante", m.resultat.startsWith("échec"));
 delete process.env.RESEND_API_KEY; recus.length = 0; m = await courriels.confirmationCommande(commandeTest());

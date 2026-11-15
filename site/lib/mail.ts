@@ -37,6 +37,7 @@ function pilote(): Pilote | null {
       envoyer: (a, objet, html, texte) =>
         fetch(`${process.env.BREVO_API_BASE || "https://api.brevo.com"}/v3/smtp/email`, {
           method: "POST",
+          signal: AbortSignal.timeout(Number(process.env.MAIL_TIMEOUT_MS) || 8000),
           headers: { "api-key": brevo, "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ sender: { name: e.nom, email: e.adresse }, to: [{ email: a }], subject: objet, htmlContent: html, textContent: texte, ...(env.legal().email ? { replyTo: { email: env.legal().email } } : {}) }),
         }),
@@ -47,6 +48,7 @@ function pilote(): Pilote | null {
       envoyer: (a, objet, html, texte) =>
         fetch(`${process.env.RESEND_API_BASE || "https://api.resend.com"}/emails`, {
           method: "POST",
+          signal: AbortSignal.timeout(Number(process.env.MAIL_TIMEOUT_MS) || 8000),
           headers: { Authorization: `Bearer ${env.resendKey()}`, "Content-Type": "application/json" },
           body: JSON.stringify({ from: `${e.nom} <${e.adresse}>`, to: [a], subject: objet, html, text: texte, ...(env.legal().email ? { reply_to: env.legal().email } : {}) }),
         }),
@@ -94,7 +96,18 @@ function briefHtml(c: Commande) {
   return `<table style="border-collapse:collapse;font-size:15px;margin:10px 0">${l("Nom", b.nom)}${l("E-mail", b.email)}${l("Téléphone", b.telephone)}${l("Marque", b.marque)}${l("Lien", b.lien)}${l("Produit", b.produit)}${l("Style", b.style)}${l("Client type", b.cible)}${l("Arguments", b.arguments)}${l("À éviter", b.aEviter)}${l("Complément", b.complement)}</table>${fichiers}`;
 }
 
+// Un courriel est « en échec » si le service d'envoi l'a refusé ou n'a pas répondu (pas s'il est seulement archivé).
+export const enEchec = (m: Courriel) => /^(échec|non envoyé)/.test(m.resultat);
+
 export const courriels = {
+  // Renvoie un courriel archivé en échec, à l'identique (nouvelle archive, l'ancienne est conservée).
+  renvoyer: (m: Courriel) => envoyer(m.a, m.objet, m.html, m.commande),
+
+  // Alerte l'administrateur quand un paiement est arrivé sans pouvoir être appliqué à une commande.
+  adminAnomalie: (details: string) =>
+    envoyer(env.adminEmail(), "[Studio Accroche] ⚠ Paiement reçu mais non appliqué",
+      gabarit("Paiement à vérifier", `<p>Stripe a signalé un paiement que le site n'a pas pu rattacher à une commande :</p><p><strong>${esc(details)}</strong></p><p>Vérifiez-le dans le tableau de bord Stripe et traitez-le à la main (remboursement ou création de la commande).</p>`)),
+
   // — Client —
   confirmationCommande: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} confirmée — il nous manque votre brief`,

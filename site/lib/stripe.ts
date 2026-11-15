@@ -12,9 +12,10 @@ export function stripe(): Stripe {
     const hote = env.stripeApiHost();
     if (hote) {
       const u = new URL(hote);
-      client = new Stripe(env.stripeKey(), { host: u.hostname, port: Number(u.port) || 80, protocol: u.protocol.replace(":", "") as "http" | "https", maxNetworkRetries: 0 });
+      client = new Stripe(env.stripeKey(), { host: u.hostname, port: Number(u.port) || 80, protocol: u.protocol.replace(":", "") as "http" | "https", maxNetworkRetries: 0, timeout: 8000 });
     } else {
-      client = new Stripe(env.stripeKey());
+      // Délai court : un appel qui traîne ne doit pas dépasser la durée maximale d'une fonction serverless.
+      client = new Stripe(env.stripeKey(), { timeout: 8000, maxNetworkRetries: 1 });
     }
   }
   return client;

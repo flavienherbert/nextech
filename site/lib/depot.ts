@@ -22,8 +22,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "./env";
 import { cleSure } from "./cle";
 import { depotPostgres, postgresConfigure } from "./depot-postgres";
+import { configurationStockage } from "./supabase-config.mjs";
 
 export type Lecture = { corps: Buffer; version: string };
+export type Entree = { cle: string; corps: Buffer; version: string };
+export type Inventaire = { cle: string; modifieLe: number; taille: number };
 export type Condition = { siAbsent?: boolean; siVersion?: string };
 
 export interface Depot {
@@ -33,6 +36,10 @@ export interface Depot {
   ecrire(cle: string, corps: Buffer | string, condition?: Condition): Promise<boolean>;
   supprimer(cle: string): Promise<void>;
   lister(prefixe: string): Promise<string[]>;
+  // Lit d'un coup tous les documents d'un préfixe (clés par ordre décroissant), éventuellement les `limite` premiers.
+  lireTous(prefixe: string, limite?: number): Promise<Entree[]>;
+  // Clés avec date de dernière modification (ms) et taille, pour le nettoyage périodique.
+  inventaire(prefixe: string): Promise<Inventaire[]>;
   taille(cle: string): Promise<number | null>;
   // Type de contenu enregistré par le stockage (null s'il n'en a pas, ou pour le disque et la base).
   typeStocke(cle: string): Promise<string | null>;
@@ -114,6 +121,23 @@ function depotDisque(): Depot {
     async supprimer(cle) {
       await fs.rm(chemin(cle), { force: true });
     },
+    async lireTous(prefixe, limite) {
+      const cles = (await this.lister(prefixe)).sort().reverse().slice(0, limite);
+      const lus = await Promise.all(cles.map(async (k) => ({ k, l: await this.lire(k) })));
+      return lus.filter((x) => x.l).map((x) => ({ cle: x.k, corps: x.l!.corps, version: x.l!.version }));
+    },
+    async inventaire(prefixe) {
+      const sortie: Inventaire[] = [];
+      for (const k of await this.lister(prefixe)) {
+        try {
+          const st = await fs.stat(chemin(k));
+          if (st.isFile()) sortie.push({ cle: k, modifieLe: st.mtimeMs, taille: st.size });
+        } catch {
+          /* disparu entre-temps */
+        }
+      }
+      return sortie;
+    },
     async lister(prefixe) {
       try {
         const dossier = chemin(prefixe);
@@ -175,17 +199,18 @@ function depotDisque(): Depot {
 
 // ───────────────────────── Pilote S3 ─────────────────────────
 function depotS3(): Depot {
-  const Bucket = process.env.S3_BUCKET || "";
+  const cfg = configurationStockage();
+  const Bucket = cfg.bucket;
   const client = new S3Client({
-    region: process.env.S3_REGION || "auto",
-    endpoint: process.env.S3_ENDPOINT || undefined,
-    forcePathStyle: process.env.S3_PATH_STYLE === "oui",
+    region: cfg.region || "auto",
+    endpoint: cfg.endpoint || undefined,
+    forcePathStyle: cfg.pathStyle,
     // Les versions récentes du SDK ajoutent une somme de contrôle que tous les stockages compatibles
     // n'acceptent pas (Cloudflare R2, et sans doute d'autres), et qui peut faire échouer l'envoi direct
     // depuis le navigateur. Le contrôle de taille et de contenu est fait par le serveur à la confirmation.
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
-    credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID || "", secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "" },
+    credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey },
   });
   const absent = (e: unknown) => {
     const s = (e as { $metadata?: { httpStatusCode?: number }; name?: string }) || {};
@@ -232,6 +257,25 @@ function depotS3(): Depot {
         suite = r.IsTruncated ? r.NextContinuationToken : undefined;
       } while (suite);
       return cles;
+    },
+    async lireTous(prefixe, limite) {
+      const cles = (await this.lister(prefixe)).sort().reverse().slice(0, limite);
+      const sortie: Entree[] = [];
+      for (let i = 0; i < cles.length; i += 20) {
+        const lot = await Promise.all(cles.slice(i, i + 20).map(async (k) => ({ k, l: await this.lire(k) })));
+        for (const x of lot) if (x.l) sortie.push({ cle: x.k, corps: x.l.corps, version: x.l.version });
+      }
+      return sortie;
+    },
+    async inventaire(prefixe) {
+      const sortie: Inventaire[] = [];
+      let suite: string | undefined;
+      do {
+        const r = await client.send(new ListObjectsV2Command({ Bucket, Prefix: prefixe.replace(/\/?$/, "/"), ContinuationToken: suite }));
+        for (const o of r.Contents || []) if (o.Key) sortie.push({ cle: o.Key, modifieLe: o.LastModified?.getTime() ?? 0, taille: o.Size ?? 0 });
+        suite = r.IsTruncated ? r.NextContinuationToken : undefined;
+      } while (suite);
+      return sortie;
     },
     async taille(cle) {
       try {
@@ -282,8 +326,10 @@ function depotS3(): Depot {
   };
 }
 
-export const stockageS3Configure = () =>
-  Boolean(process.env.S3_BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY);
+export const stockageS3Configure = () => {
+  const c = configurationStockage();
+  return Boolean(c.bucket && c.accessKeyId && c.secretAccessKey);
+};
 
 // Les documents JSON vont dans la base ; tout le reste (photos, vidéos, PDF) dans le stockage de fichiers.
 function depotMixte(documents: Depot, fichiers: Depot): Depot {
@@ -304,6 +350,8 @@ function depotMixte(documents: Depot, fichiers: Depot): Depot {
     supprimer: (c) => pour(c).supprimer(c),
     taille: (c) => pour(c).taille(c),
     typeStocke: (c) => pour(c).typeStocke(c),
+    lireTous: (p, l) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).lireTous(p, l),
+    inventaire: (p) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).inventaire(p),
     debut: (c, n) => pour(c).debut(c, n),
     flux: (c) => pour(c).flux(c),
     urlLecture: (c, nom, s) => pour(c).urlLecture(c, nom, s),
@@ -320,7 +368,7 @@ export function depot(): Depot {
     const base = postgresConfigure();
     // Garde-fou : tant que les écritures conditionnelles de Supabase Storage ne sont pas démontrées
     // (npm run verifier:stockage), les documents ne doivent pas y être rangés.
-    if (objet && !base && /supabase\.co/i.test(process.env.S3_ENDPOINT || "") && process.env.DOCUMENTS_SUR_STOCKAGE !== "oui") {
+    if (objet && !base && /supabase\.co/i.test(configurationStockage().endpoint) && process.env.DOCUMENTS_SUR_STOCKAGE !== "oui") {
       throw new Error("Supabase Storage sans base de données : renseignez DATABASE_URL (les commandes et le compteur de factures exigent des écritures atomiques).");
     }
     const fichiers = objet ? depotS3() : depotDisque();

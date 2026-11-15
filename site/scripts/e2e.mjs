@@ -297,6 +297,42 @@ if (!aut.direct) {
   verifier("Envoi au serveur sans autorisation valide refusé (403)", (await fetch(`${BASE}/api/depot/${"0".repeat(32)}?j=${falsifie}`, { method: "PUT", body: png })).status === 403);
   verifier("Envoi plus gros qu'annoncé refusé (413)", (await fetch(`${BASE}${aut.url}`, { method: "PUT", body: Buffer.concat([png, png, png]) })).status === 413);
 }
+console.log("\n— Pages d'erreur, diagnostic, tâche quotidienne —");
+const r404 = await fetch(`${BASE}/cette-page-n-existe-pas`);
+const t404 = await r404.text();
+verifier("Page inexistante : 404 avec une page du site, en français", r404.status === 404 && /existe pas/.test(t404) && /Retour à l(&#x27;|&apos;|')accueil/.test(t404), String(r404.status));
+verifier("Page inexistante : aucune trace technique (chemins, pile d'appels)", !/node_modules|at Object|\.tsx?:\d+|Error:/.test(t404));
+verifier("Commande avec un faux lien : 404", (await fetch(`${BASE}/commande/${"a".repeat(48)}`)).status === 404);
+verifier("Diagnostic : refusé sans session administrateur (401)", (await fetch(`${BASE}/api/admin/diagnostic`)).status === 401);
+const rDiag = await fetch(`${BASE}/api/admin/diagnostic`, { headers: { Cookie: cookies } });
+const diag = rDiag.status === 200 ? await rDiag.json() : null;
+verifier("Diagnostic : rapport complet pour l'administrateur, sans secret", Boolean(diag) && diag.sections.length === 6 && !JSON.stringify(diag).includes(process.env.SESSION_SECRET || "∅") && !JSON.stringify(diag).includes(process.env.ADMIN_PASSWORD || "∅"), String(rDiag.status));
+verifier("Diagnostic : les lignes de test sont supprimées", !diag || !diag.sections.some((s) => s.lignes.some((l) => l.etat === "ko" && /Nettoyage/.test(l.nom))));
+{
+  // Limiteur de connexion partagé : 5 échecs puis blocage, même avec le bon mot de passe. Adresse fictive aléatoire : ne bloque pas les autres tests.
+  const ipFictive = `198.51.100.${1 + Math.floor(Math.random() * 200)}`;
+  const ctxLimite = await nav.newContext({ extraHTTPHeaders: { "x-nf-client-connection-ip": ipFictive } });
+  const pl = await ctxLimite.newPage();
+  let tentatives = 0, bloque = false;
+  while (!bloque && tentatives < 8) {
+    await pl.goto(`${BASE}/admin/connexion`);
+    await pl.fill('input[type="password"]', `mauvais-mot-de-passe-${tentatives}`);
+    await pl.click('button[type="submit"]');
+    await pl.waitForURL(/erreur=/);
+    tentatives++;
+    bloque = pl.url().includes("erreur=essais");
+  }
+  verifier("Connexion administrateur : bloquée après 5 échecs consécutifs", bloque && tentatives === 6, `${tentatives} tentatives`);
+  await pl.goto(`${BASE}/admin/connexion`); await pl.fill('input[type="password"]', MDP); await pl.click('button[type="submit"]'); await pl.waitForURL(/erreur=|\/admin$/);
+  verifier("Connexion administrateur : le bon mot de passe est refusé tant que le blocage dure", pl.url().includes("erreur=essais"), pl.url());
+  await ctxLimite.close();
+}
+const tache = (h) => fetch(`${BASE}/api/taches/quotidienne`, { method: "POST", headers: h });
+verifier("Tâche quotidienne : introuvable sans secret (404)", (await tache({})).status === 404);
+verifier("Tâche quotidienne : introuvable avec un mauvais secret (404)", (await tache({ "x-taches-secret": "faux" })).status === 404);
+const rTache = await tache({ "x-taches-secret": process.env.TACHES_SECRET });
+const bilanTache = rTache.status === 200 ? await rTache.json() : null;
+verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de purge renvoyé", bilanTache?.ok === true && typeof bilanTache.bilan === "object", String(rTache.status));
 verifier("Livrable : demande d'envoi refusée sans session administrateur (401)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status === 401);
 verifier("Livrable : requête venant d'un autre site refusée (403)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookies, Origin: "https://site-malveillant.example" }, body: "{}" })).status === 403);
 const faux2 = (await adminCtx.cookies()).find((k) => k.name === "sa_admin").value.replace(/^\d+/, String(Math.floor(Date.now() / 1000) + 999999));

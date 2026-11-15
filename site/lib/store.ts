@@ -150,9 +150,8 @@ export const store = {
   },
 
   async commandes(): Promise<Commande[]> {
-    const cles = (await depot().lister("commandes")).filter((k) => k.endsWith(".json"));
-    const tout = await Promise.all(cles.map((k) => lireJson<Commande>(k)));
-    return tout.filter(Boolean).map((x) => x!.donnees).sort((a, b) => b.creeLe.localeCompare(a.creeLe));
+    const entrees = (await depot().lireTous("commandes")).filter((e) => e.cle.endsWith(".json"));
+    return entrees.flatMap((e) => { try { return [JSON.parse(e.corps.toString("utf8")) as Commande]; } catch { return []; } }).sort((a, b) => b.creeLe.localeCompare(a.creeLe));
   },
 
   // Modifie une commande sans jamais écraser une modification concurrente :
@@ -207,9 +206,8 @@ export const store = {
   },
 
   async courriels(commande?: string): Promise<Courriel[]> {
-    const cles = (await depot().lister("courriels")).filter((k) => k.endsWith(".json")).sort().reverse().slice(0, 300);
-    const tout = await Promise.all(cles.map((k) => lireJson<Courriel>(k)));
-    return tout.filter(Boolean).map((x) => x!.donnees).filter((m) => !commande || m.commande === commande);
+    const entrees = (await depot().lireTous("courriels", 300)).filter((e) => e.cle.endsWith(".json"));
+    return entrees.flatMap((e) => { try { return [JSON.parse(e.corps.toString("utf8")) as Courriel]; } catch { return []; } }).filter((m) => !commande || m.commande === commande);
   },
 };
 

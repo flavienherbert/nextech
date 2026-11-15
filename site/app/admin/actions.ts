@@ -2,22 +2,34 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { adresseClient } from "@/lib/limiteur";
 import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
 import { changerStatut } from "@/lib/commandes";
+import { courriels, enEchec } from "@/lib/mail";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
 export async function connexion(form: FormData) {
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0].trim() || "local";
-  if (!essaiAutorise(ip)) redirect("/admin/connexion?erreur=essais");
+  const ip = adresseClient(await headers());
+  if (!(await essaiAutorise(ip))) redirect("/admin/connexion?erreur=essais");
   const valide = motDePasseValide(String(form.get("motdepasse") || ""));
-  noterEssai(ip, valide);
+  await noterEssai(ip, valide);
   if (!valide) {
     await ralentir();
     redirect("/admin/connexion?erreur=refus");
   }
   await ouvrirSession();
   redirect("/admin");
+}
+
+// Renvoie un e-mail resté en échec (service d'envoi indisponible, délai dépassé…).
+export async function renvoyerCourriel(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  const m = (await store.courriels()).find((x) => x.id === id);
+  if (!m || !enEchec(m)) redirect("/admin/courriels?erreur=renvoi");
+  const r = await courriels.renvoyer(m);
+  redirect(`/admin/courriels?${enEchec(r) ? "erreur" : "ok"}=renvoi`);
 }
 
 export async function deconnexion() {

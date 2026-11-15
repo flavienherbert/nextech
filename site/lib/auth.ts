@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "./env";
+import { compte, enregistrer, remettreAZero } from "./limiteur";
 
 const NOM = "sa_admin";
 const DUREE = 12 * 3600; // secondes
@@ -12,20 +13,17 @@ const egal = (a: string, b: string) => a.length === b.length && crypto.timingSaf
 
 export const adminConfigure = () => env.adminPassword().length >= 12 && env.sessionSecret().length >= 32;
 
-// Limite les essais de mot de passe : 5 échecs par quart d'heure et par adresse.
-const essais = new Map<string, { n: number; debut: number }>();
-export function essaiAutorise(ip: string): boolean {
-  const e = essais.get(ip);
-  if (e && Date.now() - e.debut > 15 * 60_000) essais.delete(ip);
-  return (essais.get(ip)?.n ?? 0) < 5;
+// Limite les essais de mot de passe : 5 échecs par quart d'heure et par adresse, comptés dans le dépôt
+// partagé (efficace même avec plusieurs instances du site).
+const FENETRE_ESSAIS = 15 * 60_000;
+export async function essaiAutorise(ip: string): Promise<boolean> {
+  return (await compte("connexion", ip, FENETRE_ESSAIS)) < 5;
 }
 
 // Seuls les échecs sont comptés ; une connexion réussie remet le compteur à zéro.
-export function noterEssai(ip: string, reussi: boolean) {
-  if (reussi) return void essais.delete(ip);
-  const e = essais.get(ip);
-  if (e) e.n += 1;
-  else essais.set(ip, { n: 1, debut: Date.now() });
+export async function noterEssai(ip: string, reussi: boolean) {
+  if (reussi) await remettreAZero("connexion", ip);
+  else await enregistrer("connexion", ip, FENETRE_ESSAIS);
 }
 
 // Chaque échec coûte une seconde : une recherche exhaustive devient impraticable.

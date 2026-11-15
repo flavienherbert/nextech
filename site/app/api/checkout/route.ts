@@ -2,20 +2,14 @@ import { NextResponse } from "next/server";
 import { creerCommandeEtSession } from "@/lib/commandes";
 import { formuleParId } from "@/lib/formules";
 import { env, modePaiement } from "@/lib/env";
+import { adresseClient, enregistrer } from "@/lib/limiteur";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Frein simple contre la création de commandes en rafale : 8 par adresse et par quart d'heure.
-const recents = new Map<string, number[]>();
-function tropRapide(ip: string): boolean {
-  const t = Date.now();
-  const liste = (recents.get(ip) || []).filter((x) => t - x < 15 * 60_000);
-  liste.push(t);
-  recents.set(ip, liste);
-  if (recents.size > 5000) recents.clear();
-  return liste.length > 8;
-}
+// Frein contre la création de commandes en rafale : 8 par adresse et par quart d'heure,
+// compté dans le dépôt partagé (valable pour toutes les instances du site).
+const tropRapide = async (ip: string) => (await enregistrer("commande", ip, 15 * 60_000)) > 8;
 
 // Reçoit le formulaire de la page « Commander », crée la commande et renvoie vers Stripe.
 export async function POST(req: Request) {
@@ -25,7 +19,7 @@ export async function POST(req: Request) {
   if (!f) return NextResponse.redirect(`${env.baseUrl()}/#formules`, 303);
   if (form.get("cgv") !== "oui" || form.get("ia") !== "oui") return retour("erreur=conditions");
   if (modePaiement().mode === "ferme") return retour("erreur=ferme");
-  if (process.env.E2E !== "1" && tropRapide(req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local")) return retour("erreur=rythme");
+  if (process.env.E2E !== "1" && (await tropRapide(adresseClient(req.headers)))) return retour("erreur=rythme");
   try {
     const { url } = await creerCommandeEtSession(f.id);
     return NextResponse.redirect(url, 303);

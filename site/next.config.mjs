@@ -1,20 +1,16 @@
 import { execSync } from "node:child_process";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
+import { configurationStockage } from "./lib/supabase-config.mjs";
 
 // Politique de sécurité de contenu.
 // En développement (« next dev », donc « npm run demo »), l'outil de compilation exécute le code
 // par évaluation de chaînes et se met à jour par WebSocket : sans 'unsafe-eval', l'application
 // ne démarre pas dans le navigateur. Cette autorisation n'est accordée que dans cette phase.
 // La version compilée (« next build » puis « next start », ou un hébergeur) ne la reçoit jamais.
-// Origine du stockage de fichiers autorisée pour l'envoi direct depuis le navigateur.
-// Déduite de S3_ENDPOINT si S3_PUBLIC_ORIGIN n'est pas défini (variable lue à la compilation).
+// Origine du stockage de fichiers autorisée pour l'envoi direct depuis le navigateur (lue à la compilation).
+// Variables explicites, sinon déduite de DATABASE_URL (Supabase) : voir lib/supabase-config.mjs.
 function origineStockage() {
-  if (process.env.S3_PUBLIC_ORIGIN) return process.env.S3_PUBLIC_ORIGIN;
-  try {
-    return process.env.S3_ENDPOINT ? new URL(process.env.S3_ENDPOINT).origin : "";
-  } catch {
-    return "";
-  }
+  return configurationStockage().origine;
 }
 
 export function politiqueContenu(developpement) {

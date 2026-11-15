@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { env } from "@/lib/env";
 import { store } from "@/lib/store";
 import { confirmerPaiement, marquerPaiementInabouti } from "@/lib/commandes";
+import { courriels } from "@/lib/mail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +30,14 @@ export async function POST(req: Request) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         const r = await confirmerPaiement(evenement.data.object as Stripe.Checkout.Session);
-        if (!r.ok) console.warn(`[webhook] ${evenement.id} non appliqué : ${r.motif}`);
+        if (!r.ok) {
+          console.warn(`[webhook] ${evenement.id} non appliqué : ${r.motif}`);
+          // Un paiement réellement encaissé mais non rattaché doit alerter ; un paiement différé (virement) pas encore abouti, non.
+          if (!(r.motif || "").startsWith("paiement non abouti")) {
+            const s = evenement.data.object as Stripe.Checkout.Session;
+            await courriels.adminAnomalie(`Session ${s.id} — ${r.motif}`).catch(() => {});
+          }
+        }
         return Response.json({ recu: true, applique: r.ok, motif: r.motif });
       }
       case "checkout.session.expired":

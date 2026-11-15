@@ -7,7 +7,7 @@ import { euros, formuleParId } from "@/lib/formules";
 import { nomStatut, store, STATUTS } from "@/lib/store";
 import { purger } from "@/lib/purge";
 import { depot } from "@/lib/depot";
-import { envoiReel } from "@/lib/mail";
+import { enEchec, envoiReel } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Commandes — Administration", robots: { index: false, follow: false } };
@@ -24,6 +24,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const payees = toutes.filter((c) => c.paiement.etat === "paye");
   const total = payees.reduce((s, c) => s + c.montantCents, 0);
   const { mode } = modePaiement();
+  const recent = Date.now() - 14 * 86_400_000;
+  const echecs = envoiReel() ? (await store.courriels()).filter((m) => enEchec(m) && new Date(m.date).getTime() > recent).length : 0;
 
   return (
     <main className="page admin">
@@ -35,9 +37,16 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
           <div className="actions">
             <Link className="bouton bouton-fantome bouton-petit" href="/admin/courriels">E-mails</Link>
+            <Link className="bouton bouton-fantome bouton-petit" href="/admin/diagnostic">Diagnostic</Link>
             <form action={deconnexion}><button className="bouton bouton-fantome bouton-petit">Déconnexion</button></form>
           </div>
         </div>
+
+        {echecs > 0 && (
+          <p className="avis avis-erreur" role="alert">
+            ⚠ {echecs} e-mail{echecs > 1 ? "s" : ""} non envoyé{echecs > 1 ? "s" : ""} ces 14 derniers jours : <Link href="/admin/courriels">voir et renvoyer</Link>.
+          </p>
+        )}
 
         <div className="compteurs">
           <div><strong>{payees.length}</strong><span>commandes payées</span></div>

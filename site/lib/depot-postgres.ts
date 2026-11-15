@@ -39,6 +39,16 @@ function bassin(): Pool {
   return pool;
 }
 
+// Accès direct à la base pour le diagnostic (jamais utilisé pour les données du site).
+export async function executerSurBase<T>(fn: (c: import("pg").PoolClient) => Promise<T>): Promise<T> {
+  const c = await bassin().connect();
+  try {
+    return await fn(c);
+  } finally {
+    c.release();
+  }
+}
+
 export async function fermerBase() {
   const p = pool;
   pool = null;
@@ -82,6 +92,22 @@ export function depotPostgres(): Depot {
       const p = cleSure(prefixe).replace(/\/?$/, "/");
       const r = await q<{ cle: string }>("select cle from studio.documents where starts_with(cle, $1) order by cle", [p]);
       return r.rows.map((x) => x.cle);
+    },
+    async lireTous(prefixe, limite) {
+      const p = cleSure(prefixe).replace(/\/?$/, "/");
+      const r = await q<{ cle: string; corps: string; version: string }>(
+        "select cle, corps::text as corps, version::text as version from studio.documents where starts_with(cle, $1) order by cle desc limit $2",
+        [p, limite ?? 100000],
+      );
+      return r.rows.map((x) => ({ cle: x.cle, corps: Buffer.from(x.corps, "utf8"), version: x.version }));
+    },
+    async inventaire(prefixe) {
+      const p = cleSure(prefixe).replace(/\/?$/, "/");
+      const r = await q<{ cle: string; ms: number; taille: number }>(
+        "select cle, (extract(epoch from modifie_le) * 1000)::float8 as ms, octet_length(corps::text)::int as taille from studio.documents where starts_with(cle, $1) order by cle",
+        [p],
+      );
+      return r.rows.map((x) => ({ cle: x.cle, modifieLe: Number(x.ms), taille: Number(x.taille) }));
     },
     async taille(cle) {
       const r = await q<{ n: string }>("select octet_length(corps::text)::text as n from studio.documents where cle = $1", [cleSure(cle)]);
