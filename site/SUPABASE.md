@@ -53,16 +53,22 @@ Rien d'existant n'est supprimé : aucune variable `S3_*` n'était définie, R2 n
 
 Ce qu'il fait : il travaille uniquement dans le dossier temporaire `__test__/<identifiant>/` de votre bucket, n'affiche jamais de clé ni de lien complet, puis supprime ce dossier et vérifie qu'il est vide. Il ne lit, ne modifie et ne supprime aucun autre objet.
 
-Depuis le dossier `site`, dans PowerShell (les variables disparaissent quand vous fermez la fenêtre) :
+Depuis le dossier `site`, dans PowerShell. Une commande à la fois (chaque `Read-Host` attend votre réponse) ; les variables disparaissent quand la fenêtre est fermée.
 
 ```powershell
-$env:S3_ENDPOINT = "https://<réf>.storage.supabase.co/storage/v1/s3"
-$env:S3_REGION = "eu-central-1"          # la valeur affichée par Supabase
-$env:S3_BUCKET = "studio-accroche"
-$env:S3_PATH_STYLE = "oui"
-$env:S3_ACCESS_KEY_ID = Read-Host "Access key id"
-$env:S3_SECRET_ACCESS_KEY = Read-Host "Secret access key"
+git fetch origin
+git checkout claude/autonomous-profitable-business-5u6yv9
+git pull
+npm install
+```
+```powershell
+$ref = Read-Host "Reference ID du projet Supabase"
+$env:S3_REGION = Read-Host "Region (Storage > Settings > S3 Connection)"
+$env:S3_ACCESS_KEY_ID = Read-Host "Access key ID"
+$env:S3_SECRET_ACCESS_KEY = [System.Net.NetworkCredential]::new("", (Read-Host "Secret access key" -AsSecureString)).Password
+$env:S3_ENDPOINT = "https://$ref.storage.supabase.co/storage/v1/s3"; $env:S3_BUCKET = "studio-accroche"; $env:S3_PATH_STYLE = "oui"
 npm run verifier:stockage -- --origine=https://studio-accroche-preprod.netlify.app --limite
+Remove-Item Env:S3_ACCESS_KEY_ID, Env:S3_SECRET_ACCESS_KEY
 ```
 
 `--limite` envoie un fichier de 51 Mo (supprimé ensuite) pour vérifier que le plafond de 50 Mo est bien appliqué. Il consomme brièvement 51 Mo de votre 1 Go.
