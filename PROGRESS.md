@@ -62,6 +62,8 @@
 
 - **15/11 (soir)** — Audit complet et durcissement : limiteur partagé, purge (orphelins, anciens e-mails), diagnostic administrateur, pages d'erreur, délais Stripe/Brevo. Diagnostic réel sur Netlify : factures PDF cassées (polices absentes du déploiement), corrigé ; clé Brevo refusée par la restriction d'adresses IP de Brevo (action du fondateur). Préproduction redéployée, protection par mot de passe vérifiée (29 adresses).
 
+- **16/11** — Organisation côté vendeur : e-mail immédiat à chaque commande payée (numéro, client, e-mail, offre, montant, lien direct) et notification sur le téléphone sans donnée personnelle ; chaîne d'envoi Brevo → Resend → Gmail (SMTP) contre le blocage de Brevo ; tableau de bord par catégories avec recherche ; panneau « Prochaine étape » et boutons guidés (production, livraison, correction, clôture, relance) ; alertes (paiement échoué, erreur serveur, e-mail non envoyé, correction demandée) ; tâche quotidienne (récap, relance du brief à 48 h). Testé : 154/154 en navigateur (disque), tests ciblés dans les quatre modes de stockage. Mode d'emploi : `site/MODE-EMPLOI.md`.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

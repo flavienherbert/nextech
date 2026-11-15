@@ -24,11 +24,25 @@ Remove-Item Env:STRIPE_SECRET_KEY
 ```
 Le script refuse toute clé qui n'est pas une clé de test, crée le webhook pour la préproduction avec les 4 événements utiles, et affiche le secret `whsec_…` dans votre terminal : copiez-le dans Netlify.
 
-**Brevo** : la clé est déjà dans Netlify et du bon type, mais Brevo refuse les appels du serveur (« unrecognised IP address »). Dans Brevo : menu du compte (en haut à droite), *Security*, **Authorized IPs** : désactivez la restriction (les adresses de Netlify changent à chaque appel, une liste d'adresses autorisées est inutilisable).
+## E-mails du vendeur et notifications (16 novembre)
+
+Objectif : être prévenu à chaque commande payée, sans jamais surveiller le site. Mode d'emploi du quotidien : `MODE-EMPLOI.md`.
+
+**Déjà saisi dans Netlify** (par Claude, non secret) : `ADMIN_EMAIL` et `MAIL_FROM` (contactstudioaccroche@gmail.com), `SMTP_USER` (la même adresse), `NTFY_TOPIC` (sujet de notification aléatoire, affiché dans Administration → Mode d'emploi), `TACHES_SECRET` (tâche quotidienne).
+
+**Ce qu'il reste à faire, une seule fois :**
+
+1. **Mot de passe d'application Gmail** (voie d'envoi qui contourne le blocage de Brevo). Compte Google du studio → *Sécurité* → activer la *Validation en 2 étapes* (si ce n'est pas fait) → *Mots de passe des applications* → nom « Studio Accroche » → **Créer** → copier les 16 caractères. Dans Netlify : *Environment variables* → **Add a variable** → `SMTP_PASSWORD`, cocher **Contains secret values**, coller, enregistrer. (Ne l'envoyez pas dans la conversation.) Puis « Deploys » → « Trigger deploy » → « Deploy site » (ou dites-le-moi, je redéploie).
+2. **Application ntfy** sur le téléphone : installer ntfy (gratuit), **+**, saisir le sujet affiché dans Administration → Mode d'emploi.
+3. **Vérification** : Administration → Diagnostic → **Envoyer une notification de test**.
+
+Brevo reste configuré en première voie : tant que Brevo refuse l'adresse du serveur (« unrecognised IP address »), chaque e-mail part automatiquement par Gmail. Pour réactiver Brevo : dans Brevo, menu du compte, *Security*, **Authorized IPs**, désactiver la restriction (les adresses de Netlify changent à chaque appel, une liste d'adresses est inutilisable). Les deux ensemble donnent une double sécurité ; l'un des deux suffit.
+
+Limites de Gmail en envoi par mot de passe d'application : environ 500 messages par jour, largement suffisant. Les e-mails partent de l'adresse Gmail du studio (pas d'un nom de domaine) : à remplacer par une adresse sur domaine propre avant l'ouverture, avec authentification SPF/DKIM.
 
 Après saisie, dites-moi « variables saisies » : je redéploie la préproduction et je lance `npm run verifier:en-ligne` (rien n'est public, diagnostic complet). Puis `TEST-CLIENT.md`.
 
-**Tâche quotidienne** (facultative, non activée) : purge des données arrivées à échéance et maintien d'activité de la base. Pour l'activer, ajouter `TACHES_SECRET` (24 caractères aléatoires minimum, secrète) ; sans elle, la tâche planifiée déployée ne fait rien.
+**Tâche quotidienne** (activée le 16 novembre par la variable `TACHES_SECRET`, à 6 h UTC soit 7 h ou 8 h à Paris) : récapitulatif des commandes en attente, relance unique des briefs manquants depuis 48 h, purge des données arrivées à échéance, lecture de la base (ce qui évite aussi la mise en pause d'un projet Supabase gratuit). Pour la désactiver : supprimer la variable `TACHES_SECRET`.
 
 Rédigé le 15 novembre 2026. Rien n'a été créé ni déployé. Objectif : un site en ligne, protégé par mot de passe, avec Stripe en mode test, pour vérifier une commande complète en conditions réelles avant l'ouverture.
 

@@ -1,5 +1,7 @@
-// Tâche planifiée Netlify : appelle chaque jour /api/taches/quotidienne (purge des données arrivées à échéance,
-// lecture de la base). INACTIVE tant que la variable TACHES_SECRET n'est pas définie dans Netlify.
+// Tâche planifiée Netlify : appelle chaque jour, vers 7 h–8 h (heure de Paris), /api/taches/quotidienne :
+// récapitulatif de ce qui attend le vendeur, relance automatique des briefs manquants depuis 48 h, purge des données
+// arrivées à échéance, lecture de la base (ce qui évite aussi la mise en pause d'un projet Supabase gratuit).
+// INACTIVE tant que la variable TACHES_SECRET n'est pas définie dans Netlify.
 // Ne s'exécute que sur le déploiement publié.
 export default async () => {
   const secret = process.env.TACHES_SECRET;
@@ -16,4 +18,4 @@ export default async () => {
   console.log("[tache quotidienne]", r.status, (await r.text()).slice(0, 300));
 };
 
-export const config = { schedule: "@daily" };
+export const config = { schedule: "0 6 * * *" };

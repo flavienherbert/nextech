@@ -539,8 +539,14 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.click("button:has-text('Envoyer une notification de test')");
   await admin.waitForURL(/test=ok-ok/);
   verifier("Notification de test : téléphone et e-mail reçus", (await attendrePush((x) => x.title === "Test de notification")) && (await mails()).some((m) => m.objet.includes("Test de notification")));
+  const nt = (h) => fetch(`${BASE}/api/admin/notification-test`, { method: "POST", headers: h });
+  const rNt = await nt({ Cookie: cookies });
+  const jNt = rNt.status === 200 ? await rNt.json() : null;
+  verifier("Route de notification de test : refusée sans session (401) et depuis un autre site (403), sinon téléphone + e-mail envoyés", (await nt({})).status === 401 && (await nt({ Cookie: cookies, Origin: "https://site-malveillant.example" })).status === 403 && jNt?.push === "envoye" && jNt?.email === "envoye", JSON.stringify(jNt));
   await admin.goto(`${BASE}/admin/aide`);
-  verifier("Page « Mode d'emploi » dans l'administration", (await admin.locator("main").textContent()).includes("Je livre les vidéos ici"));
+  const texteAide = await admin.locator("main").textContent();
+  verifier("Page « Mode d'emploi » : les trois rubriques et le sujet de notification à saisir dans ntfy", ["Je reçois une commande ici", "Je traite une commande ici", "Je livre les vidéos ici"].every((t) => texteAide.includes(t)) && texteAide.includes("sa-test-notifications"));
+  verifier("Page « Mode d'emploi » inaccessible sans session administrateur", (await fetch(`${BASE}/admin/aide`, { redirect: "manual" })).status !== 200);
 
   // — Tâche quotidienne : récapitulatif
   await fauxJson("/_vider", "POST");

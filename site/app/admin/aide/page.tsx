@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { exigerAdmin } from "@/lib/auth";
+import { pushConfigure } from "@/lib/alertes";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,19 @@ export default async function Aide() {
         <p className="retour"><Link href="/admin">← Commandes</Link></p>
         <p className="surtitre">Administration</p>
         <h1 className="titre-page">Mode d&apos;emploi</h1>
+
+        <section className="bloc">
+          <h2>Mon sujet de notification (téléphone)</h2>
+          {pushConfigure() ? (
+            <>
+              <p>Installez l&apos;application gratuite <strong>ntfy</strong> (Android, iPhone), appuyez sur <strong>+</strong>, saisissez exactement :</p>
+              <p className="code">{process.env.NTFY_TOPIC}</p>
+              <p className="aide">Ce sujet est votre « adresse » de notification : ne le partagez pas. Aucun nom ni e-mail de client n&apos;y transite. Pour vérifier : <Link href="/admin/diagnostic">Diagnostic</Link>, bouton « Envoyer une notification de test ».</p>
+            </>
+          ) : (
+            <p className="avis avis-erreur">Les notifications sur le téléphone ne sont pas activées (variable NTFY_TOPIC absente de Netlify). Vous ne recevez alors que les e-mails.</p>
+          )}
+        </section>
 
         <section className="bloc">
           <h2>Je reçois une commande ici</h2>

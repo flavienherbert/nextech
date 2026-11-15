@@ -2,6 +2,10 @@
 
 Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0 € dépensé.
 
+## Organisation côté vendeur (16 novembre)
+
+Vous êtes prévenu de chaque commande **payée** par e-mail (contactstudioaccroche@gmail.com) et sur le téléphone (ntfy) ; tout se traite dans `/admin` (catégories, recherche, boutons « Prochaine étape », livraison, corrections). Mode d'emploi : `site/MODE-EMPLOI.md`. Ce qu'il reste à faire de votre côté : mot de passe d'application Gmail dans Netlify, application ntfy, voir `site/MISE-EN-LIGNE.md` (« E-mails du vendeur et notifications »).
+
 ## État technique au 15 novembre (soir)
 
 Préproduction en ligne, protégée : https://studio-accroche-preprod.netlify.app (29 adresses testées sans mot de passe : toutes refusées).

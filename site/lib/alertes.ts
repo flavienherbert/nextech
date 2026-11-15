@@ -60,3 +60,14 @@ export async function alerter(a: Alerte): Promise<ResultatAlerte> {
     return { ignoree: false, push: "echec", email: "echec" };
   }
 }
+
+// Notification de test (page Diagnostic, vérification en ligne) : prouve que téléphone et e-mail fonctionnent réellement.
+export const notificationDeTest = () =>
+  alerter({
+    cle: `test-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    titre: "Test de notification",
+    message: "Si vous lisez ceci, les notifications fonctionnent.",
+    details: "Ceci est un test envoyé depuis la page Diagnostic. Aucune commande n'est concernée.",
+    lien: `${env.baseUrl()}/admin`,
+    fenetreMs: 1000,
+  });

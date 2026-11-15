@@ -5,9 +5,8 @@ import { redirect } from "next/navigation";
 import { adresseClient } from "@/lib/limiteur";
 import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
-import { alerter, pushConfigure } from "@/lib/alertes";
+import { notificationDeTest } from "@/lib/alertes";
 import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
-import { env } from "@/lib/env";
 import { courriels, enEchec } from "@/lib/mail";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
@@ -119,11 +118,7 @@ export async function relancerClient(form: FormData) {
 // Envoie une alerte de test (téléphone + e-mail) pour vérifier que les notifications arrivent bien.
 export async function testerNotification() {
   if (!(await estAdmin())) redirect("/admin/connexion");
-  const r = await alerter({
-    cle: `test-${Date.now()}`, titre: "Test de notification", message: "Si vous lisez ceci, les notifications fonctionnent.",
-    details: "Ceci est un test envoyé depuis la page Diagnostic. Aucune commande n'est concernée.",
-    lien: `${env.baseUrl()}/admin`, fenetreMs: 1000,
-  });
+  const r = await notificationDeTest();
   const etat = (e: string) => (e === "envoye" ? "ok" : e === "echec" ? "ko" : "non");
-  redirect(`/admin/diagnostic?test=${etat(r.push)}-${etat(r.email)}${pushConfigure() ? "" : "&sanspush=1"}`);
+  redirect(`/admin/diagnostic?test=${etat(r.push)}-${etat(r.email)}`);
 }

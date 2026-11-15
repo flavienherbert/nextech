@@ -2567,3 +2567,22 @@ button.bouton-petit {
   place-items: center;
   font-size: 14px;
 }
+
+@media (max-width: 640px) {
+  .compteurs-vues {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .compteurs-vues a {
+    padding: 12px 14px;
+  }
+
+  .compteurs-vues a strong {
+    font-size: 30px;
+  }
+
+  .compteurs-vues a span {
+    font-size: 12.5px;
+  }
+}

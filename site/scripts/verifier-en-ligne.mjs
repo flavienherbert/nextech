@@ -34,6 +34,7 @@ try {
   await p.goto(B + "/admin/connexion", { waitUntil: "networkidle" });
   await p.fill('input[name="motdepasse"]', ADM); await p.click('button[type="submit"]');
   await p.waitForURL((u) => !u.pathname.endsWith("/connexion"), { timeout: 30000 });
+  verifier("Route de test d'erreur fermée en ligne (404)", (await ctx.request.get(B + "/api/test-erreur")).status() === 404);
   const r = await ctx.request.get(B + "/api/admin/diagnostic", { timeout: 60000 });
   verifier("Diagnostic exécuté", r.status() === 200, `HTTP ${r.status()}`);
   if (r.status() === 200) {
@@ -42,6 +43,12 @@ try {
     console.log(`\nSynthèse : ${d.synthese.ok} réussies, ${d.synthese.ko} échec(s), ${d.synthese.avert} avertissement(s), ${d.synthese.info} information(s).`);
     if (d.synthese.ko) echecs++;
   }
+  // Notification de test réelle : téléphone et e-mail partent vraiment (le résultat de chacun est affiché).
+  const rn = await ctx.request.post(B + "/api/admin/notification-test", { timeout: 40000, headers: { Origin: B } });
+  const n = rn.status() === 200 ? await rn.json() : null;
+  console.log(`\n— Notification de test — téléphone : ${n?.push ?? "?"} · e-mail : ${n?.email ?? "?"}`);
+  verifier("Notification de test : téléphone", n?.push === "envoye", `état : ${n?.push ?? "HTTP " + rn.status()}`);
+  verifier("Notification de test : e-mail", n?.email === "envoye", `état : ${n?.email ?? "HTTP " + rn.status()} (si « echec » : voir la section E-mails du diagnostic)`);
 } catch (e) { verifier("Connexion à l'administration", false, e.message); }
 await nav.close();
 console.log(echecs ? `\n${echecs} point(s) à traiter.` : "\nTout est conforme.");
