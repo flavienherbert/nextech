@@ -158,7 +158,7 @@ export default function Accueil() {
                       <a href={demonstration.externe.lien} target="_blank" rel="noopener noreferrer">
                         {demonstration.externe.chaine}
                       </a>
-                      , affichée avec son accord par le lecteur YouTube.
+                      , diffusée par le lecteur YouTube.
                     </>
                   )}
                   {demo === "vide" && "La démonstration sera affichée ici. Aucune vidéo d'exemple n'est encore publiée."}

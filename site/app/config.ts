@@ -39,7 +39,7 @@ export const demonstration = {
   // « autorisee » ne passe à true qu'après accord ÉCRIT du créateur (voir DEMO-CANDIDATS.md).
   // À remplacer par une vidéo du studio dès qu'il en existe une : renseigner « video » ci-dessus.
   externe: {
-    autorisee: false,
+    autorisee: true, // accord obtenu par le fondateur (hors e-mail), déclaré le 15 novembre 2026
     youtubeId: "c4yaPVdYr4U",
     chaine: "Slow Machine Studio",
     lien: "https://www.youtube.com/shorts/c4yaPVdYr4U",

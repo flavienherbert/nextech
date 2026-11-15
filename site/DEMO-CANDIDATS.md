@@ -4,9 +4,7 @@ Relevé du 14 novembre 2026. Rien n'a été téléchargé.
 
 **Décision du fondateur (14 novembre)** : exemple externe accepté à titre provisoire, sous réserve d'un accord écrit du créateur. Candidat retenu : n° 1, Slow Machine Studio (contact public sur sa chaîne : andrii@slowmachinestudio.com, site slowmachinestudio.com). Repli : n° 2.
 
-**État** : intégration prête mais inactive (`app/config.ts`, `demonstration.externe.autorisee: false`). La vidéo du studio est désactivée ; l'accueil affiche « Emplacement réservé ». Pour activer après accord écrit : passer `autorisee` à `true`, et conserver l'e-mail d'accord. À retirer dès qu'une vidéo du studio existe (renseigner `demonstration.video`, qui est prioritaire).
-
-**Non vérifié** : dans l'environnement de test, le lecteur YouTube s'est chargé mais a affiché « Video unavailable », sans doute parce que YouTube bloque la lecture automatisée. À contrôler sur un vrai navigateur avant activation.
+**État au 15 novembre** : exemple externe ACTIF sur l'accueil (candidat n° 1, lecteur YouTube sans cookie chargé au clic). Le fondateur déclare avoir obtenu un accord, hors e-mail : en garder une trace écrite (capture du message). Le lecteur se charge sur ordinateur et mobile en test automatisé ; la lecture avec le son reste à contrôler une fois sur un vrai navigateur. Provisoire : renseigner `demonstration.video` dans `app/config.ts` dès qu'une vidéo du studio existe, elle est prioritaire.
 
 ## Limites de ce relevé
 

@@ -12,7 +12,7 @@ Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0
 - Photographies libres de droits, sources et licences dans `site/IMAGES.md`.
 - Contact affiché dans le pied de toutes les pages dès que l'adresse du studio est renseignée.
 - Prospection préparée : `commercial/DEMARRAGE.md` (client idéal, arguments, présentation, méthode), 25 prospects, 8 messages.
-- Démonstration : vidéo du studio désactivée (jugée insuffisante). Exemple externe provisoire prêt mais inactif, en attente de l'accord écrit du créateur (`site/DEMO-CANDIDATS.md`). Ne pas publier le site tant que l'accueil affiche « Emplacement réservé ».
+- Démonstration : exemple externe provisoire actif sur l'accueil (lecteur YouTube, mention « non réalisée par Studio Accroche »), à remplacer par une vidéo du studio.
 
 ### À FAIRE PAR CLAUDE (dès que les décisions sont prises)
 
