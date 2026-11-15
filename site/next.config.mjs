@@ -66,6 +66,12 @@ export default function config(phase) {
   return {
     poweredByHeader: false,
     serverExternalPackages: ["pdfkit", "pg"],
+    // pdfkit charge ses polices par des imports dynamiques (« #standard-fonts/… ») que le traçage automatique
+    // ne voit pas : sans cette ligne, les fichiers de polices manquent dans le déploiement et aucune facture
+    // PDF ne peut être générée (constaté sur Netlify, voir le diagnostic).
+    outputFileTracingIncludes: {
+      "/**/*": ["./node_modules/pdfkit/js/standard-fonts/**/*", "./node_modules/pdfkit/js/data/**/*", "./node_modules/pdfkit/package.json"],
+    },
     async headers() {
       return [
         { source: "/:path*", headers: securite },

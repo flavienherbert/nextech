@@ -28,7 +28,8 @@ const ok = (nom: string, detail?: string): Ligne => ({ nom, etat: "ok", detail }
 const ko = (nom: string, detail?: string): Ligne => ({ nom, etat: "ko", detail });
 const avert = (nom: string, detail?: string): Ligne => ({ nom, etat: "avert", detail });
 const info = (nom: string, detail?: string): Ligne => ({ nom, etat: "info", detail });
-const surNetlify = () => process.env.NETLIFY === "true" || Boolean(process.env.DEPLOY_ID);
+// Les fonctions Netlify tournent sur AWS Lambda : leurs variables sont présentes à l'exécution, pas celles de la compilation.
+const surNetlify = () => process.env.NETLIFY === "true" || Boolean(process.env.DEPLOY_ID || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 const court = (e: unknown) => String((e as Error)?.message ?? e).replace(/\s+/g, " ").slice(0, 160);
 const essayer = async (nom: string, fn: () => Promise<Ligne | Ligne[]>): Promise<Ligne[]> => {
   try {
@@ -236,8 +237,14 @@ async function courriel(): Promise<Section> {
     const entetes = { "api-key": process.env.BREVO_API_KEY || "", Accept: "application/json" };
     const base = process.env.BREVO_API_BASE || "https://api.brevo.com";
     l.push(...(await essayer("Clé Brevo", async () => {
+      const cle = process.env.BREVO_API_KEY || "";
+      const genre = cle.startsWith("xkeysib-") ? "clé d'API (xkeysib-)" : cle.startsWith("xsmtpsib-") ? "clé SMTP (xsmtpsib-)" : "format inconnu";
       const r = await fetch(`${base}/v3/account`, { headers: entetes, signal: AbortSignal.timeout(8000) });
-      if (!r.ok) return ko("Clé Brevo valide", `HTTP ${r.status}`);
+      if (!r.ok) {
+        const message = ((await r.json().catch(() => ({}))) as { message?: string }).message || "";
+        const aide = cle.startsWith("xsmtpsib-") ? " : c'est une clé SMTP, il faut une clé d'API (« API Keys », pas « SMTP »)" : /ip/i.test(message) ? " : Brevo refuse l'adresse du serveur (« Authorized IPs » à désactiver dans Brevo)" : "";
+        return ko("Clé Brevo valide", `HTTP ${r.status}, ${genre}, longueur ${cle.length}${message ? `, message Brevo : ${message.slice(0, 120)}` : ""}${aide}`);
+      }
       const a = (await r.json()) as { plan?: { type: string; credits?: number }[] };
       return ok("Clé Brevo valide", `offre ${a.plan?.[0]?.type || "?"}, ${a.plan?.[0]?.credits ?? "?"} envois`);
     })));
