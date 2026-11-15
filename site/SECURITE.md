@@ -38,6 +38,17 @@ Revue faite par lecture du code et par tests automatisés. Ce n'est pas un audit
 
 8. La politique de contenu, testée seulement sur la version compilée, bloquait l'application en mode développement (`npm run demo`) : les sections animées restaient invisibles. Corrigé le 14/11 ; un test d'affichage couvre désormais les deux modes, et le contenu reste visible même si un script est bloqué.
 
+## Supabase (stockage et base de données) — ajout du 15 novembre 2026
+
+Préparé et testé en local, **pas encore connecté** (voir `SUPABASE.md`).
+
+- Bucket privé, jamais d'adresse publique ; liens de téléchargement signés de 5 minutes, liens d'envoi de 15 minutes limités à un fichier.
+- Table `studio.documents` : sécurité au niveau des lignes activée sans règle, droits retirés à `anon` et `authenticated`, schéma non exposé par l'API publique. Vérifié en local : accès refusé aux deux rôles publics.
+- La chaîne `DATABASE_URL` et les clés S3 sont des secrets serveur : jamais dans le dépôt, jamais dans une variable `NEXT_PUBLIC_`, jamais dans une conversation. Une clé S3 de Supabase ouvre tous les buckets du projet et ignore les règles d'accès : en cas de doute, la révoquer et en créer une nouvelle dans Supabase, puis mettre à jour Netlify.
+- Garde-fou : Supabase Storage sans base de données est refusé par le code, tant que les écritures conditionnelles ne sont pas démontrées.
+- Aucune sauvegarde automatique sur l'offre gratuite : `npm run sauvegarde` (voir `SUPABASE.md`).
+- Connexion à la base chiffrée ; vérification de l'identité du serveur seulement si `DATABASE_CA` est renseigné.
+
 ## Risques qui restent, à connaître
 
 | Risque | Gravité | Ce qu'il faudrait pour le réduire |

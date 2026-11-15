@@ -54,6 +54,10 @@
 
 - **14/11** — Défaut signalé par le fondateur : sections vides avec `npm run demo`. Cause : politique de contenu sans `'unsafe-eval'`, incompatible avec le mode développement, jamais testé. Corrigé ; apparition des blocs rendue indépendante de l'application ; test d'affichage ajouté pour les deux modes.
 
+## Journal récent
+
+- **15/11** — Préproduction déployée sur Netlify (protégée par mot de passe). Stockage : Supabase remplace Cloudflare R2 ; pilote PostgreSQL pour les documents, test de conformité du stockage, sauvegarde et restauration, limite de vidéo ramenée à 50 Mo, politique de confidentialité mise à jour. Tout testé en local ; rien connecté à Supabase (en attente de validation).
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

@@ -1,5 +1,7 @@
 # Mise en ligne en préproduction privée — marche à suivre
 
+> **Mise à jour du 15 novembre 2026 : Supabase remplace Cloudflare R2.** Le stockage des fichiers et la base de données sont désormais décrits dans `SUPABASE.md` (changements en attente de validation). Les étapes « Cloudflare R2 » ci-dessous sont conservées pour mémoire jusqu'à cette validation ; R2 n'a jamais été activé, rien n'y a été créé.
+
 Rédigé le 15 novembre 2026. Rien n'a été créé ni déployé. Objectif : un site en ligne, protégé par mot de passe, avec Stripe en mode test, pour vérifier une commande complète en conditions réelles avant l'ouverture.
 
 Coût : 0 €. Aucun nom de domaine n'est nécessaire à ce stade (adresse fournie par Netlify).
@@ -16,7 +18,7 @@ Préproduction en ligne : https://studio-accroche-preprod.netlify.app (protégé
 | Accès protégé par mot de passe, webhook Stripe exempté | Vérifié en ligne : 401 sans mot de passe, 200 avec |
 | En-têtes de sécurité (CSP stricte, HSTS, X-Frame-Options) | Vérifiés en ligne |
 | Administration | Connexion vérifiée en ligne |
-| Stockage durable | NON : Cloudflare R2 n'est pas activé sur le compte (demande un moyen de paiement). Le site écrit dans un dossier temporaire : les données ne sont pas conservées |
+| Stockage durable | NON : le site écrit dans un dossier temporaire, les données ne sont pas conservées. Remplacement prévu par Supabase (`SUPABASE.md`), code prêt et testé en local, rien de connecté |
 | E-mails | NON envoyés : la clé Brevo n'est pas saisie dans Netlify. Expéditeur déjà validé chez Brevo |
 | Paiement | Fermé : aucune clé Stripe. Le connecteur Stripe ne donne accès qu'à un compte en mode réel, non utilisé |
 

@@ -58,7 +58,7 @@ export default function config(phase) {
   /** @type {import('next').NextConfig} */
   return {
     poweredByHeader: false,
-    serverExternalPackages: ["pdfkit"],
+    serverExternalPackages: ["pdfkit", "pg"],
     async headers() {
       return [
         { source: "/:path*", headers: securite },

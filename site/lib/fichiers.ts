@@ -7,7 +7,10 @@ import { env } from "./env";
 import { cleFichier, maintenant, nomPropre, nouvelIdFichier, type Fichier } from "./store";
 
 export const NB_MAX_CLIENT = 6;
-export const TAILLE_MAX = { client: 40 * 1024 * 1024, livrable: 300 * 1024 * 1024 } as const;
+// Limite des vidéos livrées : 50 Mo, plafond de l'offre gratuite de Supabase Storage (page officielle des tarifs).
+// Pour la relever (offre payante), définir LIVRABLE_MAX_MO.
+export const LIVRABLE_MAX_MO = Math.max(1, Number(process.env.LIVRABLE_MAX_MO) || 50);
+export const TAILLE_MAX = { client: 40 * 1024 * 1024, livrable: LIVRABLE_MAX_MO * 1024 * 1024 } as const;
 export type Role = keyof typeof TAILLE_MAX;
 
 const AUTORISES: Record<string, string[]> = {

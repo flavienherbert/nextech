@@ -2,6 +2,10 @@
 
 Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0 € dépensé.
 
+## Stockage : Supabase à la place de Cloudflare R2 (15 novembre)
+
+Décision du fondateur. Fichiers dans Supabase Storage, données de commande dans Supabase PostgreSQL (écritures atomiques). Code prêt et testé en local, **rien connecté** : table SQL non créée, variables Netlify non modifiées, bucket non touché. Détail, limites et ordre des opérations : `site/SUPABASE.md`. Pause automatique après 7 jours sans activité : `site/MAINTIEN-ACTIVITE.md`. Limite des vidéos livrées : 50 Mo.
+
 ## Bilan en trois catégories
 
 ### TERMINÉ (testé en local)
@@ -73,7 +77,7 @@ Le détail ci-dessous date du 13 novembre et reste valable.
 | Élément | Ce qui manque pour le vérifier |
 |---|---|
 | Connexion au vrai Stripe (mode test) | Ta clé de test, saisie chez toi (`site/STRIPE.md`) |
-| Stockage sur un vrai service (Cloudflare R2) | La création du bucket |
+| Stockage sur un vrai service (Supabase) | Validation du bloc 1 (table SQL), puis du bloc 2 (variables Netlify), puis test sur le vrai bucket (`site/SUPABASE.md`) |
 | Envoi réel des e-mails (Brevo ou Resend) | Un compte et un nom de domaine vérifié |
 | Fonctionnement chez un hébergeur | Le choix de l'hébergeur et un déploiement de préproduction |
 | Facture réelle | Les informations administratives ; seuls des spécimens ont été produits |
@@ -114,7 +118,7 @@ Comparatif complet dans `site/CHOIX-TECHNIQUES.md`.
 | Poste | Choix proposé | Coût |
 |---|---|---|
 | Hébergement | Netlify, offre gratuite (repli : Render ou Fly.io, 3 à 8 $/mois) | 0 € |
-| Stockage | Cloudflare R2 | 0 € jusqu'à 10 Go |
+| Stockage et base de données | Supabase, offre gratuite (Francfort) | 0 € jusqu'à 1 Go de fichiers, 500 Mo de base |
 | E-mails | Brevo, offre gratuite | 0 € |
 | Nom de domaine | .fr ou .com | ~7 à 12 € par an |
 | Médiateur de la consommation | À choisir | Variable |

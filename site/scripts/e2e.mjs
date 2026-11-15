@@ -17,7 +17,7 @@ const CAPTURES = process.env.CAPTURES || "";
 const resultats = [];
 const verifier = (nom, ok, detail = "") => { resultats.push({ nom, ok: Boolean(ok) }); console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
 // Avec le stockage objet, l'état est recopié localement avant chaque lecture.
-const rafraichir = () => { if (process.env.S3_BUCKET) execFileSync(process.execPath, ["scripts/miroir-s3.mjs"], { env: process.env }); };
+const rafraichir = () => { if (process.env.S3_BUCKET || process.env.DATABASE_URL) execFileSync(process.execPath, ["scripts/miroir-s3.mjs"], { env: process.env }); };
 const commandes = () => rafraichir() ?? fs.existsSync(`${DATA}/commandes`) ? fs.readdirSync(`${DATA}/commandes`).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(fs.readFileSync(`${DATA}/commandes/${f}`, "utf8"))) : [];
 const commande = (id) => rafraichir() ?? JSON.parse(fs.readFileSync(`${DATA}/commandes/${id}.json`, "utf8"));
 const courriels = (id) => rafraichir() ?? fs.existsSync(`${DATA}/courriels`) ? fs.readdirSync(`${DATA}/courriels`).map((f) => JSON.parse(fs.readFileSync(`${DATA}/courriels/${f}`, "utf8"))).filter((m) => m.commande === id) : [];

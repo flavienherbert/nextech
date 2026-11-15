@@ -57,6 +57,17 @@ git pull                  # si git refuse à cause de fichiers modifiés : git s
 npm install
 ```
 
+## Données : base PostgreSQL et stockage de fichiers
+
+Avec `DATABASE_URL`, les commandes, le compteur de factures, les événements Stripe et les e-mails sont rangés dans PostgreSQL (écritures atomiques) ; les photos, vidéos et PDF restent dans le stockage de fichiers. Voir `SUPABASE.md`.
+
+```bash
+npm run verifier:stockage   # test de conformité d'un vrai bucket, dans un dossier temporaire supprimé ensuite
+npm run test:postgres       # tests du pilote PostgreSQL (base de TEST, DATABASE_URL requis)
+npm run sauvegarde          # exporte documents et factures PDF dans sauvegardes/ (hors Git)
+npm run restauration -- sauvegardes/<dossier>   # restaure dans une base vide
+```
+
 ## Tests automatiques
 
 ```bash

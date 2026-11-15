@@ -1,3 +1,5 @@
+> **Décision du 15 novembre 2026 : Supabase (Francfort, offre gratuite) remplace Cloudflare R2.** Fichiers dans Supabase Storage, données de commande dans Supabase PostgreSQL, pour obtenir des écritures atomiques. Détail, limites et procédure : `SUPABASE.md`. Les passages sur R2 ci-dessous sont conservés pour mémoire.
+
 # Choix techniques et coûts — à décider avant la mise en ligne
 
 Relevé du 13 novembre 2026. Rien n'a été souscrit, rien n'est déployé.

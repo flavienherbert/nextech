@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { creerFacture, majNotes, majStatut, retirerLivrable } from "../../actions";
 import Livrable from "../../Livrable";
+import { LIVRABLE_MAX_MO } from "@/lib/fichiers";
 import { obstaclesFacture } from "@/lib/factures";
 import { exigerAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
@@ -142,7 +143,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
                   ))}
                 </ul>
               )}
-              <Livrable commande={c.id} />
+              <Livrable commande={c.id} maxMo={LIVRABLE_MAX_MO} />
               <p className="aide">Pour livrer : ajoutez les fichiers, puis passez le statut à « En attente de validation » (le client valide ou demande une retouche) ou directement à « Livrée ».</p>
             </section>
 

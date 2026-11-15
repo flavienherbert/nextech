@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { infosLegales, PageLegale } from "../components/Legal";
 import { demonstration } from "../config";
+import { stockageSupabase } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Politique de confidentialité — Studio Accroche" };
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: "Politique de confidentialité — St
 export default function Confidentialite() {
   const i = infosLegales();
   return (
-    <PageLegale titre="Politique de confidentialité" maj="13 novembre 2026">
+    <PageLegale titre="Politique de confidentialité" maj="15 novembre 2026">
       <h2>Responsable du traitement</h2>
       <p>{i.nom}, exploitant Studio Accroche — {i.adresse} — {i.email}.</p>
 
@@ -32,6 +33,12 @@ export default function Confidentialite() {
       <ul>
         <li><strong>Stripe</strong> : traitement du paiement.</li>
         <li><strong>Hébergeur du site</strong> : {i.hebergeur}</li>
+        {stockageSupabase() && (
+          <li>
+            <strong>Supabase</strong> (Supabase Pte. Ltd.) : stockage privé des fichiers et des données de commande,
+            sur des serveurs situés à Francfort (Allemagne, Union européenne).
+          </li>
+        )}
         <li><strong>Service d&apos;envoi d&apos;e-mails</strong> : notifications de commande.</li>
         <li><strong>Outils de génération par intelligence artificielle</strong> : pour produire les vidéos, les photos du produit et les textes du brief sont transmis à des services de génération d&apos;images, de vidéos et de voix. N&apos;envoyez pas de fichier contenant des données personnelles de tiers.</li>
       </ul>
@@ -73,8 +80,9 @@ export default function Confidentialite() {
 
       <h2>Sécurité</h2>
       <p>
-        L&apos;accès à votre commande se fait par un lien privé, à ne pas partager. Les fichiers ne sont accessibles
-        qu&apos;au studio et, pour les livrables, au détenteur du lien.
+        L&apos;accès à votre commande se fait par un lien privé, à ne pas partager. Les fichiers sont conservés dans un
+        espace privé, jamais public : ils ne sont accessibles qu&apos;au studio et, pour les livrables, au détenteur du
+        lien. Chaque téléchargement passe par un lien temporaire, valable quelques minutes, créé à la demande.
       </p>
     </PageLegale>
   );

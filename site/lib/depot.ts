@@ -1,7 +1,10 @@
-// Dépôt de données : une interface, deux pilotes.
-//  - « disque » : un dossier local (développement, ou serveur avec disque persistant) ;
-//  - « s3 »     : tout stockage objet compatible S3 (Cloudflare R2, Scaleway, Backblaze, AWS…).
-// Les commandes, les fichiers, les factures et les e-mails passent tous par ici.
+// Dépôt de données : une interface, plusieurs pilotes.
+//  - « disque »   : un dossier local (développement, ou serveur avec disque persistant) ;
+//  - « s3 »       : tout stockage objet compatible S3 (Supabase Storage, Cloudflare R2, Scaleway, AWS…) ;
+//  - « postgres » : base de données, réservée aux documents JSON (voir lib/depot-postgres.ts).
+// Quand DATABASE_URL est défini, les documents JSON (commandes, compteurs, événements, e-mails) vont dans
+// PostgreSQL, qui garantit les écritures atomiques ; les fichiers (photos, vidéos, factures PDF) restent
+// sur le disque ou dans le stockage objet. Sans DATABASE_URL, tout passe par un seul pilote, comme avant.
 import { promises as fs, createReadStream, createWriteStream } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -17,12 +20,14 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "./env";
+import { cleSure } from "./cle";
+import { depotPostgres, postgresConfigure } from "./depot-postgres";
 
 export type Lecture = { corps: Buffer; version: string };
 export type Condition = { siAbsent?: boolean; siVersion?: string };
 
 export interface Depot {
-  nom: "disque" | "s3";
+  nom: "disque" | "s3" | "postgres" | `postgres+${"disque" | "s3"}`;
   lire(cle: string): Promise<Lecture | null>;
   // Renvoie false si la condition n'est pas remplie (objet déjà présent, ou modifié entre-temps).
   ecrire(cle: string, corps: Buffer | string, condition?: Condition): Promise<boolean>;
@@ -37,11 +42,6 @@ export interface Depot {
   urlEnvoi(cle: string, type: string, secondes?: number): Promise<string | null>;
   recevoir(cle: string, source: Readable, tailleMax: number): Promise<number>;
 }
-
-const cleSure = (cle: string) => {
-  if (!/^[A-Za-z0-9_\-./]+$/.test(cle) || cle.includes("..") || cle.startsWith("/")) throw new Error("Clé de stockage invalide.");
-  return cle;
-};
 
 // ───────────────────────── Pilote disque ─────────────────────────
 function depotDisque(): Depot {
@@ -176,7 +176,8 @@ function depotS3(): Depot {
     endpoint: process.env.S3_ENDPOINT || undefined,
     forcePathStyle: process.env.S3_PATH_STYLE === "oui",
     // Les versions récentes du SDK ajoutent une somme de contrôle que tous les stockages compatibles
-    // n'acceptent pas (Cloudflare R2), et qui fait échouer l'envoi direct depuis le navigateur.
+    // n'acceptent pas (Cloudflare R2, et sans doute d'autres), et qui peut faire échouer l'envoi direct
+    // depuis le navigateur. Le contrôle de taille et de contenu est fait par le serveur à la confirmation.
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
     credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID || "", secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "" },
@@ -271,8 +272,38 @@ function depotS3(): Depot {
 export const stockageS3Configure = () =>
   Boolean(process.env.S3_BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY);
 
+// Les documents JSON vont dans la base ; tout le reste (photos, vidéos, PDF) dans le stockage de fichiers.
+function depotMixte(documents: Depot, fichiers: Depot): Depot {
+  const estDocument = (cle: string) => cle.endsWith(".json");
+  const pour = (cle: string) => (estDocument(cle) ? documents : fichiers);
+  const prefixesFichiers = ["fichiers", "factures"];
+  return {
+    nom: `postgres+${fichiers.nom as "disque" | "s3"}`,
+    lire: (c) => pour(c).lire(c),
+    ecrire: (c, corps, cond) => pour(c).ecrire(c, corps, cond),
+    supprimer: (c) => pour(c).supprimer(c),
+    taille: (c) => pour(c).taille(c),
+    debut: (c, n) => pour(c).debut(c, n),
+    flux: (c) => pour(c).flux(c),
+    urlLecture: (c, nom, s) => pour(c).urlLecture(c, nom, s),
+    urlEnvoi: (c, type, s) => pour(c).urlEnvoi(c, type, s),
+    recevoir: (c, src, max) => pour(c).recevoir(c, src, max),
+    lister: (p) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).lister(p),
+  };
+}
+
 let instance: Depot | null = null;
 export function depot(): Depot {
-  if (!instance) instance = stockageS3Configure() ? depotS3() : depotDisque();
+  if (!instance) {
+    const objet = stockageS3Configure();
+    const base = postgresConfigure();
+    // Garde-fou : tant que les écritures conditionnelles de Supabase Storage ne sont pas démontrées
+    // (npm run verifier:stockage), les documents ne doivent pas y être rangés.
+    if (objet && !base && /supabase\.co/i.test(process.env.S3_ENDPOINT || "") && process.env.DOCUMENTS_SUR_STOCKAGE !== "oui") {
+      throw new Error("Supabase Storage sans base de données : renseignez DATABASE_URL (les commandes et le compteur de factures exigent des écritures atomiques).");
+    }
+    const fichiers = objet ? depotS3() : depotDisque();
+    instance = base ? depotMixte(depotPostgres(), fichiers) : fichiers;
+  }
   return instance;
 }

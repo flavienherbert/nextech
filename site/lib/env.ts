@@ -1,4 +1,8 @@
 // Lecture centralisée de la configuration serveur. Aucun secret dans le code.
+// Vrai si le stockage ou la base de données sont hébergés chez Supabase (sert à la politique de confidentialité).
+export const stockageSupabase = () =>
+  /supabase\.(co|com)/i.test(`${process.env.S3_ENDPOINT || ""} ${process.env.DATABASE_URL || ""}`);
+
 export const env = {
   baseUrl: () => (process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, ""),
   dataDir: () => process.env.DATA_DIR || "./data",
