@@ -2,6 +2,27 @@
 
 > **Mise à jour du 15 novembre 2026 : Supabase remplace Cloudflare R2.** Le stockage des fichiers et la base de données sont désormais décrits dans `SUPABASE.md` (changements en attente de validation). Les étapes « Cloudflare R2 » ci-dessous sont conservées pour mémoire jusqu'à cette validation ; R2 n'a jamais été activé, rien n'y a été créé.
 
+## Ce qu'il vous reste à faire — 3 blocs, environ 20 minutes (16 novembre)
+
+Tout le reste est fait et vérifié (voir `LANCEMENT.md`). Ces trois blocs demandent un compte ou un secret que vous seul pouvez fournir. Les secrets se saisissent **uniquement dans Netlify** (*Site configuration*, *Environment variables*, **Add a variable**, cocher **Contains secret values**), jamais dans la conversation. Après chaque bloc, dites-le-moi : je redéploie et je vérifie en ligne.
+
+**Bloc A — E-mails réels (Gmail du studio)**
+1. Connecté à contactstudioaccroche@gmail.com : https://myaccount.google.com/security, activer la **Validation en 2 étapes** si ce n'est pas fait.
+2. https://myaccount.google.com/apppasswords : nom « Studio Accroche », **Créer**, copier les 16 caractères (affichés une seule fois).
+3. Netlify : variable `SMTP_PASSWORD` = ces 16 caractères, sans espaces.
+*Alternative sans mot de passe* : Brevo, menu du compte, *Security*, **Authorized IPs**, désactiver la restriction. Moins fiable (e-mails envoyés au nom d'une adresse Gmail depuis d'autres serveurs).
+
+**Bloc B — Base de données et fichiers (Supabase)**
+1. Supabase, votre projet, bouton **Connect**, onglet **Transaction pooler** : copier l'URI. Remplacer `[YOUR-PASSWORD]` par le mot de passe de la base (oublié : *Project Settings*, *Database*, **Reset database password**) ; encoder `@` en `%40`, `#` en `%23`.
+2. Supabase, *Storage*, *S3 Connection*, **New access key** : copier l'*Access key ID* et la *Secret access key* (affichée une seule fois).
+3. Netlify : variables `DATABASE_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. La table se crée toute seule ; le reste est déduit.
+
+**Bloc C — Paiement en mode test (Stripe)**
+1. Stripe, bandeau orange **Mode test** actif, *Développeurs*, *Clés API* : copier la **clé secrète** `sk_test_…`.
+2. Netlify : variable `STRIPE_SECRET_KEY` = cette clé. Le secret du webhook (`STRIPE_WEBHOOK_SECRET`) peut être créé par Claude, sans que vous ayez à ouvrir Stripe, si vous saisissez aussi la clé dans le formulaire sécurisé qu'il affiche (la clé n'apparaît jamais dans la conversation). Sinon : `npm run stripe:webhook` (voir plus bas).
+
+Quand A, B et C sont faits : `ADMIN_PASSWORD=… NTFY_TOPIC=… npm run e2e:en-ligne` (ou « lancez le parcours complet » à Claude) passe une vraie commande de test Stripe de bout en bout sur le site en ligne : paiement par carte de test, notifications, brief, production, livraison, correction, validation.
+
 ## Accès au site : consultation libre depuis le 16 novembre
 
 À la demande du fondateur, la protection par identifiant et mot de passe de la préproduction a été **retirée** (variable `PREPROD_PASSWORD` supprimée dans Netlify). Le site se consulte directement, sur téléphone et ordinateur : https://studio-accroche-preprod.netlify.app
