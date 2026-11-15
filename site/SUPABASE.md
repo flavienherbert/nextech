@@ -27,6 +27,9 @@ Garde-fou dans le code : si le site détecte Supabase Storage **sans** `DATABASE
 
 ### Bloc 2 — Variables d'environnement Netlify
 
+> **Simplifié le 15 novembre** : seules `DATABASE_URL`, `S3_ACCESS_KEY_ID` et `S3_SECRET_ACCESS_KEY` sont à saisir. L'adresse du stockage, la région, le nom du bucket (`studio-accroche`), le style d'adresses et l'origine autorisée sont déduits de `DATABASE_URL` (adresse du « pooler » Supabase). Liste complète et procédure : `MISE-EN-LIGNE.md`. Le tableau ci-dessous reste valable pour forcer une valeur différente.
+
+
 À saisir par vous dans Netlify, projet `studio-accroche-preprod`, « Site configuration » puis « Environment variables ». Je ne les saisis pas moi-même et vous ne me les communiquez pas.
 
 | Variable | Valeur | Secrète |

@@ -18,7 +18,9 @@
     "verifier:stockage": "node scripts/verifier-stockage.mjs",
     "test:postgres": "tsx scripts/test-postgres.mts",
     "sauvegarde": "node scripts/sauvegarde.mjs",
-    "restauration": "node scripts/restauration.mjs"
+    "restauration": "node scripts/restauration.mjs",
+    "stripe:webhook": "node scripts/stripe-webhook.mjs",
+    "verifier:en-ligne": "node scripts/verifier-en-ligne.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1169.0",

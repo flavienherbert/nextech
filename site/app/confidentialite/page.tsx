@@ -52,6 +52,7 @@ export default function Confidentialite() {
         <li>Fichiers transmis et vidéos livrées : 90 jours après la livraison, puis suppression.</li>
         <li>Données de commande et factures : 10 ans, durée légale de conservation des pièces comptables.</li>
         <li>Commandes non payées : 30 jours.</li>
+        <li>E-mails de suivi archivés : 12 mois. Fichiers envoyés mais jamais rattachés à une commande : 24 heures.</li>
       </ul>
 
       <h2>Vos droits</h2>

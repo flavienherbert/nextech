@@ -60,6 +60,8 @@
 
 - **15/11** — Test réel du bucket Supabase : fichiers conformes (14 réussites, 1 avertissement, 0 échec) ; écritures conditionnelles non fiables (2/6, écrasement silencieux). Corrections : documents et numéros de facture exclusivement en base, écritures conditionnelles refusées sur les fichiers, contrôle des marques MP4/MOV/HEIC et du type enregistré, origine du stockage déduite pour la CSP.
 
+- **15/11 (soir)** — Audit complet et durcissement : limiteur partagé, purge (orphelins, anciens e-mails), diagnostic administrateur, pages d'erreur, délais Stripe/Brevo. Diagnostic réel sur Netlify : factures PDF cassées (polices absentes du déploiement), corrigé ; clé Brevo refusée par la restriction d'adresses IP de Brevo (action du fondateur). Préproduction redéployée, protection par mot de passe vérifiée (29 adresses).
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

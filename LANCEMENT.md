@@ -2,6 +2,14 @@
 
 Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0 € dépensé.
 
+## État technique au 15 novembre (soir)
+
+Préproduction en ligne, protégée : https://studio-accroche-preprod.netlify.app (29 adresses testées sans mot de passe : toutes refusées).
+
+- **Vérifié sur le serveur Netlify** (`npm run verifier:en-ligne`, page `/admin/diagnostic`) : génération des factures PDF (corrigée : polices absentes du déploiement), pages d'erreur, connexion administrateur, tâche planifiée déployée mais inactive.
+- **Bloqué, en attente de vous** : variables Supabase et Stripe test à saisir dans Netlify, restriction d'adresses IP de Brevo à désactiver. Liste exacte : `site/MISE-EN-LIGNE.md`, section « Liste définitive ». Ensuite : `site/TEST-CLIENT.md`.
+- **Code** : limiteur de connexion et de commandes partagé (l'ancien, en mémoire, ne protégeait rien sur Netlify), purge complète, délais maximaux Stripe et e-mail, renvoi des e-mails en échec, alerte de paiement non appliqué.
+
 ## Stockage : Supabase à la place de Cloudflare R2 (15 novembre)
 
 Décision du fondateur. Fichiers dans Supabase Storage, données de commande dans Supabase PostgreSQL (écritures atomiques). Code prêt et testé en local, **rien connecté** : table SQL non créée, variables Netlify non modifiées, bucket non touché. Détail, limites et ordre des opérations : `site/SUPABASE.md`. Pause automatique après 7 jours sans activité : `site/MAINTIEN-ACTIVITE.md`. Limite des vidéos livrées : 50 Mo.

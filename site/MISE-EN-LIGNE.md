@@ -2,6 +2,34 @@
 
 > **Mise à jour du 15 novembre 2026 : Supabase remplace Cloudflare R2.** Le stockage des fichiers et la base de données sont désormais décrits dans `SUPABASE.md` (changements en attente de validation). Les étapes « Cloudflare R2 » ci-dessous sont conservées pour mémoire jusqu'à cette validation ; R2 n'a jamais été activé, rien n'y a été créé.
 
+## Liste définitive des variables à saisir dans Netlify (15 novembre)
+
+Où : Netlify, projet `studio-accroche-preprod`, « Site configuration », « Environment variables », « Add a variable ». Cochez « Contains secret values » pour chacune. Rien ne passe par la conversation.
+
+| Variable | Où trouver la valeur | Secrète |
+|---|---|---|
+| `DATABASE_URL` | Supabase, bouton **Connect**, onglet **Transaction pooler**, copier l'URI ; remplacer `[YOUR-PASSWORD]` par le mot de passe de la base (si vous l'avez oublié : Supabase, *Database*, *Settings*, *Reset database password*) ; encoder les caractères spéciaux du mot de passe (`@` devient `%40`) | oui |
+| `S3_ACCESS_KEY_ID` | Supabase, *Storage*, *Settings*, *S3 Connection*, **New access key** (la clé secrète ne s'affiche qu'une fois) | oui |
+| `S3_SECRET_ACCESS_KEY` | même écran | oui |
+| `STRIPE_SECRET_KEY` | Stripe **en mode test** (bandeau « Test mode » orange), *Développeurs*, *Clés API*, clé secrète `sk_test_…` | oui |
+| `STRIPE_WEBHOOK_SECRET` | affiché par `npm run stripe:webhook` (voir ci-dessous) | oui |
+
+Tout le reste est **déduit automatiquement** de `DATABASE_URL` : adresse du stockage, région, nom du bucket (`studio-accroche`), origine autorisée pour l'envoi de fichiers. Variables déjà en place : `SITE_URL`, `PREPROD_PASSWORD`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `ADMIN_EMAIL`, `MAIL_FROM`, `NEXT_PUBLIC_CONTACT_EMAIL`, `BREVO_API_KEY`.
+
+**Webhook Stripe en mode test** (une commande, dans PowerShell, dossier `site`) :
+```powershell
+$env:STRIPE_SECRET_KEY = [System.Net.NetworkCredential]::new("", (Read-Host "Cle secrete Stripe de TEST (sk_test_...)" -AsSecureString)).Password
+npm run stripe:webhook
+Remove-Item Env:STRIPE_SECRET_KEY
+```
+Le script refuse toute clé qui n'est pas une clé de test, crée le webhook pour la préproduction avec les 4 événements utiles, et affiche le secret `whsec_…` dans votre terminal : copiez-le dans Netlify.
+
+**Brevo** : la clé est déjà dans Netlify et du bon type, mais Brevo refuse les appels du serveur (« unrecognised IP address »). Dans Brevo : menu du compte (en haut à droite), *Security*, **Authorized IPs** : désactivez la restriction (les adresses de Netlify changent à chaque appel, une liste d'adresses autorisées est inutilisable).
+
+Après saisie, dites-moi « variables saisies » : je redéploie la préproduction et je lance `npm run verifier:en-ligne` (rien n'est public, diagnostic complet). Puis `TEST-CLIENT.md`.
+
+**Tâche quotidienne** (facultative, non activée) : purge des données arrivées à échéance et maintien d'activité de la base. Pour l'activer, ajouter `TACHES_SECRET` (24 caractères aléatoires minimum, secrète) ; sans elle, la tâche planifiée déployée ne fait rien.
+
 Rédigé le 15 novembre 2026. Rien n'a été créé ni déployé. Objectif : un site en ligne, protégé par mot de passe, avec Stripe en mode test, pour vérifier une commande complète en conditions réelles avant l'ouverture.
 
 Coût : 0 €. Aucun nom de domaine n'est nécessaire à ce stade (adresse fournie par Netlify).
