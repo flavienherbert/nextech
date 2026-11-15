@@ -58,6 +58,8 @@
 
 - **15/11** — Préproduction déployée sur Netlify (protégée par mot de passe). Stockage : Supabase remplace Cloudflare R2 ; pilote PostgreSQL pour les documents, test de conformité du stockage, sauvegarde et restauration, limite de vidéo ramenée à 50 Mo, politique de confidentialité mise à jour. Tout testé en local ; rien connecté à Supabase (en attente de validation).
 
+- **15/11** — Test réel du bucket Supabase : fichiers conformes (14 réussites, 1 avertissement, 0 échec) ; écritures conditionnelles non fiables (2/6, écrasement silencieux). Corrections : documents et numéros de facture exclusivement en base, écritures conditionnelles refusées sur les fichiers, contrôle des marques MP4/MOV/HEIC et du type enregistré, origine du stockage déduite pour la CSP.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

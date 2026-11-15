@@ -236,6 +236,29 @@ try {
     console.log("• Limite de 50 Mo : non testée (ajoutez --limite pour envoyer 51 Mo, supprimés ensuite).");
   }
 
+  if (arg("limite-exacte")) {
+    const envoi = async (n, nom) => {
+      const u = await lien(new PutObjectCommand({ Bucket, Key: cle(nom), ContentType: "application/octet-stream" }), 900);
+      const r = await fetch(u, { method: "PUT", headers: { "Content-Type": "application/octet-stream" }, body: Buffer.alloc(n, 7) });
+      crees.add(cle(nom));
+      return r;
+    };
+    let decimalOk = false;
+    await verifier("fichiers", "Limite exacte : un fichier de 50 000 000 octets est accepté", async () => {
+      const r = await envoi(50_000_000, "limite-dec.bin"); decimalOk = r.ok;
+      return r.ok ? ok(`HTTP ${r.status}`) : ko(`HTTP ${r.status} : le plafond est inférieur à 50 Mo`);
+    });
+    await verifier("fichiers", "Limite exacte : un fichier de 52 428 800 octets (50 Mo binaires, notre plafond) est accepté", async () => {
+      const r = await envoi(52_428_800, "limite-bin.bin");
+      if (r.ok) return ok(`HTTP ${r.status}`);
+      return decimalOk ? avert(`HTTP ${r.status} : Supabase compte en décimal. Définissez LIVRABLE_MAX_MO=47 dans Netlify`) : ko(`HTTP ${r.status}`);
+    });
+    await client.send(new DeleteObjectCommand({ Bucket, Key: cle("limite-dec.bin") }));
+    await client.send(new DeleteObjectCommand({ Bucket, Key: cle("limite-bin.bin") }));
+  } else {
+    console.log("• Limite exacte (50 000 000 et 52 428 800 octets) : non testée (--limite-exacte).");
+  }
+
   // ─────────────── Écritures conditionnelles ───────────────
   console.log("\n— Écritures conditionnelles (nécessaires seulement si des données y étaient rangées) —");
   const refus = (e) => e && [409, 412].includes(statut(e));

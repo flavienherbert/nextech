@@ -47,6 +47,11 @@ const c2 = commandeTest(); await store.creerCommande(c2);
 const emises = await Promise.all(Array.from({ length: 8 }, () => emettreFacture(c2.id)));
 const numeros = new Set(emises.map((e) => e.facture?.numero));
 verifier("8 émissions simultanées : la commande n'a qu'une facture", numeros.size === 1 && Boolean((await store.commande(c2.id))!.facture), [...numeros].join(","));
+{
+  const f = (await store.commande(c2.id))!.facture!;
+  verifier("Facture : numéro réservé dans un document de la base, indépendant du stockage de fichiers", (await depot().lire(`factures/${f.numero}.json`)) !== null);
+  verifier("Facture : écrire un fichier PDF avec une condition est refusé par le dépôt mixte (pas de dépendance aux écritures conditionnelles)", depot().nom.startsWith("postgres") ? await depot().ecrire("factures/test-refus.pdf", Buffer.from("%PDF-"), { siAbsent: true }).then(() => false, () => true) : true);
+}
 verifier("Facture archivée sous forme de PDF", (await depot().debut((await store.commande(c2.id))!.facture!.cle, 5))?.toString() === "%PDF-");
 
 // 5. Obstacles à la facturation
@@ -60,6 +65,10 @@ process.env.NEXT_PUBLIC_LEGAL_SIRET = sauvegarde;
 
 // 6. Contrôle du contenu des fichiers
 verifier("Signatures de fichiers reconnues", signatureConforme("image/png", Buffer.from("89504e470d0a1a0a0000", "hex")) && signatureConforme("image/jpeg", Buffer.from("ffd8ffe000104a46", "hex")) && signatureConforme("application/pdf", Buffer.from("%PDF-1.7")) && signatureConforme("video/mp4", Buffer.from("00000018667479706d703432", "hex")));
+const ftyp = (marque: string, taille = 0x18) => { const b = Buffer.alloc(32); b.writeUInt32BE(taille, 0); b.write("ftyp", 4, "latin1"); b.write(marque, 8, "latin1"); return b; };
+verifier("Vidéos et HEIC : seules les marques connues sont acceptées", signatureConforme("video/mp4", ftyp("isom")) && signatureConforme("video/mp4", ftyp("mp42")) && signatureConforme("video/quicktime", ftyp("qt  ")) && signatureConforme("image/heic", ftyp("heic")) && signatureConforme("image/heic", ftyp("mif1")));
+verifier("Fausse vidéo : « ftyp » avec une marque inconnue refusé", !signatureConforme("video/mp4", ftyp("ZZZZ")) && !signatureConforme("video/mp4", ftyp("heic")) && !signatureConforme("image/heic", ftyp("isom")) && !signatureConforme("video/mp4", ftyp("qt  ")));
+verifier("Fausse vidéo : taille d'en-tête absurde ou contenu tronqué refusé", !signatureConforme("video/mp4", ftyp("isom", 5)) && !signatureConforme("video/mp4", ftyp("isom", 0x7fffffff)) && !signatureConforme("video/mp4", Buffer.from("0000001866747970", "hex")));
 verifier("Contenu ne correspondant pas au type annoncé rejeté", !signatureConforme("image/png", Buffer.from("<html><script>")) && !signatureConforme("video/mp4", Buffer.from("MZ\x90\x00aaaaaaaaaaaa")) && !signatureConforme("text/html", Buffer.from("<html>")));
 const interdit = (cle: string) => depot().lire(cle).then((x) => x === null, () => true);
 verifier("Clés de stockage dangereuses refusées (aucune lecture hors du dépôt)", (await interdit("../../../../etc/passwd")) && (await interdit("/etc/passwd")) && (await interdit("commandes/../../etc/passwd")));

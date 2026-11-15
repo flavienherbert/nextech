@@ -46,6 +46,12 @@ verifier("Fonction : production sans 'unsafe-eval' ni ws:", !prod.includes("unsa
 verifier("Fonction : sans simulateur, aucun hôte local dans form-action", !directive(prod, "form-action").includes("localhost"), prod);
 verifier("Fonction : les deux gardent default-src, frame-ancestors, object-src", [dev, prod].every((c) => c.includes("default-src 'self'") && c.includes("frame-ancestors 'none'") && c.includes("object-src 'none'")));
 
+process.env.S3_ENDPOINT = "https://abc.storage.supabase.co/storage/v1/s3"; delete process.env.S3_PUBLIC_ORIGIN;
+const cspStockage = directive(politiqueContenu(false), "connect-src");
+verifier("CSP : l'origine du stockage est déduite de S3_ENDPOINT (sans chemin)", cspStockage.includes("https://abc.storage.supabase.co") && !cspStockage.includes("/storage/v1"), cspStockage);
+process.env.S3_PUBLIC_ORIGIN = "https://autre.exemple"; verifier("CSP : S3_PUBLIC_ORIGIN prime s'il est défini", directive(politiqueContenu(false), "connect-src").includes("https://autre.exemple") && !directive(politiqueContenu(false), "connect-src").includes("abc.storage"));
+delete process.env.S3_ENDPOINT; delete process.env.S3_PUBLIC_ORIGIN;
+
 if (!(await libres())) { console.error(`\nLes ports de test ${PORT}/${SIM} sont occupés : PORT=${PORT} MOCK_STRIPE_PORT=${SIM} npm run stop`); process.exit(1); }
 
 console.log("\n— 2. Mode développement (npm run demo) —");

@@ -6,6 +6,17 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
 // par évaluation de chaînes et se met à jour par WebSocket : sans 'unsafe-eval', l'application
 // ne démarre pas dans le navigateur. Cette autorisation n'est accordée que dans cette phase.
 // La version compilée (« next build » puis « next start », ou un hébergeur) ne la reçoit jamais.
+// Origine du stockage de fichiers autorisée pour l'envoi direct depuis le navigateur.
+// Déduite de S3_ENDPOINT si S3_PUBLIC_ORIGIN n'est pas défini (variable lue à la compilation).
+function origineStockage() {
+  if (process.env.S3_PUBLIC_ORIGIN) return process.env.S3_PUBLIC_ORIGIN;
+  try {
+    return process.env.S3_ENDPOINT ? new URL(process.env.S3_ENDPOINT).origin : "";
+  } catch {
+    return "";
+  }
+}
+
 export function politiqueContenu(developpement) {
   return [
     "default-src 'self'",
@@ -15,7 +26,7 @@ export function politiqueContenu(developpement) {
     "media-src 'self'",
     "font-src 'self'",
     // Envoi direct des fichiers vers le stockage objet, si configuré.
-    `connect-src 'self' ${process.env.S3_PUBLIC_ORIGIN || ""}${developpement ? " ws: wss:" : ""}`.replace(/\s+/g, " ").trim(),
+    `connect-src 'self' ${origineStockage()}${developpement ? " ws: wss:" : ""}`.replace(/\s+/g, " ").trim(),
     // La page de paiement simulée n'est autorisée que si un simulateur local est configuré.
     `form-action 'self' https://checkout.stripe.com ${/^http:\/\/localhost:\d+$/.test(process.env.STRIPE_API_HOST || "") ? process.env.STRIPE_API_HOST : ""}`.trim(),
     // Seul cadre externe admis : le lecteur YouTube sans cookie (exemple externe provisoire de l'accueil).

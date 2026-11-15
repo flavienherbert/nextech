@@ -34,6 +34,8 @@ export interface Depot {
   supprimer(cle: string): Promise<void>;
   lister(prefixe: string): Promise<string[]>;
   taille(cle: string): Promise<number | null>;
+  // Type de contenu enregistré par le stockage (null s'il n'en a pas, ou pour le disque et la base).
+  typeStocke(cle: string): Promise<string | null>;
   debut(cle: string, octets: number): Promise<Buffer | null>;
   flux(cle: string): Promise<Readable | null>;
   // Lien signé de téléchargement direct ; null si le pilote ne sait pas (lecture par le serveur).
@@ -126,6 +128,9 @@ function depotDisque(): Depot {
       } catch {
         return null;
       }
+    },
+    async typeStocke() {
+      return null;
     },
     async debut(cle, octets) {
       try {
@@ -236,6 +241,14 @@ function depotS3(): Depot {
         throw e;
       }
     },
+    async typeStocke(cle) {
+      try {
+        return (await client.send(new HeadObjectCommand({ Bucket, Key: cleSure(cle) }))).ContentType ?? null;
+      } catch (e) {
+        if (absent(e)) return null;
+        throw e;
+      }
+    },
     async debut(cle, octets) {
       try {
         const r = await client.send(new GetObjectCommand({ Bucket, Key: cleSure(cle), Range: `bytes=0-${octets - 1}` }));
@@ -280,9 +293,17 @@ function depotMixte(documents: Depot, fichiers: Depot): Depot {
   return {
     nom: `postgres+${fichiers.nom as "disque" | "s3"}`,
     lire: (c) => pour(c).lire(c),
-    ecrire: (c, corps, cond) => pour(c).ecrire(c, corps, cond),
+    // Le stockage de fichiers ne garantit pas les écritures conditionnelles (Supabase écrase en silence) :
+    // aucune donnée qui en dépend ne doit y être rangée. On refuse plutôt que de risquer un écrasement.
+    ecrire: async (c, corps, cond) => {
+      if (!estDocument(c) && (cond?.siAbsent || cond?.siVersion)) {
+        throw new Error(`Écriture conditionnelle interdite sur « ${c} » : seul un document JSON, rangé en base, peut en dépendre.`);
+      }
+      return pour(c).ecrire(c, corps, cond);
+    },
     supprimer: (c) => pour(c).supprimer(c),
     taille: (c) => pour(c).taille(c),
+    typeStocke: (c) => pour(c).typeStocke(c),
     debut: (c, n) => pour(c).debut(c, n),
     flux: (c) => pour(c).flux(c),
     urlLecture: (c, nom, s) => pour(c).urlLecture(c, nom, s),

@@ -87,6 +87,9 @@ export function depotPostgres(): Depot {
       const r = await q<{ n: string }>("select octet_length(corps::text)::text as n from studio.documents where cle = $1", [cleSure(cle)]);
       return r.rows[0] ? Number(r.rows[0].n) : null;
     },
+    async typeStocke() {
+      return null;
+    },
     debut: nonPrevu("debut") as never,
     flux: nonPrevu("flux") as never,
     urlLecture: nonPrevu("urlLecture") as never,

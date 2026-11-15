@@ -23,6 +23,18 @@ export function typeAutorise(nom: string, type: string): boolean {
   return Boolean(AUTORISES[type]?.includes(ext));
 }
 
+// Marques (« major brand ») admises dans l'en-tête ftyp des vidéos et images HEIC.
+const MARQUES_MP4 = new Set(["isom", "iso2", "iso3", "iso4", "iso5", "iso6", "iso7", "mp41", "mp42", "mp71", "avc1", "M4V ", "M4VH", "M4VP", "dash", "cmfc", "3gp4", "3gp5", "3gp6", "3g2a", "f4v ", "MSNV", "NDSC", "NDSH", "NDSM", "NDSP", "NDSS", "NDXC", "NDXH", "NDXM", "NDXP", "NDXS"]);
+const MARQUES_MOV = new Set(["qt  ", ...MARQUES_MP4]);
+const MARQUES_HEIC = new Set(["heic", "heix", "hevc", "hevx", "heim", "heis", "mif1", "msf1"]);
+
+// En-tête ftyp d'un conteneur ISO : taille plausible, mot « ftyp » à l'octet 4, marque connue à l'octet 8.
+function ftypConforme(d: Buffer, marques: Set<string>): boolean {
+  if (d.length < 12 || d.subarray(4, 8).toString("latin1") !== "ftyp") return false;
+  const taille = d.readUInt32BE(0);
+  return (taille === 1 || (taille >= 16 && taille <= 4096) || taille === 12) && marques.has(d.subarray(8, 12).toString("latin1"));
+}
+
 // Vérifie que le contenu correspond au type annoncé (les premiers octets ne mentent pas).
 export function signatureConforme(type: string, d: Buffer): boolean {
   const hex = d.subarray(0, 12).toString("hex");
@@ -33,9 +45,9 @@ export function signatureConforme(type: string, d: Buffer): boolean {
     case "image/webp": return ascii.startsWith("RIFF") && ascii.slice(8, 12) === "WEBP";
     case "application/pdf": return ascii.startsWith("%PDF");
     case "video/webm": return hex.startsWith("1a45dfa3");
-    case "image/heic":
-    case "video/mp4":
-    case "video/quicktime": return ascii.slice(4, 8) === "ftyp";
+    case "image/heic": return ftypConforme(d, MARQUES_HEIC);
+    case "video/mp4": return ftypConforme(d, MARQUES_MP4);
+    case "video/quicktime": return ftypConforme(d, MARQUES_MOV);
     default: return false;
   }
 }
@@ -100,10 +112,16 @@ export async function confirmer(jeton: string, commande: string, role: Role): Pr
   const cle = cleFichier(r.f);
   const taille = await depot().taille(cle);
   if (taille === null) return { erreur: "Fichier non reçu.", statut: 409 };
-  const debut = await depot().debut(cle, 16);
+  const debut = await depot().debut(cle, 32);
   if (taille !== r.s || taille > TAILLE_MAX[role] || !debut || !signatureConforme(r.t, debut)) {
     await depot().supprimer(cle);
     return { erreur: taille !== r.s ? "Le fichier reçu ne correspond pas à la taille annoncée." : "Le contenu du fichier ne correspond pas à son format.", statut: 415 };
+  }
+  // Le stockage a enregistré le type envoyé par le navigateur : s'il diffère de celui annoncé (hors type générique), on refuse.
+  const stocke = ((await depot().typeStocke(cle)) || "").split(";")[0].trim().toLowerCase();
+  if (stocke && stocke !== r.t && stocke !== "application/octet-stream" && stocke !== "binary/octet-stream") {
+    await depot().supprimer(cle);
+    return { erreur: "Le type du fichier envoyé ne correspond pas à celui annoncé.", statut: 415 };
   }
   return { fichier: { id: r.f, nom: r.n, taille, type: r.t, ajouteLe: maintenant() } };
 }

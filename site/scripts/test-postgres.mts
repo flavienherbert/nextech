@@ -74,6 +74,29 @@ try {
   verifier("Routage : la liste « commandes » vient de la base", Array.isArray(await d.lister("commandes")));
   await d.supprimer(kj); await d.supprimer(kf);
 
+  // Aucune donnée critique dans le stockage de fichiers, aucune écriture conditionnelle sur un fichier
+  verifier("Dépôt mixte : écriture conditionnelle sur un PDF refusée (siAbsent)", await d.ecrire(`${P}/cond.pdf`, Buffer.from("%PDF-1"), { siAbsent: true }).then(() => false, () => true));
+  verifier("Dépôt mixte : écriture conditionnelle sur un PDF refusée (siVersion)", await d.ecrire(`${P}/cond.pdf`, Buffer.from("%PDF-1"), { siVersion: "1" }).then(() => false, () => true));
+  verifier("Dépôt mixte : écriture inconditionnelle d'un PDF acceptée", await d.ecrire(`${P}/libre.pdf`, Buffer.from("%PDF-1")).then(() => true, () => false));
+  await d.supprimer(`${P}/libre.pdf`);
+  const dossierDonnees = path.resolve(process.env.DATA_DIR || "./data");
+  verifier("Le document JSON n'a PAS été écrit sur le disque", !fs.existsSync(path.join(dossierDonnees, kj)));
+  if (process.env.S3_BUCKET) {
+    const { S3Client, HeadObjectCommand } = await import("@aws-sdk/client-s3");
+    const s3 = new S3Client({ region: process.env.S3_REGION || "auto", endpoint: process.env.S3_ENDPOINT, forcePathStyle: process.env.S3_PATH_STYLE === "oui", credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID!, secretAccessKey: process.env.S3_SECRET_ACCESS_KEY! } });
+    const absent = await s3.send(new HeadObjectCommand({ Bucket: process.env.S3_BUCKET, Key: kj })).then(() => false, (e) => e?.$metadata?.httpStatusCode === 404);
+    verifier("Le document JSON n'a PAS été écrit dans le stockage de fichiers (S3)", absent);
+  }
+  // Inventaire du code : seuls store.ts et factures.ts (clés .json) utilisent des écritures conditionnelles
+  const sources: string[] = [];
+  const parcourir = (dir: string) => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const c = path.join(dir, e.name); if (e.isDirectory()) parcourir(c); else if (/\.(ts|tsx)$/.test(e.name)) sources.push(c); } };
+  parcourir("lib"); parcourir("app");
+  const conditionnels = sources.filter((f) => !/depot(-postgres)?\.ts$/.test(f) && /siAbsent|siVersion/.test(fs.readFileSync(f, "utf8")));
+  verifier("Inventaire : seuls store.ts et factures.ts demandent des écritures conditionnelles", conditionnels.every((f) => /(store|factures)\.ts$/.test(f)), conditionnels.join(", "));
+  const lignes = conditionnels.flatMap((f) => fs.readFileSync(f, "utf8").split("\n").filter((l) => /siAbsent|siVersion/.test(l)));
+  verifier("Inventaire : chaque écriture conditionnelle vise un document JSON (aucun PDF, aucun fichier)", lignes.length > 0 && lignes.every((l) => /\.json|\bcle\b/.test(l) && !/\.pdf|cleFichier/.test(l)), lignes.filter((l) => !/\.json|\bcle\b/.test(l) || /\.pdf|cleFichier/.test(l)).join(" | "));
+  verifier("Inventaire : aucun accès direct au SDK S3 hors du dépôt", sources.filter((f) => !/depot\.ts$/.test(f) && /@aws-sdk\/client-s3/.test(fs.readFileSync(f, "utf8"))).length === 0);
+
   // Confidentialité : les rôles publics de Supabase ne voient rien
   const u = new URL(process.env.DATABASE_URL); u.searchParams.delete("sslmode");
   const c = new pg.Client({ connectionString: u.toString(), ssl: ["localhost", "127.0.0.1"].includes(u.hostname) ? false : { rejectUnauthorized: false } });

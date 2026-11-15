@@ -159,8 +159,10 @@ export async function emettreFacture(id: string): Promise<{ facture?: Facture; o
   const numero = `${specimen ? "SPECIMEN" : "F"}-${annee}-${String(n).padStart(4, "0")}`;
   const facture: Facture = { numero, date: maintenant(), cle: `factures/${numero}.pdf`, specimen, montantCents: c.montantCents };
   const pdf = await composerPdf(c, facture, vendeur().v);
-  // Le numéro est réservé : le PDF ne doit jamais écraser une facture existante.
-  if (!(await depot().ecrire(facture.cle, pdf, { siAbsent: true }))) throw new Error(`La facture ${numero} existe déjà.`);
+  // Le numéro est réservé dans la base (document JSON, écriture atomique) : c'est elle qui empêche tout doublon.
+  // Le PDF part ensuite dans le stockage de fichiers, sans condition : ce stockage ne garantit pas les écritures conditionnelles.
+  if (!(await depot().ecrire(`factures/${numero}.json`, JSON.stringify({ commande: id, date: facture.date, pdf: facture.cle }), { siAbsent: true }))) throw new Error(`La facture ${numero} existe déjà.`);
+  await depot().ecrire(facture.cle, pdf);
   let attachee = false;
   const maj = await store.modifier(id, (cmd) => {
     attachee = false;

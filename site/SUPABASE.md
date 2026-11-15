@@ -130,6 +130,32 @@ Le dossier `sauvegardes/` est exclu de Git. Il contient des données personnelle
 
 **Non testé** : tout ce qui concerne le vrai Supabase (réseau, pooler, signatures, CORS, limite de 50 Mo, présence ou non des écritures conditionnelles). Les émulateurs ne reproduisent pas les réponses exactes du service : seul le test 3a sur votre bucket peut le démontrer.
 
-## 7. Retour en arrière
+## 7. Résultat du test réel de votre bucket (15 novembre) et contrôles de sécurité
+
+| Test sur le vrai bucket | Résultat (rapporté par le fondateur) |
+|---|---|
+| Fichiers : envois, lectures, liens temporaires, accès privé, limite de 51 Mo, suppression, nettoyage | 14 réussites, 1 avertissement, 0 échec |
+| Écritures conditionnelles | 2 vérifications sur 6 réussies : **Supabase Storage écrase en silence un objet existant**, y compris sur une version périmée ou une création simultanée |
+
+Conséquence : le choix de PostgreSQL pour les données critiques est confirmé. Il est maintenant **imposé par le code** :
+- les documents `.json` (commandes, jetons, compteur de factures, événements Stripe, e-mails, réservation des numéros de facture) vont uniquement en base ;
+- le dépôt mixte **refuse** toute écriture conditionnelle sur un fichier (PDF, photo, vidéo) ;
+- le numéro de facture est réservé en base (`factures/<numéro>.json`, création atomique) avant l'envoi du PDF, qui part sans condition ;
+- un test d'inventaire (`npm run test:postgres`) échoue si une écriture conditionnelle vise autre chose qu'un document JSON, ou si le SDK S3 est utilisé hors du dépôt.
+
+**Contrôle des types de fichiers** (tous côté serveur, indépendants du comportement de Supabase) :
+1. à la demande d'envoi : extension et type annoncé doivent correspondre à la liste autorisée (JPG, PNG, WebP, HEIC, MP4, MOV, WebM, PDF) ;
+2. à la confirmation : taille réelle égale à la taille annoncée, plafond respecté, premiers octets conformes au type (pour MP4, MOV et HEIC : en-tête `ftyp` avec une marque connue, taille d'en-tête plausible) ;
+3. à la confirmation : le type enregistré par le stockage doit être celui annoncé (un navigateur qui enverrait `text/html` est refusé) ;
+4. tout fichier refusé est supprimé immédiatement ;
+5. au téléchargement : toujours en pièce jointe, jamais affiché par le site.
+
+À ajouter dans Supabase (défense en plus, à faire **après** le test) : Storage, bucket `studio-accroche`, réglages, « Restrict file types » : `image/jpeg, image/png, image/webp, image/heic, video/mp4, video/quicktime, video/webm, application/pdf`.
+
+**CORS** : la documentation de Supabase ne décrit aucun réglage de CORS pour Storage (non confirmé). Le test a vérifié que l'envoi depuis l'adresse de la préproduction est autorisé. Sans effet sur la sécurité : un lien signé est un secret à usage unique de 15 minutes, limité à un fichier ; un site tiers sans ce lien ne peut rien envoyer. Côté site, la politique de sécurité n'autorise l'envoi direct que vers l'origine du stockage, désormais déduite automatiquement de `S3_ENDPOINT` si `S3_PUBLIC_ORIGIN` manque (variable lue à la compilation : redéployer après l'avoir saisie).
+
+**Limite de 50 Mo** : le serveur refuse tout fichier au-delà de 50 Mo binaires (52 428 800 octets) dès la demande ; Supabase a refusé 51 Mo au test. Reste à vérifier si Supabase compte 50 Mo en décimal ou en binaire : `npm run verifier:stockage -- --limite-exacte` envoie 50 000 000 puis 52 428 800 octets (supprimés ensuite). Si le second est refusé, définir `LIVRABLE_MAX_MO=47` dans Netlify. En cas de refus du stockage, le client voit un message explicite (« Fichier trop volumineux pour le stockage ») au lieu de « Envoi interrompu ».
+
+## 8. Retour en arrière
 
 Supprimer `DATABASE_URL` et les variables `S3_*` de Netlify ramène le site à l'écriture dans un dossier temporaire (non conservé). Les données déjà en base restent dans Supabase. Cloudflare R2 n'a jamais été activé : rien à nettoyer chez Cloudflare.

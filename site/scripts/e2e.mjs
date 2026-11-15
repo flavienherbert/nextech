@@ -286,6 +286,12 @@ const falsifie = aut.jeton.slice(0, -3) + (aut.jeton.endsWith("AAA") ? "BBB" : "
 const conf = (token, jeton) => fetch(`${BASE}/api/commande/${token}/fichiers/confirmer`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jeton }) });
 verifier("Autorisation d'envoi falsifiée refusée (403)", (await conf(f5.c.token, falsifie)).status === 403);
 verifier("Confirmation sans fichier réellement déposé refusée (409)", (await conf(f5.c.token, aut.jeton)).status === 409);
+if (aut.direct) {
+  const aut2 = await (await demande(f5.c.token, { nom: "type.png", type: "image/png", taille: png.length })).json();
+  const rType = await fetch(aut2.url, { method: "PUT", headers: { "Content-Type": "text/html" }, body: png });
+  const cType = rType.ok ? await conf(f5.c.token, aut2.jeton) : null;
+  verifier("Fichier envoyé avec un autre type que celui annoncé : refusé à l'envoi ou à la confirmation", !rType.ok || cType.status === 415, `PUT ${rType.status}, confirmation ${cType?.status}`);
+}
 verifier("Autorisation d'une commande inutilisable sur une autre (403)", (await conf(f4.c.token, aut.jeton)).status !== 200);
 if (!aut.direct) {
   verifier("Envoi au serveur sans autorisation valide refusé (403)", (await fetch(`${BASE}/api/depot/${"0".repeat(32)}?j=${falsifie}`, { method: "PUT", body: png })).status === 403);
