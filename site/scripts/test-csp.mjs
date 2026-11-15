@@ -39,7 +39,7 @@ const explorer = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: tru
 for (const d of ["app", "lib"]) explorer(d);
 for (const f of ["next.config.mjs", "middleware.ts", "middleware.js"]) if (fs.existsSync(f) && /Content-Security-Policy/i.test(fs.readFileSync(f, "utf8"))) sources.push(f);
 verifier("Une seule source définit la politique : next.config.mjs", sources.length === 1 && sources[0] === "next.config.mjs", sources.join(", "));
-verifier("Aucun middleware", !["middleware.ts", "middleware.js", "src/middleware.ts"].some((f) => fs.existsSync(f)));
+verifier("Le middleware (accès préproduction) ne définit aucun en-tête de sécurité", !fs.existsSync("middleware.ts") || !/Content-Security-Policy|X-Frame-Options|Strict-Transport/i.test(fs.readFileSync("middleware.ts", "utf8").replace(/\/\/.*$/gm, "")));
 const dev = politiqueContenu(true), prod = politiqueContenu(false);
 verifier("Fonction : développement autorise 'unsafe-eval'", directive(dev, "script-src").includes("'unsafe-eval'"), dev);
 verifier("Fonction : production sans 'unsafe-eval' ni ws:", !prod.includes("unsafe-eval") && !/\bwss?:/.test(prod), prod);

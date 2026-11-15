@@ -15,8 +15,8 @@ console.log(`Version du code    : ${v.commit} sur la branche ${v.branche}${v.mod
 const config = fs.existsSync("next.config.mjs") ? fs.readFileSync("next.config.mjs", "utf8") : "";
 const corrige = config.includes("PHASE_DEVELOPMENT_SERVER") && config.includes("'unsafe-eval'");
 ligne(corrige, corrige ? "next.config.mjs contient le réglage du mode développement" : "next.config.mjs est une ANCIENNE version (sans réglage du mode développement) : le code de ce dossier n'est pas à jour");
-const autres = ["middleware.ts", "middleware.js", "app/middleware.ts", "src/middleware.ts"].filter((f) => fs.existsSync(f));
-ligne(autres.length === 0, autres.length ? `Autre source possible de politique de contenu : ${autres.join(", ")}` : "Aucune autre source de politique de contenu (pas de middleware)");
+const autres = ["middleware.ts", "middleware.js", "app/middleware.ts", "src/middleware.ts"].filter((f) => fs.existsSync(f) && /Content-Security-Policy/i.test(fs.readFileSync(f, "utf8").replace(/\/\/.*$/gm, "")));
+ligne(autres.length === 0, autres.length ? `Autre source possible de politique de contenu : ${autres.join(", ")}` : "Aucune autre source de politique de contenu");
 
 console.log("");
 for (const p of [port, process.env.MOCK_STRIPE_PORT || "4242"]) {

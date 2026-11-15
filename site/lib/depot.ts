@@ -175,6 +175,10 @@ function depotS3(): Depot {
     region: process.env.S3_REGION || "auto",
     endpoint: process.env.S3_ENDPOINT || undefined,
     forcePathStyle: process.env.S3_PATH_STYLE === "oui",
+    // Les versions récentes du SDK ajoutent une somme de contrôle que tous les stockages compatibles
+    // n'acceptent pas (Cloudflare R2), et qui fait échouer l'envoi direct depuis le navigateur.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
     credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID || "", secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "" },
   });
   const absent = (e: unknown) => {

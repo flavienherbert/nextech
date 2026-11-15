@@ -1,0 +1,9 @@
+# Réglages de mise en ligne sur Netlify. Le site est dans le sous-dossier « site » du dépôt.
+# Aucune clé ni mot de passe ici : ils se saisissent dans l'interface de Netlify (variables d'environnement).
+[build]
+  base = "site"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
