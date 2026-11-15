@@ -3,10 +3,11 @@
 //   - « créer seulement si absent »    → INSERT … ON CONFLICT DO NOTHING ;
 //   - « modifier seulement si inchangé » → UPDATE … WHERE version = $lue.
 // Les fichiers (photos, vidéos, PDF) n'y passent jamais : ils restent dans le stockage de fichiers.
-// Table créée par sql/001-documents.sql.
+// Table créée automatiquement au premier usage (lib/schema-postgres.ts ; équivalent de sql/001-documents.sql).
 import { Pool, type PoolConfig } from "pg";
 import type { Condition, Depot, Lecture } from "./depot";
 import { cleSure } from "./cle";
+import { creerSchemaSiAbsent } from "./schema-postgres";
 
 export const postgresConfigure = () => Boolean(process.env.DATABASE_URL);
 
@@ -39,6 +40,13 @@ function bassin(): Pool {
   return pool;
 }
 
+// La table est vérifiée (et créée si besoin) une seule fois par processus, avant la première requête.
+let schemaPret: Promise<"existante" | "creee"> | null = null;
+export function assurerSchema() {
+  if (!schemaPret) schemaPret = creerSchemaSiAbsent(bassin()).catch((e) => { schemaPret = null; throw e; });
+  return schemaPret;
+}
+
 // Accès direct à la base pour le diagnostic (jamais utilisé pour les données du site).
 export async function executerSurBase<T>(fn: (c: import("pg").PoolClient) => Promise<T>): Promise<T> {
   const c = await bassin().connect();
@@ -60,7 +68,10 @@ const nonPrevu = (op: string) => () => {
 };
 
 export function depotPostgres(): Depot {
-  const q = <T extends Record<string, unknown>>(texte: string, valeurs: unknown[]) => bassin().query<T>(texte, valeurs);
+  const q = async <T extends Record<string, unknown>>(texte: string, valeurs: unknown[]) => {
+    await assurerSchema();
+    return bassin().query<T>(texte, valeurs);
+  };
   return {
     nom: "postgres",
     async lire(cle): Promise<Lecture | null> {

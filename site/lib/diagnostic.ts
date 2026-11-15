@@ -10,7 +10,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { depot, stockageS3Configure } from "./depot";
-import { depotPostgres, executerSurBase, postgresConfigure } from "./depot-postgres";
+import { assurerSchema, depotPostgres, executerSurBase, postgresConfigure } from "./depot-postgres";
 import { env, modePaiement } from "./env";
 import { composerPdf, vendeur } from "./factures";
 import { configurationStockage } from "./supabase-config.mjs";
@@ -75,12 +75,13 @@ async function base(): Promise<Section> {
   const docs = depotPostgres();
   l.push(...(await essayer("Connexion", async () => {
     const t0 = Date.now();
+    const schema = await assurerSchema(); // crée la table au premier lancement
     return executerSurBase(async (c) => {
       const v = await c.query("select version() as v, (select ssl from pg_stat_ssl where pid = pg_backend_pid()) as ssl");
       const lignes = [ok("Connexion", `${String(v.rows[0].v).split(" ").slice(0, 2).join(" ")}, ${Date.now() - t0} ms`)];
       lignes.push(v.rows[0].ssl ? ok("Connexion chiffrée (SSL)") : avert("Connexion chiffrée (SSL)", "non chiffrée"));
       const t = await c.query("select to_regclass('studio.documents') as t, (select relrowsecurity from pg_class where oid = to_regclass('studio.documents')) as rls");
-      lignes.push(t.rows[0].t ? ok("Table studio.documents présente") : ko("Table studio.documents présente", "absente : exécuter sql/001-documents.sql"));
+      lignes.push(t.rows[0].t ? ok("Table studio.documents présente", schema === "creee" ? "créée automatiquement à l'instant (premier lancement)" : undefined) : ko("Table studio.documents présente", "absente et impossible à créer : vérifier les droits de l'utilisateur de DATABASE_URL"));
       lignes.push(t.rows[0].rls ? ok("Sécurité au niveau des lignes activée") : ko("Sécurité au niveau des lignes activée", "désactivée"));
       for (const role of ["anon", "authenticated"]) {
         let refuse: boolean | null = null;

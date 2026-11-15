@@ -19,6 +19,8 @@ Garde-fou dans le code : si le site détecte Supabase Storage **sans** `DATABASE
 
 ### Bloc 1 — Création de la table SQL
 
+> **Simplifié le 16 novembre : plus rien à exécuter à la main.** Dès que `DATABASE_URL` est saisie, le site crée lui-même la table `studio.documents` à sa première connexion (même contenu que le script ci-dessous, sans effet si elle existe déjà ; testé sur base vierge, y compris trois démarrages simultanés). Le script `sql/001-documents.sql` est conservé pour mémoire. Le Diagnostic indique « créée automatiquement » au premier lancement.
+
 - **Quoi** : exécuter une fois `site/sql/001-documents.sql` dans Supabase, « SQL Editor » puis « New query », coller, « Run ».
 - **Ce que le script crée** : un schéma `studio` et une table `studio.documents` (clé, contenu JSON, numéro de version, dates).
 - **Ce qu'il ne fait pas** : il ne touche à aucun autre schéma, ne supprime ni n'écrase rien, et peut être relancé sans danger (testé : deuxième exécution sans erreur).

@@ -1,6 +1,6 @@
 // Tests du pilote de documents PostgreSQL : écritures atomiques, routage documents/fichiers,
 // confidentialité de la table, garde-fou contre un stockage de fichiers sans base.
-// Prérequis : DATABASE_URL (base où sql/001-documents.sql a été exécuté).
+// Prérequis : DATABASE_URL d'une base de TEST (la table est créée automatiquement ; le test la supprime puis la recrée).
 // Usage : DATABASE_URL=… npm run test:postgres
 // À lancer sur une base de TEST : le test écrit sous la clé « __test_pg__/ » et la supprime ensuite.
 import { execFileSync } from "node:child_process";
@@ -10,6 +10,7 @@ import path from "node:path";
 import pg from "pg";
 import { depot } from "../lib/depot";
 import { depotPostgres, fermerBase } from "../lib/depot-postgres";
+import { creerSchemaSiAbsent } from "../lib/schema-postgres";
 
 if (!process.env.DATABASE_URL) { console.error("DATABASE_URL manquant."); process.exit(2); }
 let ko = 0;
@@ -20,6 +21,22 @@ const json = (o: unknown) => JSON.stringify(o);
 console.log(`Pilote de stockage : ${depot().nom}\n`);
 
 try {
+  // Première connexion à une base vierge : la table est créée automatiquement, sans script SQL
+  {
+    const u0 = new URL(process.env.DATABASE_URL); u0.searchParams.delete("sslmode");
+    const cfg = { connectionString: u0.toString(), ssl: ["localhost", "127.0.0.1"].includes(u0.hostname) ? false : { rejectUnauthorized: false } };
+    const c0 = new pg.Client(cfg); await c0.connect();
+    await c0.query("drop schema if exists studio cascade");
+    verifier("Base vierge : la table n'existe pas", (await c0.query("select to_regclass('studio.documents') as t")).rows[0].t === null);
+    const p1 = new pg.Pool(cfg), p2 = new pg.Pool(cfg);
+    const res = await Promise.all([creerSchemaSiAbsent(p1), creerSchemaSiAbsent(p2), creerSchemaSiAbsent(p1)]);
+    verifier("Trois démarrages simultanés sur une base vierge : aucune erreur, la table est créée", res.every((r) => r === "creee" || r === "existante") && (await c0.query("select to_regclass('studio.documents') as t")).rows[0].t !== null, JSON.stringify(res));
+    verifier("Relancer la création sur une base déjà prête : rien ne change (« existante »)", (await creerSchemaSiAbsent(p1)) === "existante");
+    await p1.end(); await p2.end();
+    await c0.query("drop schema studio cascade");
+    verifier("Première écriture du site sur une base sans table : la table est créée automatiquement", await docs.ecrire(`${P}-init/init.json`, json({ v: 1 }), { siAbsent: true }) === true && (await c0.query("select to_regclass('studio.documents') as t")).rows[0].t !== null);
+    await c0.end();
+  }
   // Créer seulement si absent
   const k1 = `${P}/a.json`;
   verifier("Créer si absent : première écriture acceptée", await docs.ecrire(k1, json({ v: 1 }), { siAbsent: true }) === true);

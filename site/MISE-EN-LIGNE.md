@@ -26,7 +26,7 @@ Où : Netlify, projet `studio-accroche-preprod`, « Site configuration », « En
 | `STRIPE_SECRET_KEY` | Stripe **en mode test** (bandeau « Test mode » orange), *Développeurs*, *Clés API*, clé secrète `sk_test_…` | oui |
 | `STRIPE_WEBHOOK_SECRET` | affiché par `npm run stripe:webhook` (voir ci-dessous) | oui |
 
-Tout le reste est **déduit automatiquement** de `DATABASE_URL` : adresse du stockage, région, nom du bucket (`studio-accroche`), origine autorisée pour l'envoi de fichiers. Variables déjà en place : `SITE_URL`, `PREPROD_PASSWORD`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `ADMIN_EMAIL`, `MAIL_FROM`, `NEXT_PUBLIC_CONTACT_EMAIL`, `BREVO_API_KEY`.
+La table SQL est **créée automatiquement** à la première connexion (aucun script à exécuter). Tout le reste est **déduit automatiquement** de `DATABASE_URL` : adresse du stockage, région, nom du bucket (`studio-accroche`), origine autorisée pour l'envoi de fichiers. Variables déjà en place : `SITE_URL`, `PREPROD_PASSWORD`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `ADMIN_EMAIL`, `MAIL_FROM`, `NEXT_PUBLIC_CONTACT_EMAIL`, `BREVO_API_KEY`.
 
 **Webhook Stripe en mode test** (une commande, dans PowerShell, dossier `site`) :
 ```powershell
