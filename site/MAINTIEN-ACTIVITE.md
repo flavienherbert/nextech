@@ -2,6 +2,8 @@
 
 Rédigé le 15 novembre 2026. **Étude seulement : rien n'est mis en place**, et aucune de ces solutions n'est garantie.
 
+> **Mise à jour du 16 novembre 2026 : l'option 3 est activée**, comme conséquence de votre demande de ne plus avoir à surveiller le site. La tâche quotidienne (6 h UTC, soit 7 h ou 8 h à Paris) envoie le récapitulatif des commandes en attente, relance une fois les clients dont le brief manque depuis 48 h, purge les données arrivées à échéance et lit la table des commandes. Elle est activée par la variable `TACHES_SECRET` dans Netlify ; **pour la désactiver, supprimez cette variable**. Elle ne prouve toujours pas qu'elle empêche la pause de Supabase (voir ci-dessous) ; les options 1, 2 et 4 restent à valider.
+
 ## Ce que dit la documentation officielle de Supabase
 
 - Un projet gratuit est mis en pause s'il ne reçoit pas « suffisamment d'activité utilisateur sur la base de données au cours de la semaine passée ».
