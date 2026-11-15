@@ -41,14 +41,34 @@ const viaHttp = async (requete: Promise<Response>): Promise<Resultat> => {
 };
 
 // Messagerie classique (SMTP) : par défaut le compte Gmail du studio avec un « mot de passe d'application ».
-// Sert de voie de secours si Brevo refuse l'envoi, ou de voie principale s'il n'est pas configuré.
+// Voie principale dès qu'elle est configurée (SMTP_USER + SMTP_PASSWORD) ; Brevo et Resend prennent le relais en cas d'échec.
 export const smtpConfigure = () => Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
 
 // Services d'envoi dans l'ordre d'essai : le suivant prend le relais quand le précédent échoue.
+// La messagerie SMTP (Gmail du studio) passe en premier : l'expéditeur étant une adresse Gmail, seul Gmail peut signer
+// l'e-mail à sa place (SPF/DKIM/DMARC alignés) ; Brevo et Resend, qui envoient depuis d'autres serveurs, servent de secours.
 function transports(): Transport[] {
   if (!env.mailFrom()) return [];
   const e = expediteur();
   const liste: Transport[] = [];
+  if (smtpConfigure())
+    liste.push({
+      nom: "smtp",
+      envoyer: async (a, objet, html, texte) => {
+        try {
+          const port = Number(process.env.SMTP_PORT) || 465;
+          const t = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465,
+            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+            connectionTimeout: delai(), greetingTimeout: delai(), socketTimeout: delai() + 4000,
+          });
+          await t.sendMail({ from: `"${e.nom}" <${e.adresse}>`, to: a, subject: objet, html, text: texte, ...(env.legal().email ? { replyTo: env.legal().email } : {}) });
+          return { ok: true };
+        } catch (err) {
+          return { ok: false, erreur: `échec smtp : ${(err as Error).message.slice(0, 200)}` };
+        }
+      },
+    });
   const brevo = process.env.BREVO_API_KEY;
   if (brevo)
     liste.push({
@@ -71,24 +91,6 @@ function transports(): Transport[] {
           headers: { Authorization: `Bearer ${env.resendKey()}`, "Content-Type": "application/json" },
           body: JSON.stringify({ from: `${e.nom} <${e.adresse}>`, to: [a], subject: objet, html, text: texte, ...(env.legal().email ? { reply_to: env.legal().email } : {}) }),
         })),
-    });
-  if (smtpConfigure())
-    liste.push({
-      nom: "smtp",
-      envoyer: async (a, objet, html, texte) => {
-        try {
-          const port = Number(process.env.SMTP_PORT) || 465;
-          const t = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465,
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
-            connectionTimeout: delai(), greetingTimeout: delai(), socketTimeout: delai() + 4000,
-          });
-          await t.sendMail({ from: `"${e.nom}" <${e.adresse}>`, to: a, subject: objet, html, text: texte, ...(env.legal().email ? { replyTo: env.legal().email } : {}) });
-          return { ok: true };
-        } catch (err) {
-          return { ok: false, erreur: `échec smtp : ${(err as Error).message.slice(0, 200)}` };
-        }
-      },
     });
   return liste;
 }

@@ -117,14 +117,20 @@ const admin = await adminCtx.newPage();
 await admin.goto(`${BASE}/admin`);
 verifier("Accès à /admin sans session → page de connexion", admin.url().endsWith("/admin/connexion"));
 await admin.goto(`${BASE}/admin/commande/${idCommande}`);
-verifier("Accès direct à une commande sans session → connexion", admin.url().endsWith("/admin/connexion"));
+verifier("Accès direct à une commande sans session → connexion, avec retour prévu sur cette commande", admin.url().includes("/admin/connexion?suite=") && decodeURIComponent(admin.url()).endsWith(`suite=/admin/commande/${idCommande}`), admin.url());
 verifier("Fichier client inaccessible sans session admin (401)", (await fetch(`${BASE}/api/admin/fichier/${idCommande}/${c.fichiersClient[0].id}`)).status === 401);
 await admin.fill('input[name="motdepasse"]', "mauvais-mot-de-passe"); await admin.click('button[type="submit"]');
-await admin.waitForURL("**/admin/connexion?erreur=refus");
+await admin.waitForURL(/erreur=refus/);
 verifier("Mauvais mot de passe refusé", true);
 await admin.fill('input[name="motdepasse"]', MDP); await admin.click('button[type="submit"]');
-await admin.waitForURL(`${BASE}/admin`);
+await admin.waitForURL(`${BASE}/admin/commande/${idCommande}`);
+verifier("Connexion depuis le lien d'une notification : retour direct sur la commande demandée", (await admin.locator("h1").first().textContent()).includes(idCommande));
+await admin.goto(`${BASE}/admin`);
 verifier("Connexion administrateur", (await admin.locator(".tableau").textContent()).includes(idCommande));
+{
+  const cookie = (await adminCtx.cookies()).find((k) => k.name === "sa_admin");
+  verifier("Cookie de session : HttpOnly, SameSite, valable 7 jours au plus", cookie.httpOnly && cookie.sameSite === "Lax" && cookie.expires - Date.now() / 1000 <= 7 * 86400 + 60 && cookie.expires - Date.now() / 1000 > 6 * 86400, JSON.stringify(cookie));
+}
 await cap(admin, "05-admin-liste");
 await admin.click(`a[href="/admin/commande/${idCommande}"]`);
 await admin.waitForSelector(".admin-grille");
@@ -323,6 +329,8 @@ verifier("Diagnostic : les lignes de test sont supprimées", !diag || !diag.sect
     bloque = pl.url().includes("erreur=essais");
   }
   verifier("Connexion administrateur : bloquée après 5 échecs consécutifs", bloque && tentatives === 6, `${tentatives} tentatives`);
+  const alerteBlocage = await (async () => { try { for (let i = 0; i < 20; i++) { if ((await (await fetch(`${process.env.FAUX || "http://localhost:4343"}/_recus`)).json()).some((x) => String(x.title).startsWith("Tentatives de connexion"))) return true; await new Promise((r) => setTimeout(r, 250)); } } catch { /* faux services absents */ } return false; })();
+  verifier("Blocage de la connexion : alerte sur le téléphone (le site étant public, signe d'une tentative d'intrusion)", alerteBlocage);
   await pl.goto(`${BASE}/admin/connexion`); await pl.fill('input[type="password"]', MDP); await pl.click('button[type="submit"]'); await pl.waitForURL(/erreur=|\/admin$/);
   verifier("Connexion administrateur : le bon mot de passe est refusé tant que le blocage dure", pl.url().includes("erreur=essais"), pl.url());
   await ctxLimite.close();

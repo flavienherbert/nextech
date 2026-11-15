@@ -6,7 +6,8 @@ import { env } from "./env";
 import { compte, enregistrer, remettreAZero } from "./limiteur";
 
 const NOM = "sa_admin";
-const DUREE = 12 * 3600; // secondes
+// 7 jours : sur téléphone, saisir un long mot de passe chaque jour serait pénible. Changer SESSION_SECRET déconnecte tout le monde.
+const DUREE = 7 * 24 * 3600; // secondes
 
 const signer = (v: string) => crypto.createHmac("sha256", env.sessionSecret()).update(v).digest("hex");
 const egal = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -58,8 +59,11 @@ export async function estAdmin(): Promise<boolean> {
   return Number(exp) > Date.now() / 1000;
 }
 
-export async function exigerAdmin() {
-  if (!(await estAdmin())) redirect("/admin/connexion");
+// Après connexion, retour sur la page demandée (lien d'une notification), à condition qu'elle soit dans /admin.
+export const suiteValide = (s: unknown): string => (typeof s === "string" && /^\/admin(\/[A-Za-z0-9_\-\/]*)?$/.test(s) && !s.includes("//") && !s.startsWith("/admin/connexion") ? s : "/admin");
+
+export async function exigerAdmin(suite?: string) {
+  if (!(await estAdmin())) redirect(`/admin/connexion${suite ? `?suite=${encodeURIComponent(suite)}` : ""}`);
 }
 
 // Refuse les requêtes déclenchées depuis un autre site.

@@ -3,7 +3,7 @@
 // Les mots de passe se saisissent dans votre terminal (ou viennent de Netlify) : jamais dans un fichier du dépôt.
 // Lecture seule : le diagnostic ne crée que des lignes et fichiers de test, supprimés à la fin.
 import { createRequire } from "node:module";
-const { chromium } = createRequire(import.meta.url)("playwright");
+const { chromium, devices } = createRequire(import.meta.url)("playwright");
 
 const B = (process.argv[2] || "https://studio-accroche-preprod.netlify.app").replace(/\/$/, "");
 const PRE = process.env.PREPROD_PASSWORD || "", ADM = process.env.ADMIN_PASSWORD || "";
@@ -24,7 +24,26 @@ if (PRE) {
   verifier("Mauvais mot de passe refusé", (await code("/", { headers: { Authorization: "Basic " + Buffer.from("x:faux").toString("base64") } })) === 401);
   verifier("Méthodes POST, PUT, OPTIONS refusées sans mot de passe", (await Promise.all([code("/api/checkout", { method: "POST" }), code("/admin", { method: "PUT" }), code("/", { method: "OPTIONS" })])).every((s) => s === 401));
   verifier("Webhook Stripe : exige une signature (exempté du mot de passe, mais fermé aux appels non signés)", [400, 405].includes(await code("/api/stripe/webhook", { method: "POST", body: "{}" })) && (await code("/api/stripe/webhook")) === 405);
-} else console.log("• PREPROD_PASSWORD absent : le contrôle d'accès n'est pas testé (site supposé public).");
+} else {
+  // Site ouvert à la consultation : seules les pages vitrine sont publiques. Tout ce qui est sensible doit rester fermé.
+  console.log("— Site ouvert à la consultation : les fonctions sensibles restent fermées —");
+  const redir = async (chemin) => { const r = await fetch(B + chemin, { redirect: "manual", signal: AbortSignal.timeout(30000) }); return [r.status, r.headers.get("location") || ""]; };
+  const pagesPubliques = ["/", "/commander/essai", "/commander/test", "/commander/campagne", "/cgv", "/mentions-legales", "/confidentialite", "/robots.txt"];
+  const mauvaises = []; for (const c of pagesPubliques) { const st = await code(c); if (st !== 200) mauvaises.push(`${c} → ${st}`); }
+  verifier(`${pagesPubliques.length} pages publiques accessibles sans identifiant (200)`, mauvaises.length === 0, mauvaises.join(" | "));
+  const hd = (await fetch(B + "/")).headers;
+  verifier("Site non référencé par les moteurs de recherche (X-Robots-Tag noindex, robots.txt)", /noindex/.test(hd.get("x-robots-tag") || "") && /Disallow:\s*\//.test(await (await fetch(B + "/robots.txt")).text()));
+  const fermes = [];
+  for (const c of ["/admin", "/admin/commande/SA-000000-AAAAA", "/admin/diagnostic", "/admin/courriels", "/admin/aide"]) { const [st, loc] = await redir(c); if (![301, 302, 303, 307, 308].includes(st) || !/\/admin\/connexion/.test(loc)) fermes.push(`${c} → ${st} ${loc}`); }
+  verifier("Pages d'administration : renvoi vers la connexion sans session (jamais de contenu)", fermes.length === 0, fermes.join(" | "));
+  const api = [["GET", "/api/admin/diagnostic"], ["POST", "/api/admin/notification-test"], ["GET", "/api/admin/fichier/SA-000000-AAAAA/x"], ["GET", "/api/admin/facture/SA-000000-AAAAA"], ["POST", "/api/admin/commande/SA-000000-AAAAA/livrable"]];
+  const ouverts = []; for (const [m, c] of api) { const st = await code(c, { method: m }); if (st !== 401) ouverts.push(`${m} ${c} → ${st}`); }
+  verifier("Routes d'API de l'administration : 401 sans session", ouverts.length === 0, ouverts.join(" | "));
+  const caches = []; for (const [m, c] of [["POST", "/api/taches/quotidienne"], ["GET", "/api/test-erreur"], ["GET", "/.env"], ["GET", "/package.json"], ["GET", "/.git/config"]]) { const st = await code(c, { method: m }); if (st !== 404) caches.push(`${m} ${c} → ${st}`); }
+  verifier("Tâche quotidienne, route de test, fichiers de configuration : introuvables (404)", caches.length === 0, caches.join(" | "));
+  verifier("Webhook Stripe : refuse tout appel sans signature valide", (await code("/api/stripe/webhook", { method: "POST", body: "{}" })) === 400 && (await code("/api/stripe/webhook", { method: "POST", body: "{}", headers: { "Stripe-Signature": "t=1,v1=00" } })) === 400);
+  verifier("Dépôt de fichiers : refuse tout envoi sans autorisation signée", [400, 403, 404, 405].includes(await code("/api/depot/" + "0".repeat(32), { method: "PUT", body: "x" })));
+}
 
 console.log("\n— Diagnostic exécuté sur le serveur —");
 const nav = await chromium.launch();
@@ -50,6 +69,24 @@ try {
   verifier("Notification de test : téléphone", n?.push === "envoye", `état : ${n?.push ?? "HTTP " + rn.status()}`);
   verifier("Notification de test : e-mail", n?.email === "envoye", `état : ${n?.email ?? "HTTP " + rn.status()} (si « echec » : voir la section E-mails du diagnostic)`);
 } catch (e) { verifier("Connexion à l'administration", false, e.message); }
+
+console.log("\n— Navigation réelle : ordinateur et téléphone —");
+for (const [appareil, opts] of [["Ordinateur", { viewport: { width: 1280, height: 900 } }], ["Téléphone (iPhone)", { ...devices["iPhone 13"] }]]) {
+  const c = await nav.newContext({ ...opts, ...(PRE ? { httpCredentials: { username: "x", password: PRE } } : {}) });
+  const pg = await c.newPage(); const erreurs = []; pg.on("pageerror", (e) => erreurs.push(e.message));
+  try {
+    await pg.goto(B + "/", { waitUntil: "networkidle", timeout: 45000 });
+    verifier(`${appareil} : accueil affiché avec les trois formules, sans erreur JavaScript`, (await pg.locator(".formule").count()) === 3 && erreurs.length === 0, erreurs.join(" | "));
+    verifier(`${appareil} : aucune barre de défilement horizontale`, await pg.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+    await pg.goto(B + "/admin", { waitUntil: "networkidle" });
+    verifier(`${appareil} : /admin sans session renvoie vers la page de connexion`, pg.url().endsWith("/admin/connexion"), pg.url());
+    await pg.fill('input[name="motdepasse"]', ADM); await pg.click('button[type="submit"]');
+    await pg.waitForURL((u) => u.pathname === "/admin", { timeout: 30000 });
+    verifier(`${appareil} : connexion à /admin réussie, tableau de bord affiché`, (await pg.locator("h1").first().textContent()).includes("Commandes"));
+    verifier(`${appareil} : tableau de bord sans barre de défilement horizontale de page`, await pg.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  } catch (e) { verifier(`${appareil} : navigation`, false, e.message); }
+  await c.close();
+}
 await nav.close();
 console.log(echecs ? `\n${echecs} point(s) à traiter.` : "\nTout est conforme.");
 process.exit(echecs ? 1 : 0);

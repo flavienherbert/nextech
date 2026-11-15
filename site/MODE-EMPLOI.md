@@ -104,13 +104,17 @@ Anti-avalanche : une même alerte n'est pas répétée plus d'une fois dans sa f
 
 Vous n'avez **jamais** à ouvrir le site pour savoir si une commande est arrivée : le téléphone et l'e-mail vous le disent.
 
-## 6. Ce que le système fait seul
+## 6. Accéder à l'administration
+
+Depuis n'importe quel appareil : `https://studio-accroche-preprod.netlify.app/admin`. Une fois connecté, vous restez connecté 7 jours sur cet appareil. Un lien de notification (« Ouvrir la commande ») vous ramène directement sur la commande après connexion. Le mot de passe est la variable `ADMIN_PASSWORD` de Netlify (*Site configuration*, *Environment variables*).
+
+## 7. Ce que le système fait seul
 
 - **Chaque matin (≈ 7 h–8 h, heure de Paris)** : récapitulatif par e-mail s'il y a quelque chose en attente ; relance du client dont le **brief manque depuis 48 h** (une seule fois) ; suppression des données arrivées à échéance (fichiers 90 jours après livraison, commandes jamais payées après 30 jours).
 - **Si un e-mail ne peut pas partir** : il est conservé (rien n'est perdu), vous êtes prévenu sur le téléphone, vous le renvoyez d'un clic.
-- **Si Brevo refuse un envoi** : le message part par la messagerie Gmail du studio (voie de secours).
+- **Si Gmail refuse un envoi** : le message part par Brevo (voie de secours). Si les deux échouent, il est conservé, vous êtes prévenu sur le téléphone et vous le renvoyez d'un clic.
 
-## 7. Ce qu'il ne faut pas faire
+## 8. Ce qu'il ne faut pas faire
 
 - Ne communiquez jamais un mot de passe ou une clé dans une conversation ou un e-mail.
 - Ne changez le statut à la main (formulaire « Statut ») que pour un cas particulier ; les boutons de « Prochaine étape » suffisent.

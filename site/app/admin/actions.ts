@@ -3,24 +3,30 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { adresseClient } from "@/lib/limiteur";
-import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir } from "@/lib/auth";
+import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir, suiteValide } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
-import { notificationDeTest } from "@/lib/alertes";
+import { alerter, notificationDeTest } from "@/lib/alertes";
 import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
 import { courriels, enEchec } from "@/lib/mail";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
 export async function connexion(form: FormData) {
   const ip = adresseClient(await headers());
-  if (!(await essaiAutorise(ip))) redirect("/admin/connexion?erreur=essais");
+  const suite = suiteValide(form.get("suite"));
+  const vers = (erreur: string) => `/admin/connexion?erreur=${erreur}${suite !== "/admin" ? `&suite=${encodeURIComponent(suite)}` : ""}`;
+  if (!(await essaiAutorise(ip))) {
+    // Le site est public : un blocage de connexion est le signe d'une tentative d'intrusion. Une alerte par heure au plus.
+    await alerter({ cle: "connexion-bloquee", titre: "Tentatives de connexion à l'administration bloquées", message: "Plusieurs mots de passe incorrects de suite ont été saisis sur /admin. Si ce n'était pas vous, rien à faire : l'accès est bloqué 15 minutes.", email: false, urgence: "haute", fenetreMs: 3600_000 });
+    redirect(vers("essais"));
+  }
   const valide = motDePasseValide(String(form.get("motdepasse") || ""));
   await noterEssai(ip, valide);
   if (!valide) {
     await ralentir();
-    redirect("/admin/connexion?erreur=refus");
+    redirect(vers("refus"));
   }
   await ouvrirSession();
-  redirect("/admin");
+  redirect(suite);
 }
 
 // Renvoie un e-mail resté en échec (service d'envoi indisponible, délai dépassé…).

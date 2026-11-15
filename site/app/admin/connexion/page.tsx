@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connexion } from "../actions";
-import { adminConfigure, estAdmin } from "@/lib/auth";
+import { adminConfigure, estAdmin, suiteValide } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Administration — Studio Accroche", robots: { index: false, follow: false } };
 
-export default async function Connexion({ searchParams }: { searchParams: Promise<{ erreur?: string }> }) {
-  if (await estAdmin()) redirect("/admin");
-  const { erreur } = await searchParams;
+export default async function Connexion({ searchParams }: { searchParams: Promise<{ erreur?: string; suite?: string }> }) {
+  const { erreur, suite } = await searchParams;
+  if (await estAdmin()) redirect(suiteValide(suite));
   return (
     <main className="page admin">
       <div className="conteneur connexion">
@@ -20,6 +20,7 @@ export default async function Connexion({ searchParams }: { searchParams: Promis
           </p>
         ) : (
           <form action={connexion} className="formulaire">
+            <input type="hidden" name="suite" value={suiteValide(suite)} />
             <label className="champ">
               <span>Mot de passe</span>
               <input type="password" name="motdepasse" autoComplete="current-password" required autoFocus />

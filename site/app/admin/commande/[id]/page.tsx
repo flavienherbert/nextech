@@ -30,8 +30,8 @@ const MESSAGES: Record<string, string> = {
 const mo = (n: number) => `${(n / 1048576).toFixed(1)} Mo`;
 
 export default async function Detail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; erreur?: string; mail?: string }> }) {
-  await exigerAdmin();
   const { id } = await params;
+  await exigerAdmin(`/admin/commande/${id}`);
   const q = await searchParams;
   const c = await store.commande(id);
   if (!c) notFound();

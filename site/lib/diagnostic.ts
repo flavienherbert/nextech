@@ -235,7 +235,8 @@ async function courriel(): Promise<Section> {
   const expediteur = env.mailFrom().match(/<([^>]+)>/)?.[1] || env.mailFrom().trim();
   if (!pilote) return { titre: "E-mails", lignes: [avert("Service d'envoi", "aucun : les e-mails sont archivés mais jamais envoyés (il manque MAIL_FROM, ou la clé Brevo, ou SMTP_USER + SMTP_PASSWORD)")] };
   l.push(ok("Service d'envoi configuré", services.length > 1 ? `${pilote} (le suivant prend le relais si le précédent échoue)` : pilote));
-  if (services.length === 1 && services[0] === "brevo") l.push(avert("Voie de secours", "aucune : si Brevo refuse un envoi, l'e-mail n'est pas expédié (alerte sur le téléphone). Ajoutez SMTP_USER + SMTP_PASSWORD pour un relais Gmail."));
+  if (services.length === 1) l.push(avert("Voie de secours", services[0] === "smtp" ? "aucune : si Gmail refuse un envoi (limite de 500 par jour, panne), l'e-mail n'est pas expédié (alerte sur le téléphone)." : "aucune : si Brevo refuse un envoi, l'e-mail n'est pas expédié (alerte sur le téléphone). Ajoutez SMTP_USER + SMTP_PASSWORD pour un envoi par le Gmail du studio."));
+  const secours = services[0] !== "brevo"; // Brevo n'est qu'un relais de secours dès que Gmail est configuré : sa panne n'est alors qu'un avertissement
   l.push(expediteur ? ok("Expéditeur (MAIL_FROM)", expediteur) : ko("Expéditeur (MAIL_FROM)", "absent"));
   if (services.includes("smtp")) {
     l.push(...(await essayer("Messagerie SMTP", async () => {
@@ -261,7 +262,7 @@ async function courriel(): Promise<Section> {
       if (!r.ok) {
         const message = ((await r.json().catch(() => ({}))) as { message?: string }).message || "";
         const aide = cle.startsWith("xsmtpsib-") ? " : c'est une clé SMTP, il faut une clé d'API (« API Keys », pas « SMTP »)" : /ip/i.test(message) ? " : Brevo refuse l'adresse du serveur (« Authorized IPs » à désactiver dans Brevo)" : "";
-        return ko("Clé Brevo valide", `HTTP ${r.status}, ${genre}, longueur ${cle.length}${message ? `, message Brevo : ${message.slice(0, 120)}` : ""}${aide}`);
+        return (secours ? avert : ko)("Clé Brevo valide", `HTTP ${r.status}, ${genre}, longueur ${cle.length}${message ? `, message Brevo : ${message.slice(0, 120)}` : ""}${aide}`);
       }
       const a = (await r.json()) as { plan?: { type: string; credits?: number }[] };
       return ok("Clé Brevo valide", `offre ${a.plan?.[0]?.type || "?"}, ${a.plan?.[0]?.credits ?? "?"} envois`);
@@ -271,9 +272,9 @@ async function courriel(): Promise<Section> {
       if (!r.ok) return avert("Expéditeur validé chez Brevo", `HTTP ${r.status}`);
       const s = ((await r.json()) as { senders?: { email: string; active: boolean }[] }).senders || [];
       const m = s.find((x) => x.email.toLowerCase() === expediteur.toLowerCase());
-      if (!m) return ko("Expéditeur validé chez Brevo", `${expediteur} n'est pas un expéditeur déclaré`);
+      if (!m) return (secours ? avert : ko)("Expéditeur validé chez Brevo", `${expediteur} n'est pas un expéditeur déclaré`);
       const libre = /@(gmail|outlook|hotmail|yahoo|icloud)\./i.test(expediteur);
-      return m.active ? (libre ? avert("Expéditeur validé chez Brevo", "validé, mais adresse d'un service gratuit : les e-mails risquent de finir en indésirables, un nom de domaine au nom du studio règle cela") : ok("Expéditeur validé chez Brevo")) : ko("Expéditeur validé chez Brevo", "non activé");
+      return m.active ? (libre ? avert("Expéditeur validé chez Brevo", "validé, mais adresse d'un service gratuit : les e-mails risquent de finir en indésirables, un nom de domaine au nom du studio règle cela") : ok("Expéditeur validé chez Brevo")) : (secours ? avert : ko)("Expéditeur validé chez Brevo", "non activé");
     })));
   }
   if (services.includes("resend")) l.push(info("Resend", "vérification non automatisée"));

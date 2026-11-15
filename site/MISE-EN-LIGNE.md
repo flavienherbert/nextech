@@ -2,6 +2,18 @@
 
 > **Mise à jour du 15 novembre 2026 : Supabase remplace Cloudflare R2.** Le stockage des fichiers et la base de données sont désormais décrits dans `SUPABASE.md` (changements en attente de validation). Les étapes « Cloudflare R2 » ci-dessous sont conservées pour mémoire jusqu'à cette validation ; R2 n'a jamais été activé, rien n'y a été créé.
 
+## Accès au site : consultation libre depuis le 16 novembre
+
+À la demande du fondateur, la protection par identifiant et mot de passe de la préproduction a été **retirée** (variable `PREPROD_PASSWORD` supprimée dans Netlify). Le site se consulte directement, sur téléphone et ordinateur : https://studio-accroche-preprod.netlify.app
+
+Ce qui reste fermé :
+- **L'administration** (`/admin` et toutes les routes `/api/admin/…`) : mot de passe administrateur (`ADMIN_PASSWORD`), 5 essais par quart d'heure puis blocage avec alerte sur le téléphone, session de 7 jours en cookie signé, aucun contenu sans session.
+- **Les ventes réelles** : une clé Stripe réelle est refusée tant que `VENTES_REELLES` n'est pas « oui » et que les mentions légales (nom, SIRET, adresse) sont incomplètes. Ces trois verrous sont absents : seul le mode test peut fonctionner. Tant qu'aucune clé Stripe de test n'est saisie, le paiement est fermé.
+- **Les moteurs de recherche** : le site entier est en `noindex` et `robots.txt` interdit l'exploration. Rien n'est lié depuis un site public.
+- La tâche quotidienne, la route de test d'erreur et les fichiers de configuration répondent 404 ; le webhook Stripe exige une signature.
+
+Pour remettre la protection : ajouter la variable `PREPROD_PASSWORD` (mot de passe de votre choix) dans Netlify, puis redéployer. `npm run verifier:en-ligne` s'adapte aux deux cas.
+
 ## Liste définitive des variables à saisir dans Netlify (15 novembre)
 
 Où : Netlify, projet `studio-accroche-preprod`, « Site configuration », « Environment variables », « Add a variable ». Cochez « Contains secret values » pour chacune. Rien ne passe par la conversation.
@@ -36,7 +48,7 @@ Objectif : être prévenu à chaque commande payée, sans jamais surveiller le s
 2. **Application ntfy** sur le téléphone : installer ntfy (gratuit), **+**, saisir le sujet affiché dans Administration → Mode d'emploi.
 3. **Vérification** : Administration → Diagnostic → **Envoyer une notification de test**.
 
-Brevo reste configuré en première voie : tant que Brevo refuse l'adresse du serveur (« unrecognised IP address »), chaque e-mail part automatiquement par Gmail. Pour réactiver Brevo : dans Brevo, menu du compte, *Security*, **Authorized IPs**, désactiver la restriction (les adresses de Netlify changent à chaque appel, une liste d'adresses est inutilisable). Les deux ensemble donnent une double sécurité ; l'un des deux suffit.
+Ordre d'envoi (depuis le 16 novembre) : **Gmail d'abord**, puis Brevo en secours. Raison : l'expéditeur est une adresse Gmail ; seul Gmail peut signer un e-mail envoyé à son nom, les autres services risquent le classement en indésirables ou le refus. Tant que `SMTP_PASSWORD` n'est pas saisi, Brevo reste seul en lice, et il refuse l'adresse du serveur (« unrecognised IP address »). Pour réactiver Brevo : dans Brevo, menu du compte, *Security*, **Authorized IPs**, désactiver la restriction (les adresses de Netlify changent à chaque appel, une liste d'adresses est inutilisable). Les deux ensemble donnent une double sécurité ; l'un des deux suffit.
 
 Limites de Gmail en envoi par mot de passe d'application : environ 500 messages par jour, largement suffisant. Les e-mails partent de l'adresse Gmail du studio (pas d'un nom de domaine) : à remplacer par une adresse sur domaine propre avant l'ouverture, avec authentification SPF/DKIM.
 

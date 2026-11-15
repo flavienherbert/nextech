@@ -6,7 +6,7 @@ import { store, maintenant, nouveauNumero, nouveauToken, type Commande } from ".
 import { obstaclesFacture, emettreFacture } from "../lib/factures";
 import { signatureConforme } from "../lib/fichiers";
 import { purger } from "../lib/purge";
-import { courriels, enEchec } from "../lib/mail";
+import { courriels, enEchec, envoiReel } from "../lib/mail";
 import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
 import { deduireSupabase, configurationStockage } from "../lib/supabase-config.mjs";
 import { executerDiagnostic } from "../lib/diagnostic";
@@ -16,6 +16,7 @@ import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti
 import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, trier, VUES } from "../lib/suivi";
 import { veille } from "../lib/veille";
 import { onRequestError } from "../instrumentation";
+import { suiteValide } from "../lib/auth";
 
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -239,24 +240,28 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   verifier("Aucune notification « commande payée » pour une commande non payée", !(await store.courriels(echoue.id)).some((m) => m.objet.includes("Nouvelle commande payée")));
 }
 {
-  // — Voie de secours : Brevo refuse, la messagerie SMTP prend le relais
+  // — Ordre des services d'envoi : Gmail (SMTP) d'abord, Brevo en secours
   process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = String(portSmtp); process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "secret-de-test";
-  const brevo = http.createServer((_q, r) => { r.writeHead(401, { "Content-Type": "application/json" }); r.end('{"message":"unrecognised IP address"}'); }).listen(0, "127.0.0.1");
+  let brevoPanne = false; let brevoAppels = 0;
+  const brevo = http.createServer((_q, r) => { brevoAppels++; r.writeHead(brevoPanne ? 401 : 201, { "Content-Type": "application/json" }); r.end(brevoPanne ? '{"message":"unrecognised IP address"}' : '{"messageId":"x"}'); }).listen(0, "127.0.0.1");
   await new Promise((r) => setTimeout(r, 50));
   process.env.BREVO_API_KEY = "cle"; process.env.BREVO_API_BASE = `http://127.0.0.1:${(brevo.address() as { port: number }).port}`;
+  verifier("Services d'envoi : Gmail (SMTP) d'abord, puis Brevo", envoiReel() === "smtp puis brevo", String(envoiReel()));
   const n = ntfyRecus.length; const cmd = commandeTest(); await store.creerCommande(cmd);
   let m = await courriels.adminPaiement(cmd);
-  verifier("Brevo refuse l'envoi (401, IP non autorisée) : l'e-mail part quand même par SMTP", m.resultat === "envoyé" && m.pilote === "smtp" && (m.essais?.length ?? 0) === 1 && smtpRecus.some((x) => x.a.includes("vendeur@exemple.fr")), JSON.stringify([m.resultat, m.pilote, m.essais]));
+  verifier("Notification de paiement envoyée par Gmail (SMTP) sans solliciter Brevo, à l'adresse du vendeur", m.resultat === "envoyé" && m.pilote === "smtp" && !m.essais && brevoAppels === 0 && smtpRecus.some((x) => x.a.includes("vendeur@exemple.fr")), JSON.stringify([m.resultat, m.pilote, m.essais, brevoAppels]));
   verifier("Notification de paiement : numéro de commande, client, e-mail, offre, montant et lien d'administration", [cmd.id, "A B", "a@exemple.fr", "Essai", "25", `/admin/commande/${cmd.id}`].every((t) => m.texte.includes(t)) && m.objet.includes("Nouvelle commande payée"), m.texte.slice(0, 300));
-  verifier("Un transport qui a échoué puis relayé n'alerte pas (l'e-mail est bien parti)", ntfyRecus.length === n);
   smtpPanne = true;
+  m = await courriels.adminPaiement(commandeTest());
+  verifier("Gmail refuse (mot de passe, limite, panne) : Brevo prend le relais, l'e-mail part, aucune alerte inutile", m.resultat === "envoyé" && m.pilote === "brevo" && m.essais?.length === 1 && brevoAppels === 1 && ntfyRecus.length === n, JSON.stringify([m.resultat, m.pilote, m.essais]));
+  brevoPanne = true;
   m = await courriels.adminPaiement(commandeTest());
   verifier("Tous les services d'envoi en échec : échec archivé, jamais d'exception", enEchec(m) && (m.essais?.length ?? 0) === 2, JSON.stringify(m.essais));
   const al = ntfyRecus.at(-1)!;
   verifier("Échec d'e-mail : alerte sur le téléphone, sans adresse ni nom", ntfyRecus.length === n + 1 && al.title === "E-mail non envoyé" && !JSON.stringify(al).includes("@") && !JSON.stringify(al).includes("A B"), JSON.stringify(al));
-  smtpPanne = false; delete process.env.BREVO_API_KEY;
+  smtpPanne = false; brevoPanne = false;
   const renvoi = await courriels.renvoyer(m);
-  verifier("E-mail en échec renvoyé ensuite par SMTP, à l'identique", renvoi.resultat === "envoyé" && renvoi.objet === m.objet);
+  verifier("E-mail en échec renvoyé ensuite, à l'identique, par Gmail", renvoi.resultat === "envoyé" && renvoi.pilote === "smtp" && renvoi.objet === m.objet);
   brevo.close();
 }
 {
@@ -332,6 +337,11 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   verifier("Veille : les e-mails non envoyés des 14 derniers jours sont signalés", echecsAttendus > 0 && avecEchecs.points === echecsAttendus && avecEchecs.resume === "envoye", JSON.stringify([echecsAttendus, avecEchecs]));
   const calme = await veille(Date.now() + 15 * 86_400_000);
   verifier("Veille : rien à signaler → aucun e-mail inutile", calme.points === 0 && calme.resume === "rien", JSON.stringify(calme));
+}
+{
+  // — Retour après connexion : uniquement vers une page de l'administration
+  verifier("Retour après connexion : pages de l'administration acceptées", suiteValide("/admin/commande/SA-261115-ABCDE") === "/admin/commande/SA-261115-ABCDE" && suiteValide("/admin") === "/admin" && suiteValide("/admin/diagnostic") === "/admin/diagnostic");
+  verifier("Retour après connexion : adresses extérieures ou détournées refusées", ["//evil.example", "https://evil.example", "/admin/../etc/passwd", "/admin//x", "/administrateur", "/admin/connexion", "javascript:alert(1)", "/autre", "", undefined, 42].every((v) => suiteValide(v) === "/admin"));
 }
 {
   // — Erreur technique : alerte sans donnée sensible, limitée en nombre
