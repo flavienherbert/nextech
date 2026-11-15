@@ -208,6 +208,23 @@ try {
     return attendus.every((k) => l.includes(k)) && l.every((k) => k.startsWith(PREFIXE)) ? ok(`${l.length} objet(s) listés`) : ko(`${l.length} objet(s) listés, fichiers attendus absents`);
   });
 
+  await verifier("fichiers", "6 envois simultanés par liens signés (plusieurs photos d'un coup) : tous intacts", async () => {
+    const lots = Array.from({ length: 6 }, (_, i) => ({ nom: `multi-${i}.png`, corps: octets(150_000 + i * 1000) }));
+    const urls = await Promise.all(lots.map((l) => lien(new PutObjectCommand({ Bucket, Key: cle(l.nom), ContentType: "image/png" }), 900)));
+    const rs = await Promise.all(urls.map((u, i) => fetch(u, { method: "PUT", headers: { "Content-Type": "image/png" }, body: lots[i].corps })));
+    for (const l of lots) crees.add(cle(l.nom));
+    if (rs.some((r) => !r.ok)) return ko(`HTTP ${rs.map((r) => r.status).join(", ")}`);
+    const relus = await Promise.all(lots.map(async (l) => depuis(await client.send(new GetObjectCommand({ Bucket, Key: cle(l.nom) })))));
+    return relus.every((b, i) => egal(b, lots[i].corps)) ? ok("6 fichiers relus à l'identique") : ko("contenu différent après relecture");
+  });
+
+  await verifier("fichiers", "Suppression d'un fichier : introuvable ensuite, absent de la liste", async () => {
+    await client.send(new DeleteObjectCommand({ Bucket, Key: cle("multi-0.png") }));
+    const e = await aEchoue(() => client.send(new HeadObjectCommand({ Bucket, Key: cle("multi-0.png") })));
+    const l = await listerPrefixe(PREFIXE);
+    return e && statut(e) === 404 && !l.includes(cle("multi-0.png")) ? ok("HTTP 404 après suppression") : ko(`lecture après suppression : ${e ? "HTTP " + statut(e) : "toujours présent"}, liste : ${l.includes(cle("multi-0.png")) ? "encore listé" : "absent"}`);
+  });
+
   if (arg("limite")) {
     await verifier("fichiers", "Limite de taille : un fichier de 51 Mo est refusé", async () => {
       const u = await lien(new PutObjectCommand({ Bucket, Key: cle("trop-gros.bin"), ContentType: "application/octet-stream" }), 900);
@@ -282,7 +299,7 @@ try {
 // ─────────────── Verdicts ───────────────
 const nb = (g, etat) => resultats[g].filter((r) => r.etat === etat).length;
 const f = resultats.fichiers, c = resultats.conditionnel;
-const fichiersOk = !erreurFatale && nb("fichiers", "ko") === 0 && f.length >= 11;
+const fichiersOk = !erreurFatale && nb("fichiers", "ko") === 0 && f.length >= 14;
 const condOk = !erreurFatale && c.length === 6 && nb("conditionnel", "ok") === 6;
 console.log(`
 ═══ RÉSULTAT ═══
