@@ -347,8 +347,9 @@ const faux2 = (await adminCtx.cookies()).find((k) => k.name === "sa_admin").valu
 verifier("Cookie de session modifié refusé", (await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: { Cookie: `sa_admin=${faux2}` } })).status === 401);
 const hd = (await fetch(`${BASE}/`)).headers, ha = (await fetch(`${BASE}/admin/connexion`)).headers, hc = (await fetch(`${BASE}/commande/${tokenClient}`)).headers;
 verifier("En-têtes de sécurité présents (CSP, anti-cadre, nosniff, HSTS)", hd.get("content-security-policy")?.includes("frame-ancestors 'none'") && hd.get("x-frame-options") === "DENY" && hd.get("x-content-type-options") === "nosniff" && Boolean(hd.get("strict-transport-security")) && !hd.get("x-powered-by"));
+verifier("Site entier non référencé tant que l'ouverture commerciale n'a pas eu lieu (noindex partout, robots.txt interdit tout)", /noindex/.test(hd.get("x-robots-tag") || "") && /Disallow:\s*\/\s*$/m.test(await (await fetch(`${BASE}/robots.txt`)).text()));
 verifier("Le lien secret de commande ne fuit pas vers d'autres sites (Referrer-Policy)", hc.get("referrer-policy") === "same-origin");
-verifier("Administration et pages de commande exclues des moteurs de recherche", ha.get("x-robots-tag")?.includes("noindex") && hc.get("x-robots-tag")?.includes("noindex") && (await (await fetch(`${BASE}/robots.txt`)).text()).includes("/admin"));
+verifier("Administration et pages de commande exclues des moteurs de recherche", ha.get("x-robots-tag")?.includes("noindex") && hc.get("x-robots-tag")?.includes("noindex") && /Disallow:\s*\//.test(await (await fetch(`${BASE}/robots.txt`)).text()));
 const t0 = Date.now();
 const ech = await fetch(`${BASE}/admin/connexion`, { redirect: "manual" });
 verifier("Page de connexion accessible, sans indice sur le mot de passe", ech.status === 200 && !(await ech.text()).includes(MDP));

@@ -32,7 +32,7 @@ if (PRE) {
   const mauvaises = []; for (const c of pagesPubliques) { const st = await code(c); if (st !== 200) mauvaises.push(`${c} → ${st}`); }
   verifier(`${pagesPubliques.length} pages publiques accessibles sans identifiant (200)`, mauvaises.length === 0, mauvaises.join(" | "));
   const hd = (await fetch(B + "/")).headers;
-  verifier("Site non référencé par les moteurs de recherche (X-Robots-Tag noindex, robots.txt)", /noindex/.test(hd.get("x-robots-tag") || "") && /Disallow:\s*\//.test(await (await fetch(B + "/robots.txt")).text()));
+  verifier("Site non référencé par les moteurs de recherche (X-Robots-Tag noindex, robots.txt)", /noindex/.test(hd.get("x-robots-tag") || "") && /Disallow:\s*\/\s*$/m.test(await (await fetch(B + "/robots.txt")).text()));
   const fermes = [];
   for (const c of ["/admin", "/admin/commande/SA-000000-AAAAA", "/admin/diagnostic", "/admin/courriels", "/admin/aide"]) { const [st, loc] = await redir(c); if (![301, 302, 303, 307, 308].includes(st) || !/\/admin\/connexion/.test(loc)) fermes.push(`${c} → ${st} ${loc}`); }
   verifier("Pages d'administration : renvoi vers la connexion sans session (jamais de contenu)", fermes.length === 0, fermes.join(" | "));
