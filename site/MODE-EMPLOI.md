@@ -68,7 +68,7 @@ Sur la page : le **brief complet**, les **fichiers du client** (bouton Télécha
 
 ## 3. Je livre les vidéos ici
 
-1. Sur la commande, colonne de droite, **Livrables** : **Ajouter** vos vidéos (mp4, mov, webm) et PDF. Jusqu'à 50 Mo par fichier.
+1. Sur la commande, colonne de droite, **Livrables** : **Ajouter** vos vidéos (mp4, mov, webm) et PDF. Jusqu'à 50 Mo par fichier. Le client reçoit par e-mail un lien privé par fichier, plus le lien de son espace.
 2. Panneau **Prochaine étape** : **Envoyer la livraison au client**.
 3. Le client reçoit un e-mail avec son lien privé. Il télécharge, puis **valide** ou **demande une retouche**.
 4. Validation → la commande passe en **Terminées** et la facture est émise. Retouche → vous êtes prévenu, la commande apparaît dans **Corrections demandées** ; vous corrigez, vous remplacez le fichier (« Retirer » puis ajoutez le nouveau), puis **Envoyer la version corrigée**.

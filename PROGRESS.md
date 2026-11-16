@@ -64,6 +64,8 @@
 
 - **16/11** — Organisation côté vendeur : e-mail immédiat à chaque commande payée (numéro, client, e-mail, offre, montant, lien direct) et notification sur le téléphone sans donnée personnelle ; chaîne d'envoi Brevo → Resend → Gmail (SMTP) contre le blocage de Brevo ; tableau de bord par catégories avec recherche ; panneau « Prochaine étape » et boutons guidés (production, livraison, correction, clôture, relance) ; alertes (paiement échoué, erreur serveur, e-mail non envoyé, correction demandée) ; tâche quotidienne (récap, relance du brief à 48 h). Testé : 154/154 en navigateur (disque), tests ciblés dans les quatre modes de stockage. Mode d'emploi : `site/MODE-EMPLOI.md`.
 
+- **16/11 (soir)** — Test de commande en ligne (paiement Stripe en mode test passé par le fondateur). Cause des erreurs 401 d'e-mail établie : Brevo (api.brevo.com) refuse les adresses IP de Netlify (réglage « Authorized IPs » du compte Brevo) ; clé et variables correctes. Message désormais explicite dans l'administration. Gmail (SMTP) en première voie dès que `SMTP_PASSWORD` est saisi. Brief : site internet facultatif. E-mails de livraison : un lien privé par fichier. Parcours livraison, correction, clôture vérifié en ligne sur Supabase (commande de test SA-261116-QKMKC).
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |
