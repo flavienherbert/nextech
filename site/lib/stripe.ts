@@ -20,3 +20,17 @@ export function stripe(): Stripe {
   }
   return client;
 }
+
+// Client dédié à la configuration du webhook : utilisable AVANT que STRIPE_WEBHOOK_SECRET existe (le client ordinaire
+// refuse tant que les paiements sont fermés), mais uniquement avec une clé de TEST (ou le simulateur local).
+export function stripeConfiguration(): Stripe {
+  const cle = env.stripeKey();
+  if (!cle) throw new Error("STRIPE_SECRET_KEY est absente.");
+  const hote = env.stripeApiHost();
+  if (!hote && !/^(sk|rk)_test_/.test(cle)) throw new Error("Ce n'est pas une clé de TEST (sk_test_… ou rk_test_…) : refus.");
+  if (hote) {
+    const u = new URL(hote);
+    return new Stripe(cle, { host: u.hostname, port: Number(u.port) || 80, protocol: u.protocol.replace(":", "") as "http" | "https", maxNetworkRetries: 0, timeout: 8000 });
+  }
+  return new Stripe(cle, { timeout: 15000, maxNetworkRetries: 1 });
+}

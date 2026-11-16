@@ -46,6 +46,8 @@ const page = (s) => `<!doctype html><html lang="fr"><meta charset="utf-8"><meta 
 const lire = (req) => new Promise((ok) => { let b = ""; req.on("data", (c) => (b += c)); req.on("end", () => ok(b)); });
 const json = (res, code, o) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(o)); };
 
+const points = new Map();
+
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const corps = await lire(req);
@@ -84,6 +86,18 @@ http.createServer(async (req, res) => {
     }
     res.writeHead(303, { Location: s.cancel_url }); return res.end();
   }
+
+  // Points d'accès webhook (configuration depuis l'administration).
+  if (url.pathname === "/v1/webhook_endpoints" && req.method === "GET") return json(res, 200, { object: "list", data: [...points.values()], has_more: false, url: "/v1/webhook_endpoints" });
+  if (url.pathname === "/v1/webhook_endpoints" && req.method === "POST") {
+    const p = new URLSearchParams(corps);
+    const id = `we_sim_${crypto.randomBytes(8).toString("hex")}`;
+    const w = { id, object: "webhook_endpoint", livemode: false, status: "enabled", url: p.get("url"), enabled_events: p.getAll("enabled_events[]").length ? p.getAll("enabled_events[]") : [...p.entries()].filter(([k]) => k.startsWith("enabled_events")).map(([, v]) => v), secret: `whsec_sim_${crypto.randomBytes(16).toString("hex")}` };
+    points.set(id, w);
+    return json(res, 200, w);
+  }
+  const suppr = url.pathname.match(/^\/v1\/webhook_endpoints\/([\w]+)$/);
+  if (suppr && req.method === "DELETE") { points.delete(suppr[1]); return json(res, 200, { id: suppr[1], object: "webhook_endpoint", deleted: true }); }
 
   // Outils de test : renvoyer un webhook arbitraire pour une session (signature valide).
   if (req.method === "POST" && url.pathname === "/_test/webhook") {
