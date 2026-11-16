@@ -13,6 +13,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const B = (process.argv[2] || "https://studio-accroche-preprod.netlify.app").replace(/\/$/, "");
 const ADM = process.env.ADMIN_PASSWORD || "", PRE = process.env.PREPROD_PASSWORD || "", TOPIC = process.env.NTFY_TOPIC || "";
 const FAUX = process.env.FAUX || "", MOCK = process.env.MOCK_STRIPE === "1";
+const COMMANDE_ID = process.env.COMMANDE_ID || ""; // reprendre sur une commande précise déjà payée dont le brief est reçu (production, livraison, correction, clôture)
 const COMMANDE_PAYEE = process.env.COMMANDE_PAYEE === "1"; // reprendre sur la commande de test la plus récente déjà payée (brief non reçu), sans repasser par la page de paiement
 const SANS_EMAIL = process.env.SANS_EMAIL === "1"; // e-mail pas encore configuré : les contrôles d'envoi deviennent de simples avertissements
 const EMAIL = process.env.EMAIL_TEST || "contactstudioaccroche+test@gmail.com";
@@ -70,7 +71,12 @@ try {
 
   // ───────── 1. Le client commande et paie (carte de test)
   let token, idRepris = "";
-  if (COMMANDE_PAYEE) {
+  if (COMMANDE_ID) {
+    console.log(`\n— Reprise sur la commande ${COMMANDE_ID} (déjà payée, brief reçu) —`);
+    await admin.goto(`${B}/admin/commande/${COMMANDE_ID}`);
+    token = (await admin.locator(".code").first().textContent()).trim().split("/").pop();
+    verifier(`Commande ${COMMANDE_ID} retrouvée dans l'administration`, /^[0-9a-f]{48}$/.test(token), token);
+  } else if (COMMANDE_PAYEE) {
     console.log("\n— Reprise sur une commande de test déjà payée —");
     await admin.goto(`${B}/admin?vue=attente`);
     const premier = admin.locator('.tableau a[href^="/admin/commande/"]').first();
@@ -112,12 +118,13 @@ try {
 
   // ───────── 2. Notification immédiate
   console.log("\n— Notification de commande —");
-  const push = await attendrePush((m) => m.title === "Nouvelle commande payée" && (m.time ? m.time * 1000 >= debut : true) && (!idRepris || String(m.message).includes(idRepris)));
+  const push = COMMANDE_ID ? undefined : await attendrePush((m) => m.title === "Nouvelle commande payée" && (m.time ? m.time * 1000 >= debut : true) && (!idRepris || String(m.message).includes(idRepris)));
   if (push === undefined) console.log("• Notifications téléphone non vérifiables ici (NTFY_TOPIC absent).");
   else verifier("Notification « Nouvelle commande payée » reçue sur le téléphone, avec lien direct, sans donnée personnelle", Boolean(push) && /\/admin\/commande\//.test(push.click || "") && !/@/.test(JSON.stringify(push)), JSON.stringify(push));
-  const idCommande = push?.message?.match(/SA-\d{6}-[A-Z0-9]{5}/)?.[0];
+  const idCommande = COMMANDE_ID || push?.message?.match(/SA-\d{6}-[A-Z0-9]{5}/)?.[0];
 
   // ───────── 3. Le client envoie son brief et un fichier
+  if (!COMMANDE_ID) {
   console.log("\n— Brief et fichiers du client —");
   const png = Buffer.concat([Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"), Buffer.from("-test-en-ligne-" + crypto.randomBytes(4).toString("hex"))]);
   await client.setInputFiles("#depot", [{ name: "photo-produit-test.png", mimeType: "image/png", buffer: png }]);
@@ -130,24 +137,35 @@ try {
   await client.selectOption('select[name="style"]', "Complice");
   await client.click('form.formulaire button[type="submit"]');
   await client.waitForSelector(".jalons");
-  verifier("Brief enregistré", true);
+  verifier("Brief enregistré sans site internet (champ facultatif laissé vide)", true);
+  }
 
   // ───────── 4. Le vendeur traite la commande
   console.log("\n— Traitement par le vendeur (administration) —");
-  await admin.goto(`${B}/admin?vue=toutes&q=${encodeURIComponent("Marque de test en ligne")}`);
-  const lien = admin.locator('.tableau a[href^="/admin/commande/"]').first();
-  const id = idCommande || (await lien.textContent()).trim();
-  verifier("La commande apparaît dans le tableau de bord (recherche par marque)", Boolean(id), "introuvable");
+  let id = idCommande;
+  if (!COMMANDE_ID) {
+    await admin.goto(`${B}/admin?vue=toutes&q=${encodeURIComponent("Marque de test en ligne")}`);
+    id = idCommande || (await admin.locator('.tableau a[href^="/admin/commande/"]').first().textContent()).trim();
+    verifier("La commande apparaît dans le tableau de bord (recherche par marque)", Boolean(id), "introuvable");
+  }
   await admin.goto(`${B}/admin/commande/${id}`);
   const texte = await admin.locator(".admin-grille").textContent();
-  verifier("Page de la commande : brief et fichier du client, rattachés à la bonne commande", ["Marque de test en ligne", "Produit de test", "photo-produit-test.png"].every((t) => texte.includes(t)));
-  const [dl] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${id}/"]`).first().click()]);
-  verifier("Téléchargement du fichier du client", dl.suggestedFilename() === "photo-produit-test.png");
-  await admin.click("button:has-text('Démarrer la production')");
-  await admin.waitForURL(/ok=production/);
+  if (!COMMANDE_ID) {
+    verifier("Page de la commande : brief et fichier du client, rattachés à la bonne commande", ["Marque de test en ligne", "Produit de test", "photo-produit-test.png"].every((t) => texte.includes(t)));
+    verifier("Brief sans site internet : aucune ligne « Lien » affichée, rien de cassé", !/Lien\s*https?:/.test(texte));
+    const [dl] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${id}/"]`).first().click()]);
+    verifier("Téléchargement du fichier du client", dl.suggestedFilename() === "photo-produit-test.png");
+  } else {
+    const nbFichiers = await admin.locator(`a[href^="/api/admin/fichier/${id}/"]`).count();
+    if (nbFichiers) { const [dl] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${id}/"]`).first().click()]); verifier("Téléchargement d'un fichier du client par l'administrateur", Boolean(dl.suggestedFilename())); }
+  }
+  if (await admin.locator("button:has-text('Démarrer la production')").count()) {
+    await admin.click("button:has-text('Démarrer la production')");
+    await admin.waitForURL(/ok=production/);
+  }
   const banniere = async () => (await admin.locator(".avis").allTextContents()).join(" ");
   const mailPart = async (r) => { const t = await banniere(); return /E-mail envoyé au client/.test(t) ? "oui" : /pas pu être envoyé/.test(t) ? "non" : r; };
-  verifierMail("Production démarrée : e-mail au client réellement expédié", (await mailPart("?")) === "oui", await banniere());
+  if (/ok=production/.test(admin.url())) verifierMail("Production démarrée : e-mail au client réellement expédié", (await mailPart("?")) === "oui", await banniere());
   const video = Buffer.concat([Buffer.from("00000018667479706d703432", "hex"), crypto.randomBytes(1024 * 1024)]);
   const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), crypto.randomBytes(4096)]);
   await admin.setInputFiles("#livrable", [{ name: "video-test.mp4", mimeType: "video/mp4", buffer: video }, { name: "script-test.pdf", mimeType: "application/pdf", buffer: pdf }]);
@@ -157,6 +175,17 @@ try {
   await admin.click("button:has-text('Envoyer la livraison au client')");
   await admin.waitForURL(/ok=livraison/);
   verifierMail("Livraison envoyée au client : e-mail réellement expédié", (await mailPart("?")) === "oui", await banniere());
+
+  // L'e-mail de livraison (archivé, qu'il soit parti ou non) contient un lien privé par fichier, qui fonctionne sans connexion.
+  await admin.goto(`${B}/admin/courriels`);
+  const blocLiv = admin.locator("details.courriel", { hasText: id }).filter({ hasText: "à valider" }).first();
+  await blocLiv.locator("summary").click();
+  const texteLiv = await blocLiv.locator("pre").textContent();
+  const liensMail = [...new Set([...texteLiv.matchAll(/https?:\/\/\S+\/api\/commande\/[0-9a-f]+\/fichier\/[0-9a-f]+/g)].map((x) => x[0]))];
+  const dlMail = await Promise.all(liensMail.map(async (u) => { const rr = await fetch(u, PRE ? { headers: { Authorization: "Basic " + Buffer.from("x:" + PRE).toString("base64") } } : {}); return { statut: rr.status, disp: rr.headers.get("content-disposition") || "", n: (await rr.arrayBuffer()).byteLength }; }));
+  verifier("E-mail de livraison : un lien privé par fichier (vidéo et PDF), qui télécharge sans aucune connexion, en pièce jointe", liensMail.length === 2 && dlMail.every((x) => x.statut === 200 && /attachment/.test(x.disp)) && dlMail.map((x) => x.n).sort((a, b) => a - b).join() === [pdf.length, video.length].sort((a, b) => a - b).join(), JSON.stringify({ liens: liensMail.length, dlMail }));
+  const mauvaisJeton = liensMail[0]?.replace(/\/commande\/[0-9a-f]+\//, `/commande/${"c".repeat(48)}/`);
+  verifier("Même lien avec un mauvais jeton : introuvable (404) — les fichiers restent privés", Boolean(mauvaisJeton) && (await fetch(mauvaisJeton)).status === 404);
 
   // ───────── 5. Le client télécharge, demande une correction
   console.log("\n— Livraison, correction et validation (client) —");
