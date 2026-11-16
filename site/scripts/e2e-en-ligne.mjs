@@ -13,6 +13,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const B = (process.argv[2] || "https://studio-accroche-preprod.netlify.app").replace(/\/$/, "");
 const ADM = process.env.ADMIN_PASSWORD || "", PRE = process.env.PREPROD_PASSWORD || "", TOPIC = process.env.NTFY_TOPIC || "";
 const FAUX = process.env.FAUX || "", MOCK = process.env.MOCK_STRIPE === "1";
+const COMMANDE_PAYEE = process.env.COMMANDE_PAYEE === "1"; // reprendre sur la commande de test la plus récente déjà payée (brief non reçu), sans repasser par la page de paiement
 const SANS_EMAIL = process.env.SANS_EMAIL === "1"; // e-mail pas encore configuré : les contrôles d'envoi deviennent de simples avertissements
 const EMAIL = process.env.EMAIL_TEST || "contactstudioaccroche+test@gmail.com";
 if (!ADM) { console.error("ADMIN_PASSWORD manquant."); process.exit(2); }
@@ -22,7 +23,7 @@ const verifier = (nom, ok, detail = "") => { if (!ok) echecs++; console.log(`${o
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 // Contrôle d'e-mail : un simple avertissement quand SANS_EMAIL=1.
 const verifierMail = (nom, ok, detail = "") => { if (SANS_EMAIL && !ok) console.log(`⚠ ${nom}  → ${detail || "e-mail non envoyé (attendu : service d'envoi non configuré)"}`); else verifier(nom, ok, detail); };
-const debut = Date.now() - 5000;
+const debut = Date.now() - (COMMANDE_PAYEE ? 45 * 60_000 : 5000);
 
 // Notifications du téléphone : relues sur ntfy.sh (ou sur les faux services en local).
 async function pushs() {
@@ -68,6 +69,19 @@ try {
   if (echecs) throw new Error("Prérequis manquants : le parcours ne peut pas être lancé. Corrigez les lignes ✗ ci-dessus (voir MISE-EN-LIGNE.md).");
 
   // ───────── 1. Le client commande et paie (carte de test)
+  let token, idRepris = "";
+  if (COMMANDE_PAYEE) {
+    console.log("\n— Reprise sur une commande de test déjà payée —");
+    await admin.goto(`${B}/admin?vue=attente`);
+    const premier = admin.locator('.tableau a[href^="/admin/commande/"]').first();
+    if (!(await premier.count())) throw new Error("Aucune commande payée en attente de brief : passez d'abord une commande de test.");
+    idRepris = (await premier.textContent()).trim();
+    await admin.goto(`${B}/admin/commande/${idRepris}`);
+    token = (await admin.locator(".code").first().textContent()).trim().split("/").pop();
+    await client.goto(`${B}/commande/${token}`, { waitUntil: "networkidle" });
+    await client.waitForSelector("form.formulaire", { timeout: 60000 });
+    verifier(`Commande ${idRepris} : payée (webhook signé de Stripe), formulaire de brief affiché`, true);
+  } else {
   console.log("\n— Commande et paiement (mode test) —");
   await client.goto(`${B}/commander/test`, { waitUntil: "networkidle" });
   await client.check('input[name="cgv"]'); await client.check('input[name="ia"]');
@@ -89,14 +103,16 @@ try {
     await pay.click();
   }
   await client.waitForURL(new RegExp(`${B.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/commande/`), { timeout: 90000 });
-  const token = new URL(client.url()).pathname.split("/").pop();
+  token = new URL(client.url()).pathname.split("/").pop();
   verifier("Retour sur le site après paiement", true);
   await client.waitForSelector("form.formulaire", { timeout: 60000 });
   verifier("Paiement confirmé par le webhook signé de Stripe : formulaire de brief affiché", true);
 
+  }
+
   // ───────── 2. Notification immédiate
   console.log("\n— Notification de commande —");
-  const push = await attendrePush((m) => m.title === "Nouvelle commande payée" && (m.time ? m.time * 1000 >= debut : true));
+  const push = await attendrePush((m) => m.title === "Nouvelle commande payée" && (m.time ? m.time * 1000 >= debut : true) && (!idRepris || String(m.message).includes(idRepris)));
   if (push === undefined) console.log("• Notifications téléphone non vérifiables ici (NTFY_TOPIC absent).");
   else verifier("Notification « Nouvelle commande payée » reçue sur le téléphone, avec lien direct, sans donnée personnelle", Boolean(push) && /\/admin\/commande\//.test(push.click || "") && !/@/.test(JSON.stringify(push)), JSON.stringify(push));
   const idCommande = push?.message?.match(/SA-\d{6}-[A-Z0-9]{5}/)?.[0];

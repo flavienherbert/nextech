@@ -100,7 +100,8 @@ async function base(): Promise<Section> {
     return executerSurBase(async (c) => {
       const v = await c.query("select version() as v, (select ssl from pg_stat_ssl where pid = pg_backend_pid()) as ssl");
       const lignes = [ok("Connexion", `${String(v.rows[0].v).split(" ").slice(0, 2).join(" ")}, ${Date.now() - t0} ms`)];
-      lignes.push(v.rows[0].ssl ? ok("Connexion chiffrée (SSL)") : avert("Connexion chiffrée (SSL)", "non chiffrée"));
+      const viaPooler = /\.pooler\.supabase\.com/.test(process.env.DATABASE_URL || "");
+      lignes.push(v.rows[0].ssl ? ok("Connexion chiffrée (SSL)") : viaPooler ? ok("Connexion chiffrée (SSL)", "chiffrée jusqu'au pooler Supabase (le dernier tronçon, interne à Supabase, est hors de notre portée)") : avert("Connexion chiffrée (SSL)", "non chiffrée"));
       const t = await c.query("select to_regclass('studio.documents') as t, (select relrowsecurity from pg_class where oid = to_regclass('studio.documents')) as rls");
       lignes.push(t.rows[0].t ? ok("Table studio.documents présente", schema === "creee" ? "créée automatiquement à l'instant (premier lancement)" : undefined) : ko("Table studio.documents présente", "absente et impossible à créer : vérifier les droits de l'utilisateur de DATABASE_URL"));
       lignes.push(t.rows[0].rls ? ok("Sécurité au niveau des lignes activée") : ko("Sécurité au niveau des lignes activée", "désactivée"));
