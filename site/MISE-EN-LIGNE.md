@@ -2,6 +2,17 @@
 
 > **Mise à jour du 15 novembre 2026 : Supabase remplace Cloudflare R2.** Le stockage des fichiers et la base de données sont désormais décrits dans `SUPABASE.md` (changements en attente de validation). Les étapes « Cloudflare R2 » ci-dessous sont conservées pour mémoire jusqu'à cette validation ; R2 n'a jamais été activé, rien n'y a été créé.
 
+## ⚠ Plafond de crédits Netlify atteint (16 novembre, soir)
+
+L'offre gratuite de Netlify donne 300 crédits par mois ; **chaque déploiement en consomme 15**. Les nombreux déploiements des deux premiers jours ont épuisé ce quota : les déploiements sont maintenant refusés (« Skipped due to account credit usage exceeded ») et Netlify refuse aussi la modification des variables d'environnement depuis l'extérieur. **Le site en ligne continue de répondre** avec la dernière version déployée, mais rien de nouveau ne peut être publié tant que le quota n'est pas rétabli.
+
+Vérifiez dans Netlify : *Team settings* (ou l'icône du compte), **Billing / Usage**, rubrique « Credits » : crédits utilisés et date de remise à zéro. Trois issues, à vous de choisir (aucune n'est lancée sans votre accord) :
+1. **Attendre la remise à zéro du quota** (gratuit). Une seule publication suffira ensuite : tout le code prêt est déjà poussé sur la branche.
+2. **Acheter des crédits ou passer à une offre payante** (payant, à votre décision uniquement).
+3. **Changer d'hébergeur** (travail important, à étudier séparément).
+
+Pour limiter les déploiements à l'avenir : un mot de passe d'application Gmail se saisit désormais dans **Administration, Réglages e-mail** (actif tout de suite, sans redéploiement), et les secrets ne passent plus par Netlify.
+
 ## Ce qu'il vous reste à faire — 3 blocs, environ 20 minutes (16 novembre)
 
 Tout le reste est fait et vérifié (voir `LANCEMENT.md`). Ces trois blocs demandent un compte ou un secret que vous seul pouvez fournir. Les secrets se saisissent **uniquement dans Netlify** (*Site configuration*, *Environment variables*, **Add a variable**, cocher **Contains secret values**), jamais dans la conversation. Après chaque bloc, dites-le-moi : je redéploie et je vérifie en ligne.

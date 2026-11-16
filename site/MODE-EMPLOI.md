@@ -104,6 +104,10 @@ Anti-avalanche : une même alerte n'est pas répétée plus d'une fois dans sa f
 
 Vous n'avez **jamais** à ouvrir le site pour savoir si une commande est arrivée : le téléphone et l'e-mail vous le disent.
 
+## 5 bis. Les e-mails ne partent pas ?
+
+Administration, **Réglages e-mail** : l'état du service d'envoi, et le champ où coller le mot de passe d'application Gmail (testé avant d'être enregistré, actif tout de suite). Puis **E-mails** : la liste de ce qui n'est pas parti, avec un bouton **Renvoyer ces e-mails maintenant** qui ne renvoie que ce qui est encore utile (jamais de doublon, jamais un message périmé à un client).
+
 ## 6. Accéder à l'administration
 
 Depuis n'importe quel appareil : `https://studio-accroche-preprod.netlify.app/admin`. Une fois connecté, vous restez connecté 7 jours sur cet appareil. Un lien de notification (« Ouvrir la commande ») vous ramène directement sur la commande après connexion. Le mot de passe est la variable `ADMIN_PASSWORD` de Netlify (*Site configuration*, *Environment variables*).

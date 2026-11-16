@@ -66,6 +66,8 @@
 
 - **16/11 (soir)** — Test de commande en ligne (paiement Stripe en mode test passé par le fondateur). Cause des erreurs 401 d'e-mail établie : Brevo (api.brevo.com) refuse les adresses IP de Netlify (réglage « Authorized IPs » du compte Brevo) ; clé et variables correctes. Message désormais explicite dans l'administration. Gmail (SMTP) en première voie dès que `SMTP_PASSWORD` est saisi. Brief : site internet facultatif. E-mails de livraison : un lien privé par fichier. Parcours livraison, correction, clôture vérifié en ligne sur Supabase (commande de test SA-261116-QKMKC).
 
+- **16/11 (nuit)** — E-mails : Gmail (SMTP) est refusé par Google (« 535 BadCredentials » : mot de passe d'application à régénérer avec le bon compte). Ajouts prêts mais non déployés : page Administration > Réglages e-mail (mot de passe testé puis enregistré chiffré en base, actif sans redéploiement, renvoi automatique des e-mails utiles), tri des e-mails en échec (utiles / périmés / déjà renvoyés / doublons) et renvoi groupé sans doublon. **Blocage : le plafond de 300 crédits de l'offre gratuite Netlify est atteint (15 crédits par déploiement) ; plus aucun déploiement possible tant que le quota n'est pas rétabli** (voir `site/MISE-EN-LIGNE.md`).
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |
