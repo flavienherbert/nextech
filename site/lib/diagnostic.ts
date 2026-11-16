@@ -17,7 +17,7 @@ import { configurationStockage } from "./supabase-config.mjs";
 import { LIVRABLE_MAX_MO } from "./fichiers";
 import nodemailer from "nodemailer";
 import { pushConfigure } from "./alertes";
-import { enEchec, envoiReel, servicesEnvoi } from "./mail";
+import { enEchec, envoiReel, motDePasseSmtp, servicesEnvoi } from "./mail";
 import { stripe } from "./stripe";
 import { store, type Commande } from "./store";
 
@@ -262,9 +262,13 @@ async function courriel(): Promise<Section> {
   const secours = services[0] !== "brevo"; // Brevo n'est qu'un relais de secours dès que Gmail est configuré : sa panne n'est alors qu'un avertissement
   l.push(expediteur ? ok("Expéditeur (MAIL_FROM)", expediteur) : ko("Expéditeur (MAIL_FROM)", "absent"));
   if (services.includes("smtp")) {
+    // Forme du mot de passe d'application (jamais sa valeur) : un mot de passe d'application Google = 16 lettres minuscules.
+    const brutMdp = process.env.SMTP_PASSWORD || "", propre = motDePasseSmtp();
+    const forme = /^[a-z]{16}$/.test(propre);
+    l.push(forme ? ok("Mot de passe d'application Gmail (SMTP_PASSWORD)", `forme correcte (16 lettres)${brutMdp !== propre ? ", espaces retirés automatiquement" : ""}`) : avert("Mot de passe d'application Gmail (SMTP_PASSWORD)", `${propre.length} caractère(s), ${/[A-Z0-9]/.test(propre) ? "contient des chiffres ou majuscules" : "lettres minuscules"} : un mot de passe d'application Google fait exactement 16 lettres minuscules (sans espace). ${propre.length === 16 ? "" : "La valeur saisie n'a pas la bonne longueur : s'agit-il bien du mot de passe d'application, et non du mot de passe habituel du compte ?"}`));
     l.push(...(await essayer("Messagerie SMTP", async () => {
       const port = Number(process.env.SMTP_PORT) || 465;
-      const t = nodemailer.createTransport({ host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }, connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000 });
+      const t = nodemailer.createTransport({ host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465, auth: { user: (process.env.SMTP_USER || "").trim(), pass: motDePasseSmtp() }, connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000 });
       try {
         await t.verify(); // connexion + authentification, sans envoyer d'e-mail
         return ok("Messagerie SMTP : connexion et mot de passe valides", `${process.env.SMTP_HOST || "smtp.gmail.com"}:${port} avec ${process.env.SMTP_USER}`);

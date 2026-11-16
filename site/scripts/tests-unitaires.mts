@@ -6,7 +6,7 @@ import { store, maintenant, nouveauNumero, nouveauToken, type Commande } from ".
 import { obstaclesFacture, emettreFacture } from "../lib/factures";
 import { signatureConforme } from "../lib/fichiers";
 import { purger } from "../lib/purge";
-import { courriels, enEchec, envoiReel } from "../lib/mail";
+import { courriels, enEchec, envoiReel, motDePasseSmtp } from "../lib/mail";
 import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
 import { deduireSupabase, configurationStockage } from "../lib/supabase-config.mjs";
 import { analyserAdresseBase, executerDiagnostic } from "../lib/diagnostic";
@@ -224,7 +224,7 @@ const { SMTPServer } = createRequire(import.meta.url)("smtp-server");
 const ntfyRecus: Record<string, unknown>[] = []; let ntfyPanne = false;
 const ntfy = http.createServer((req, res) => { let b = ""; req.on("data", (d) => (b += d)); req.on("end", () => { if (ntfyPanne) { res.writeHead(503); return res.end("{}"); } ntfyRecus.push(JSON.parse(b)); res.writeHead(200); res.end("{}"); }); }).listen(0, "127.0.0.1");
 const smtpRecus: { a: string[]; texte: string }[] = []; let smtpPanne = false;
-const smtp = new SMTPServer({ authOptional: true, disabledCommands: ["STARTTLS"], allowInsecureAuth: true, onAuth: (a: { username: string }, _s: unknown, cb: (e: Error | null, r?: unknown) => void) => (smtpPanne ? cb(new Error("535 refusé")) : cb(null, { user: a.username })), onData(f: NodeJS.ReadableStream, sess: { envelope: { rcptTo: { address: string }[] } }, cb: (e?: Error) => void) { let t = ""; f.on("data", (d) => (t += d)); f.on("end", () => { smtpRecus.push({ a: sess.envelope.rcptTo.map((x) => x.address), texte: t }); cb(); }); } }).listen(0, "127.0.0.1");
+const smtp = new SMTPServer({ authOptional: true, disabledCommands: ["STARTTLS"], allowInsecureAuth: true, onAuth: (a: { username: string; password?: string }, _s: unknown, cb: (e: Error | null, r?: unknown) => void) => (smtpPanne || a.password !== "abcdefghijklmnop" ? cb(new Error("535-5.7.8 Username and Password not accepted")) : cb(null, { user: a.username })), onData(f: NodeJS.ReadableStream, sess: { envelope: { rcptTo: { address: string }[] } }, cb: (e?: Error) => void) { let t = ""; f.on("data", (d) => (t += d)); f.on("end", () => { smtpRecus.push({ a: sess.envelope.rcptTo.map((x) => x.address), texte: t }); cb(); }); } }).listen(0, "127.0.0.1");
 await new Promise((r) => setTimeout(r, 100));
 const portNtfy = (ntfy.address() as { port: number }).port, portSmtp = (smtp.address() as { port: number }).port;
 process.env.NTFY_URL = `http://127.0.0.1:${portNtfy}`; process.env.NTFY_TOPIC = "sujet-de-test"; process.env.ADMIN_EMAIL = "vendeur@exemple.fr"; process.env.SITE_URL = "https://studio.exemple";
@@ -262,11 +262,12 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
 }
 {
   // — Ordre des services d'envoi : Gmail (SMTP) d'abord, Brevo en secours
-  process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = String(portSmtp); process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "secret-de-test";
+  process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = String(portSmtp); process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "abcd efgh ijkl mnop"; // copié tel quel depuis Google : avec des espaces
   let brevoPanne = false; let brevoAppels = 0;
   const brevo = http.createServer((_q, r) => { brevoAppels++; r.writeHead(brevoPanne ? 401 : 201, { "Content-Type": "application/json" }); r.end(brevoPanne ? '{"message":"We have detected you are using an unrecognised IP address 3.15.41.111. If you performed this action make sure to add the new IP address in the list of authorized IPs"}' : '{"messageId":"x"}'); }).listen(0, "127.0.0.1");
   await new Promise((r) => setTimeout(r, 50));
   process.env.BREVO_API_KEY = "cle"; process.env.BREVO_API_BASE = `http://127.0.0.1:${(brevo.address() as { port: number }).port}`;
+  verifier("Mot de passe d'application copié avec ses espaces : les espaces sont retirés avant l'envoi", motDePasseSmtp() === "abcdefghijklmnop");
   verifier("Services d'envoi : Gmail (SMTP) d'abord, puis Brevo", envoiReel() === "smtp puis brevo", String(envoiReel()));
   const n = ntfyRecus.length; const cmd = commandeTest(); await store.creerCommande(cmd);
   let m = await courriels.adminPaiement(cmd);

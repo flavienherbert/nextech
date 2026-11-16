@@ -48,6 +48,9 @@ const viaHttp = async (requete: Promise<Response>): Promise<Resultat> => {
 // Messagerie classique (SMTP) : par défaut le compte Gmail du studio avec un « mot de passe d'application ».
 // Voie principale dès qu'elle est configurée (SMTP_USER + SMTP_PASSWORD) ; Brevo et Resend prennent le relais en cas d'échec.
 export const smtpConfigure = () => Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+// Google affiche le mot de passe d'application par groupes de 4 lettres séparés par des espaces (« abcd efgh ijkl mnop ») :
+// copié tel quel, il contient des espaces (ou des espaces insécables) qu'il faut retirer.
+export const motDePasseSmtp = () => (process.env.SMTP_PASSWORD || "").replace(/[\s\u00a0\u200b"']/g, "");
 
 // Services d'envoi dans l'ordre d'essai : le suivant prend le relais quand le précédent échoue.
 // La messagerie SMTP (Gmail du studio) passe en premier : l'expéditeur étant une adresse Gmail, seul Gmail peut signer
@@ -64,7 +67,7 @@ function transports(): Transport[] {
           const port = Number(process.env.SMTP_PORT) || 465;
           const t = nodemailer.createTransport({
             host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465,
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+            auth: { user: (process.env.SMTP_USER || "").trim(), pass: motDePasseSmtp() },
             connectionTimeout: delai(), greetingTimeout: delai(), socketTimeout: delai() + 4000,
           });
           await t.sendMail({ from: `"${e.nom}" <${e.adresse}>`, to: a, subject: objet, html, text: texte, ...(env.legal().email ? { replyTo: env.legal().email } : {}) });
