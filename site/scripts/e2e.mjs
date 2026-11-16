@@ -549,6 +549,21 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.waitForURL(/ok=renvoi/);
   verifier("Service rétabli : l'e-mail en échec est renvoyé en un clic et arrive au vendeur", (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Nouvelle commande payée") && m.objet.includes(MP.c.id)));
 
+  // — Renvoi groupé : seulement ce qui est encore utile, sans aucun doublon
+  await admin.goto(`${BASE}/admin/courriels`);
+  verifier("Page E-mails : les e-mails encore utiles sont listés avec la raison, et le bouton de renvoi groupé est proposé", (await admin.locator("main").textContent()).includes("encore utile") && (await admin.locator("button:has-text('Renvoyer ces e-mails maintenant')").count()) === 1);
+  await admin.click("button:has-text('Renvoyer ces e-mails maintenant')");
+  await admin.waitForURL(/lot=/);
+  const apresLot = await mails();
+  const pourClient = apresLot.filter((m) => m.a.includes("panne@exemple.fr") && m.objet.includes(MP.c.id));
+  const notifsAdmin = apresLot.filter((m) => m.a.includes("admin@example.com") && m.objet.includes("Nouvelle commande payée") && m.objet.includes(MP.c.id));
+  verifier("Renvoi groupé : l'e-mail du client part une seule fois, la notification déjà renvoyée n'est pas dupliquée", pourClient.length === 1 && notifsAdmin.length === 1, JSON.stringify({ client: pourClient.length, admin: notifsAdmin.length }));
+  await admin.goto(`${BASE}/admin/courriels`);
+  verifier("Après le renvoi groupé : plus aucun e-mail utile en attente (bouton absent), rien à renvoyer deux fois", (await admin.locator("button:has-text('Renvoyer ces e-mails maintenant')").count()) === 0 && (await admin.locator("main").textContent()).includes("Aucun e-mail utile"));
+  const avantDeuxieme = (await mails()).length;
+  await admin.goto(`${BASE}/admin`);
+  verifier("Tableau de bord : le bandeau « e-mail non envoyé » a disparu, aucun e-mail supplémentaire n'est parti", !(await admin.locator(".avis-erreur").allTextContents()).join(" ").includes("non envoyé") && (await mails()).length === avantDeuxieme);
+
   // — Diagnostic et notification de test
   await admin.goto(`${BASE}/admin/diagnostic`);
   const texteDiag = await admin.locator("main").textContent();

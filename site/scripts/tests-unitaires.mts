@@ -15,6 +15,7 @@ import { alerter } from "../lib/alertes";
 import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief, validerBrief } from "../lib/commandes";
 import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, trier, VUES } from "../lib/suivi";
 import { veille } from "../lib/veille";
+import { echecsUtiles, trierEchecs } from "../lib/rattrapage";
 import { onRequestError } from "../instrumentation";
 import { suiteValide } from "../lib/auth";
 
@@ -361,9 +362,12 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const nb = (await store.courriels(sansBrief.id)).length; const b2 = await veille();
   verifier("Veille : le client n'est relancé qu'une seule fois", b2.relances === 0 && (await store.courriels(sansBrief.id)).length === nb);
   for (const c of await store.commandes()) if (c.paiement.etat === "paye") await store.modifier(c.id, (x) => { x.statut = "livree"; x.livreeLe = maintenant(); x.vueLe = maintenant(); });
-  const echecsAttendus = (await store.courriels()).filter((m) => enEchec(m)).length;
+  const active = commandeTest({ statut: "attente_infos", brief: undefined, vueLe: maintenant(), paiement: { etat: "paye", sessionId: "act", payeLe: maintenant(), emailStripe: "active@exemple.fr", mode: "s" } }); await store.creerCommande(active);
+  const echec = { id: "ech" + Date.now(), date: maintenant(), a: "vendeur@exemple.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${active.id} — Essai — 25 €`, html: "", texte: "x", commande: active.id, pilote: "smtp", resultat: "échec smtp : test" };
+  await store.archiverCourriel(echec);
   const avecEchecs = await veille();
-  verifier("Veille : les e-mails non envoyés des 14 derniers jours sont signalés", echecsAttendus > 0 && avecEchecs.points === echecsAttendus && avecEchecs.resume === "envoye", JSON.stringify([echecsAttendus, avecEchecs]));
+  verifier("Veille : un e-mail non envoyé encore utile est signalé (les périmés ne le sont pas)", avecEchecs.points === 1 && avecEchecs.resume === "envoye", JSON.stringify(avecEchecs));
+  await store.modifier(active.id, (x) => { x.statut = "livree"; x.livreeLe = maintenant(); });
   const calme = await veille(Date.now() + 15 * 86_400_000);
   verifier("Veille : rien à signaler → aucun e-mail inutile", calme.points === 0 && calme.resume === "rien", JSON.stringify(calme));
 }
@@ -379,6 +383,33 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const mauvais = ["pas un lien", "javascript:alert(1)", "https://", "ftp://exemple.fr", "http://localhost"].map((l) => validerBrief({ ...base, lien: l }));
   verifier("Brief avec un lien manifestement faux ou dangereux : refusé avec un message clair", mauvais.every((r) => !r.brief && /pas l'air valide/.test(r.erreurs.lien || "")), JSON.stringify(mauvais.map((r) => r.erreurs.lien)));
   verifier("Brief : les autres champs obligatoires le restent", Boolean(validerBrief({ ...base, lien: "", marque: "" }).erreurs.marque) && Boolean(validerBrief({ ...base, lien: "", email: "x" }).erreurs.email));
+}
+{
+  // — Tri des e-mails en échec : ne renvoyer que ce qui est encore utile, jamais de doublon
+  const il = (j: number) => new Date(Date.now() - j * 86_400_000).toISOString();
+  const mail = (o: Partial<import("../lib/store").Courriel>): import("../lib/store").Courriel => ({ id: Math.random().toString(36).slice(2, 10), date: il(1), a: "client@exemple.fr", objet: "x", html: "", texte: "", pilote: "smtp", resultat: "échec smtp : refusé", ...o });
+  const attente = commandeTest({ statut: "attente_infos" }), livree = commandeTest({ statut: "livree" }), enValid = commandeTest({ statut: "attente_validation" });
+  const cs = [attente, livree, enValid];
+  const e1 = mail({ commande: attente.id, a: "admin@x.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${attente.id} — Essai — 25 €` });
+  const e2 = mail({ commande: livree.id, objet: `Commande ${livree.id} confirmée — il nous manque votre brief` });
+  const e3 = mail({ commande: livree.id, objet: `Commande ${livree.id} — vos fichiers sont disponibles` });
+  const e4 = mail({ commande: enValid.id, objet: `Commande ${enValid.id} — à valider`, date: il(2) });
+  const e4b = mail({ commande: enValid.id, objet: `Commande ${enValid.id} — à valider`, date: il(1) });
+  const e5 = mail({ a: "admin@x.fr", objet: "[Studio Accroche] ⚠ Test de notification", commande: undefined });
+  const e6 = mail({ commande: attente.id, date: il(20), objet: `Commande ${attente.id} confirmée — il nous manque votre brief` });
+  const e7 = mail({ commande: "SA-000000-ZZZZZ", objet: "Commande SA-000000-ZZZZZ — production lancée" });
+  const e8 = mail({ commande: attente.id, objet: `Commande ${attente.id} confirmée — il nous manque votre brief`, date: il(3) });
+  const reussi = mail({ commande: attente.id, objet: e8.objet, resultat: "envoyé", date: il(0.5) });
+  const d = (liste: import("../lib/store").Courriel[]) => Object.fromEntries(trierEchecs(liste, cs).map((x) => [x.courriel.id, x.action]));
+  const r1 = d([e1, e2, e3, e4, e4b, e5, e6, e7]);
+  verifier("Tri : notification de nouvelle commande d'une commande encore active → à renvoyer", r1[e1.id] === "renvoyer");
+  verifier("Tri : « il nous manque votre brief » alors que la commande est livrée → périmé (pas de message absurde au client)", r1[e2.id] === "obsolete");
+  verifier("Tri : e-mail de livraison finale d'une commande livrée → à renvoyer", r1[e3.id] === "renvoyer");
+  verifier("Tri : deux échecs identiques → le plus récent à renvoyer, l'ancien en doublon", r1[e4b.id] === "renvoyer" && r1[e4.id] === "doublon");
+  verifier("Tri : alerte technique déjà signalée sur le téléphone, échec de plus de 14 jours, commande introuvable → périmés", r1[e5.id] === "obsolete" && r1[e6.id] === "obsolete" && r1[e7.id] === "obsolete");
+  const r2 = d([e8, reussi]);
+  verifier("Tri : un e-mail identique déjà renvoyé avec succès plus tard → « déjà renvoyé » (aucun doublon possible)", r2[e8.id] === "deja_envoye" && echecsUtiles([e8, reussi], cs).length === 0);
+  verifier("Tri : seul le dernier e-mail utile est à renvoyer, sans compter les autres", echecsUtiles([e1, e2, e3, e4, e4b, e5, e6, e7], cs).map((x) => x.courriel.id).sort().join() === [e1.id, e3.id, e4b.id].sort().join());
 }
 {
   // — Retour après connexion : uniquement vers une page de l'administration

@@ -8,6 +8,7 @@ import { emettreFacture } from "@/lib/factures";
 import { alerter, notificationDeTest } from "@/lib/alertes";
 import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
 import { courriels, enEchec } from "@/lib/mail";
+import { trierEchecs } from "@/lib/rattrapage";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
 export async function connexion(form: FormData) {
@@ -37,6 +38,19 @@ export async function renvoyerCourriel(form: FormData) {
   if (!m || !enEchec(m)) redirect("/admin/courriels?erreur=renvoi");
   const r = await courriels.renvoyer(m);
   redirect(`/admin/courriels?${enEchec(r) ? "erreur" : "ok"}=renvoi`);
+}
+
+// Renvoie d'un clic tous les e-mails en échec qui sont encore utiles. Idempotent : un e-mail déjà renvoyé avec succès,
+// un doublon ou un message périmé n'est jamais renvoyé (aucun doublon pour les clients).
+export async function renvoyerUtiles() {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const decisions = trierEchecs(await store.courriels(), await store.commandes()).filter((d) => d.action === "renvoyer");
+  let ok = 0, ko = 0;
+  for (const d of decisions) {
+    const r = await courriels.renvoyer(d.courriel);
+    if (enEchec(r)) ko++; else ok++;
+  }
+  redirect(`/admin/courriels?lot=${ok}-${ko}`);
 }
 
 export async function deconnexion() {

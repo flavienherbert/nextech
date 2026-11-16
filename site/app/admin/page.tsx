@@ -5,7 +5,8 @@ import { pushConfigure } from "@/lib/alertes";
 import { exigerAdmin } from "@/lib/auth";
 import { env, modePaiement } from "@/lib/env";
 import { euros, formuleParId } from "@/lib/formules";
-import { enEchec, envoiReel } from "@/lib/mail";
+import { envoiReel } from "@/lib/mail";
+import { echecsUtiles } from "@/lib/rattrapage";
 import { depot } from "@/lib/depot";
 import { purger } from "@/lib/purge";
 import { nomStatut, store } from "@/lib/store";
@@ -40,9 +41,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const affichees = liste.slice((page - 1) * TAILLE_PAGE, page * TAILLE_PAGE);
   const lien = (v: Vue, n = 1) => `/admin?vue=${v}${recherche ? `&q=${encodeURIComponent(recherche)}` : ""}${n > 1 ? `&page=${n}` : ""}`;
 
-  const recent = maintenant - 14 * 86_400_000;
   const reel = envoiReel();
-  const echecs = reel ? (await store.courriels()).filter((m) => enEchec(m) && new Date(m.date).getTime() > recent).length : 0;
+  const echecs = reel ? echecsUtiles(await store.courriels(), toutes, maintenant).length : 0;
   const alertesActives = pushConfigure();
   const aide = VUES.find((v) => v.id === vue)!;
 

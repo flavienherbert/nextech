@@ -4,6 +4,7 @@ import { alerter } from "./alertes";
 import { env } from "./env";
 import { euros, formuleParId } from "./formules";
 import { courriels, enEchec } from "./mail";
+import { echecsUtiles } from "./rattrapage";
 import { correctionOuverte, echeance, enRetard, payee } from "./suivi";
 import { journal, maintenant, store, type Commande } from "./store";
 
@@ -41,7 +42,7 @@ export async function veille(maintenantMs = Date.now()): Promise<BilanVeille> {
     { titre: "Brief manquant depuis plus de 48 h", elements: payees.filter((c) => c.statut === "attente_infos" && age(c.paiement.payeLe) > 48 * H).map((c) => `${c.id} — ${c.paiement.emailStripe || qui(c)} — payée le ${quand(c.paiement.payeLe)}${c.relanceBriefLe ? " (client relancé)" : ""}`) },
     { titre: "Livraisons sans réponse depuis plus de 7 jours (à clôturer)", elements: payees.filter((c) => c.statut === "attente_validation" && age(c.historique.filter((h) => /livraison envoyée|version corrigée|passé à « attente_validation/i.test(h.evenement)).at(-1)?.date || c.paiement.payeLe) > 7 * 24 * H).map((c) => `${c.id} — ${qui(c)}`) },
   ];
-  const echecs = (await store.courriels()).filter((m) => enEchec(m) && age(m.date) < 14 * 24 * H);
+  const echecs = echecsUtiles(await store.courriels(), toutes, maintenantMs).map((d) => d.courriel); // seulement ceux qui sont encore utiles
   rubriques.push({ titre: "E-mails non envoyés (14 derniers jours)", elements: echecs.map((m) => `${m.objet} — à ${m.a || "—"} — ${quand(m.date)}`) });
 
   const actives = rubriques.filter((r) => r.elements.length > 0);

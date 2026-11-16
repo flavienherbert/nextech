@@ -18,6 +18,7 @@ import { LIVRABLE_MAX_MO } from "./fichiers";
 import nodemailer from "nodemailer";
 import { pushConfigure } from "./alertes";
 import { enEchec, envoiReel, motDePasseSmtp, servicesEnvoi } from "./mail";
+import { echecsUtiles } from "./rattrapage";
 import { stripe } from "./stripe";
 import { store, type Commande } from "./store";
 
@@ -314,9 +315,8 @@ async function notifications(): Promise<Section> {
   l.push(env.adminEmail() ? ok("Adresse qui reçoit les commandes (ADMIN_EMAIL)", env.adminEmail()) : ko("Adresse qui reçoit les commandes (ADMIN_EMAIL)", "absente : vous ne seriez pas prévenu par e-mail"));
   l.push(pushConfigure() ? ok("Notifications sur le téléphone (ntfy)", "actives") : avert("Notifications sur le téléphone (ntfy)", "non activées : NTFY_TOPIC absent. Sans elles, si l'envoi d'e-mails tombe en panne, rien ne vous prévient."));
   l.push(process.env.TACHES_SECRET && process.env.TACHES_SECRET.length >= 24 ? ok("Tâche quotidienne (récap, relance du brief, purge)", "secret configuré") : avert("Tâche quotidienne (récap, relance du brief, purge)", "TACHES_SECRET absent ou trop court (24 caractères minimum) : la tâche est désactivée"));
-  const recent = Date.now() - 14 * 86_400_000;
   try {
-    const echecs = (await store.courriels()).filter((m) => enEchec(m) && new Date(m.date).getTime() > recent).length;
+    const echecs = echecsUtiles(await store.courriels(), await store.commandes()).length;
     l.push(echecs === 0 ? ok("E-mails non envoyés (14 derniers jours)", "aucun") : ko("E-mails non envoyés (14 derniers jours)", `${echecs} : ouvrez la page E-mails pour les renvoyer`));
   } catch (e) {
     l.push(ko("Lecture de l'archive des e-mails", court(e)));
