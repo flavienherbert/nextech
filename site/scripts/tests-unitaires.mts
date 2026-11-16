@@ -12,7 +12,7 @@ import { deduireSupabase, configurationStockage } from "../lib/supabase-config.m
 import { analyserAdresseBase, executerDiagnostic } from "../lib/diagnostic";
 import { createRequire } from "node:module";
 import { alerter } from "../lib/alertes";
-import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief } from "../lib/commandes";
+import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief, validerBrief } from "../lib/commandes";
 import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, trier, VUES } from "../lib/suivi";
 import { veille } from "../lib/veille";
 import { onRequestError } from "../instrumentation";
@@ -264,7 +264,7 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   // — Ordre des services d'envoi : Gmail (SMTP) d'abord, Brevo en secours
   process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = String(portSmtp); process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "secret-de-test";
   let brevoPanne = false; let brevoAppels = 0;
-  const brevo = http.createServer((_q, r) => { brevoAppels++; r.writeHead(brevoPanne ? 401 : 201, { "Content-Type": "application/json" }); r.end(brevoPanne ? '{"message":"unrecognised IP address"}' : '{"messageId":"x"}'); }).listen(0, "127.0.0.1");
+  const brevo = http.createServer((_q, r) => { brevoAppels++; r.writeHead(brevoPanne ? 401 : 201, { "Content-Type": "application/json" }); r.end(brevoPanne ? '{"message":"We have detected you are using an unrecognised IP address 3.15.41.111. If you performed this action make sure to add the new IP address in the list of authorized IPs"}' : '{"messageId":"x"}'); }).listen(0, "127.0.0.1");
   await new Promise((r) => setTimeout(r, 50));
   process.env.BREVO_API_KEY = "cle"; process.env.BREVO_API_BASE = `http://127.0.0.1:${(brevo.address() as { port: number }).port}`;
   verifier("Services d'envoi : Gmail (SMTP) d'abord, puis Brevo", envoiReel() === "smtp puis brevo", String(envoiReel()));
@@ -281,6 +281,7 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const al = ntfyRecus.at(-1)!;
   verifier("Échec d'e-mail : alerte sur le téléphone, sans adresse ni nom", ntfyRecus.length === n + 1 && al.title === "E-mail non envoyé" && !JSON.stringify(al).includes("@") && !JSON.stringify(al).includes("A B"), JSON.stringify(al));
   smtpPanne = false; brevoPanne = false;
+  verifier("Brevo refuse l'adresse IP du serveur (401) : la cause est écrite en clair dans l'archive, avec la marche à suivre", m.essais!.some((e) => /Brevo refuse l'adresse IP du serveur/.test(e) && /Authorized IPs/.test(e)), JSON.stringify(m.essais));
   const renvoi = await courriels.renvoyer(m);
   verifier("E-mail en échec renvoyé ensuite, à l'identique, par Gmail", renvoi.resultat === "envoyé" && renvoi.pilote === "smtp" && renvoi.objet === m.objet);
   brevo.close();
@@ -331,6 +332,12 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   r = await envoyerLivraison(cmd.id);
   const apres = (await store.commande(cmd.id))!;
   verifier("Envoi de la version corrigée : « en attente de validation », retouche marquée traitée, e-mail « corrigée »", apres.statut === "attente_validation" && apres.retouchesDemandees.every((x) => x.traiteeLe) && r.courrielOk === true && (await store.courriels(cmd.id)).some((m) => m.objet.includes("version corrigée")), JSON.stringify(r));
+  {
+    const livre = (await store.commande(cmd.id))!;
+    const mail = (await store.courriels(cmd.id)).find((x) => x.objet.includes("version corrigée"))!;
+    const lienFichier = `${process.env.SITE_URL}/api/commande/${livre.token}/fichier/${livre.livrables[0].id}`;
+    verifier("E-mail de livraison : un lien de téléchargement privé par fichier, dans le HTML et dans la version texte", mail.html.includes(lienFichier) && mail.texte.includes(lienFichier) && mail.texte.includes("v.mp4") && /ne les partagez pas/.test(mail.texte), mail.texte.slice(0, 400));
+  }
   const avant = await nbMails(); r = await envoyerLivraison(cmd.id);
   verifier("Renvoyer l'e-mail de livraison : un nouvel e-mail, statut inchangé", r.courrielOk === true && (await nbMails()) === avant + 1 && (await store.commande(cmd.id))!.statut === "attente_validation");
   r = await cloturer(cmd.id);
@@ -358,6 +365,19 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   verifier("Veille : les e-mails non envoyés des 14 derniers jours sont signalés", echecsAttendus > 0 && avecEchecs.points === echecsAttendus && avecEchecs.resume === "envoye", JSON.stringify([echecsAttendus, avecEchecs]));
   const calme = await veille(Date.now() + 15 * 86_400_000);
   verifier("Veille : rien à signaler → aucun e-mail inutile", calme.points === 0 && calme.resume === "rien", JSON.stringify(calme));
+}
+{
+  // — Brief : le site internet est facultatif
+  const base = { nom: "Jean Dupont", email: "jean@exemple.fr", marque: "Ma Marque", produit: "Bougie", style: "Direct", nomFacture: "Jean Dupont", adresseFacture: "1 rue de la Paix, 75002 Paris" };
+  const sans = validerBrief({ ...base, lien: "" });
+  verifier("Brief sans site internet : accepté, lien vide enregistré", Boolean(sans.brief) && sans.brief!.lien === "" && Object.keys(sans.erreurs).length === 0, JSON.stringify(sans.erreurs));
+  const absent = validerBrief({ ...base });
+  verifier("Brief sans le champ « site » du tout : accepté", Boolean(absent.brief) && absent.brief!.lien === "");
+  verifier("Brief avec « monsite.fr » : complété en https://monsite.fr", validerBrief({ ...base, lien: "monsite.fr/produit" }).brief?.lien === "https://monsite.fr/produit");
+  verifier("Brief avec une adresse complète : conservée", validerBrief({ ...base, lien: "https://monsite.fr" }).brief?.lien === "https://monsite.fr");
+  const mauvais = ["pas un lien", "javascript:alert(1)", "https://", "ftp://exemple.fr", "http://localhost"].map((l) => validerBrief({ ...base, lien: l }));
+  verifier("Brief avec un lien manifestement faux ou dangereux : refusé avec un message clair", mauvais.every((r) => !r.brief && /pas l'air valide/.test(r.erreurs.lien || "")), JSON.stringify(mauvais.map((r) => r.erreurs.lien)));
+  verifier("Brief : les autres champs obligatoires le restent", Boolean(validerBrief({ ...base, lien: "", marque: "" }).erreurs.marque) && Boolean(validerBrief({ ...base, lien: "", email: "x" }).erreurs.email));
 }
 {
   // — Retour après connexion : uniquement vers une page de l'administration

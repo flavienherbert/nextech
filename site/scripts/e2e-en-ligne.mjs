@@ -125,7 +125,8 @@ try {
   verifier("Fichier du client déposé directement dans le stockage", true);
   await client.fill('input[name="nom"]', "Client Test Studio"); await client.fill('input[name="marque"]', "Marque de test en ligne");
   await client.fill('input[name="nomFacture"]', "Client Test Studio"); await client.fill('textarea[name="adresseFacture"]', "1 rue du Test\n75001 Paris");
-  await client.fill('input[name="lien"]', "https://exemple.fr/produit-test"); await client.fill('input[name="produit"]', "Produit de test");
+  // Pas de site internet : le champ reste vide (il est facultatif)
+  await client.fill('input[name="produit"]', "Produit de test");
   await client.selectOption('select[name="style"]', "Complice");
   await client.click('form.formulaire button[type="submit"]');
   await client.waitForSelector(".jalons");

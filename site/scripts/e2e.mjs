@@ -422,17 +422,18 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await page.waitForFunction(() => document.querySelectorAll(".depots li").length === 1);
   await page.fill('input[name="nom"]', "Claire Boutique"); await page.fill('input[name="marque"]', "Boutique Claire");
   await page.fill('input[name="nomFacture"]', "Boutique Claire SARL"); await page.fill('textarea[name="adresseFacture"]', "5 avenue du Test\n33000 Bordeaux");
-  await page.fill('input[name="lien"]', "https://boutique-claire.fr/bougie"); await page.fill('input[name="produit"]', "Bougie parfumée");
+  // Claire n'a pas de site internet : le champ reste vide et la commande doit passer
+  await page.fill('input[name="produit"]', "Bougie parfumée");
   await page.selectOption('select[name="style"]', "Complice");
   await page.click('form.formulaire button[type="submit"]');
   await page.waitForSelector(".jalons");
   const A2 = commande(A.id);
-  verifier("Brief reçu : commande « Payée — brief reçu », fichier rattaché à CETTE commande", A2.statut === "payee" && A2.brief.marque === "Boutique Claire" && A2.fichiersClient.length === 1 && A2.fichiersClient[0].nom === "claire-produit.png");
+  verifier("Brief reçu : commande « Payée — brief reçu », fichier rattaché à CETTE commande", A2.statut === "payee" && A2.brief.marque === "Boutique Claire" && A2.brief.lien === "" && A2.fichiersClient.length === 1 && A2.fichiersClient[0].nom === "claire-produit.png");
   verifier("Notification vendeur « Brief reçu » expédiée, avec le fichier du client", (await mails()).some((m) => m.objet.includes("Brief reçu") && m.objet.includes(A.id) && m.texte.includes("claire-produit.png")));
   const premier = commande(idCommande);
   await admin.goto(`${BASE}/admin/commande/${A.id}`);
   const texteA = await admin.locator(".admin-grille").textContent();
-  verifier("Page de la commande : tous les éléments du client (brief, fichier), et aucun fichier d'une autre commande", ["Boutique Claire", "Bougie parfumée", "claire-produit.png", "boutique-claire.fr"].every((t) => texteA.includes(t)) && !texteA.includes("produit-face.png") && !texteA.includes("logo.png"));
+  verifier("Page de la commande : tous les éléments du client (brief, fichier), et aucun fichier d'une autre commande", ["Boutique Claire", "Bougie parfumée", "claire-produit.png"].every((t) => texteA.includes(t)) && !texteA.includes("produit-face.png") && !texteA.includes("logo.png"));
   const [dlA] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${A.id}/"]`).first().click()]);
   const octetsA = fs.readFileSync(await dlA.path());
   verifier("Téléchargement du fichier du client : contenu identique à celui déposé", dlA.suggestedFilename() === "claire-produit.png" && octetsA.equals(pngA));
@@ -462,6 +463,14 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.click("button:has-text('Envoyer la livraison au client')");
   await admin.waitForURL(/ok=livraison&mail=oui/);
   const A4 = commande(A.id);
+  {
+    const mailLiv = (await mails()).find((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && !m.objet.includes("corrigée"));
+    const liens = [...(mailLiv?.texte.matchAll(/https?:\/\/\S+\/api\/commande\/[0-9a-f]+\/fichier\/[0-9a-f]+/g) || [])].map((x) => x[0]);
+    const uniques = [...new Set(liens)];
+    const recus = await Promise.all(uniques.map(async (u) => { const rr = await fetch(u.replace(/^https?:\/\/[^/]+/, BASE)); return { statut: rr.status, taille: (await rr.arrayBuffer()).byteLength, disp: rr.headers.get("content-disposition") || "" }; }));
+    verifier("E-mail de livraison : un lien de téléchargement privé par fichier (vidéo et PDF), qui fonctionne sans aucune connexion", uniques.length === 2 && recus.every((x) => x.statut === 200 && /attachment/.test(x.disp)) && recus.map((x) => x.taille).sort((a, b) => a - b).join() === [pdfA.length, videoA.length].sort((a, b) => a - b).join(), JSON.stringify({ uniques: uniques.length, recus }));
+    verifier("Lien de téléchargement dont le jeton est faux ou le fichier d'une autre commande : introuvable (404)", uniques.length > 0 && (await fetch(uniques[0].replace(/^https?:\/\/[^/]+/, BASE).replace(/\/commande\/[0-9a-f]+\//, `/commande/${"c".repeat(48)}/`))).status === 404);
+  }
   verifier("Livraison envoyée : « En attente de validation », e-mail du lien privé expédié au client, journal tenu", A4.statut === "attente_validation" && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && m.texte.includes(`/commande/${A.token}`)) && A4.historique.some((h) => /Livraison envoyée/.test(h.evenement)));
   verifier("Tableau de bord : la commande est dans « Livrées »", (await idsVue("livrees")).includes(A.id) && !(await idsVue("afaire")).includes(A.id));
   const rVideo = await fetch(`${BASE}/api/commande/${A.token}/fichier/${A4.livrables.find((x) => x.nom.endsWith(".mp4")).id}`);

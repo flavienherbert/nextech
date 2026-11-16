@@ -73,7 +73,7 @@ export const etapes = [
   },
   {
     titre: "Vous remplissez le brief",
-    texte: "Lien du produit, photos, client type, arguments. Cinq minutes, depuis votre lien privé.",
+    texte: "Votre produit, photos, client type, arguments (un site internet est facultatif). Cinq minutes, depuis votre lien privé.",
   },
   {
     titre: "Vous validez le script",
@@ -127,7 +127,7 @@ export const faq = [
 ];
 
 export const brief = [
-  "Lien du produit",
+  "Lien du site ou du produit, si vous en avez un",
   "Trois photos nettes sur fond simple",
   "Qui achète ? (âge, situation, moment d'usage)",
   "La promesse principale, en une phrase",

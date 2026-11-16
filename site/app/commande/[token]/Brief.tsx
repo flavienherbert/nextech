@@ -103,7 +103,7 @@ export default function Brief({ token, emailConnu, fichiers }: { token: string; 
       <fieldset>
         <legend>Le produit</legend>
         <div className="grille-champs">
-          {champ("lien", "Lien du site ou de la fiche produit *", { type: "url", required: true, placeholder: "https://" })}
+          {champ("lien", "Site internet ou fiche produit", { type: "url", placeholder: "https://… (facultatif)" }, "Facultatif : laissez vide si vous n'avez pas de site, décrivez simplement votre produit ci-dessous.")}
           {champ("produit", "Produit à mettre en avant *", { required: true }, "Un seul produit par commande.")}
         </div>
         <label className="champ">

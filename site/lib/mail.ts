@@ -34,7 +34,12 @@ const delai = () => Number(process.env.MAIL_TIMEOUT_MS) || 8000;
 const viaHttp = async (requete: Promise<Response>): Promise<Resultat> => {
   try {
     const r = await requete;
-    return r.ok ? { ok: true } : { ok: false, erreur: `échec ${r.status} : ${(await r.text()).slice(0, 200)}` };
+    if (r.ok) return { ok: true };
+    const texte = (await r.text()).slice(0, 300);
+    // Cause la plus fréquente : Brevo n'accepte que les adresses IP déclarées dans son compte, or celles de l'hébergeur changent.
+    if (r.status === 401 && /unrecogni[sz]ed IP/i.test(texte))
+      return { ok: false, erreur: `échec 401 : Brevo refuse l'adresse IP du serveur (réglage « Authorized IPs » de votre compte Brevo : Security, Authorized IPs, désactiver le blocage). Détail Brevo : ${texte.slice(0, 120)}` };
+    return { ok: false, erreur: `échec ${r.status} : ${texte.slice(0, 200)}` };
   } catch (e) {
     return { ok: false, erreur: `échec : ${(e as Error).message}` };
   }
@@ -131,6 +136,15 @@ async function envoyer(a: string, objet: string, html: string, commande?: string
   return m;
 }
 
+// Liste des fichiers livrés, avec un lien de téléchargement privé par fichier (le jeton de la commande fait office de clé :
+// il est secret, ne figure que dans l'e-mail et la page du client, et les fichiers ne sont accessibles qu'une fois la livraison envoyée).
+const listeLivrables = (c: Commande) => {
+  if (!c.livrables.length) return "";
+  const base = `${env.baseUrl()}/api/commande/${c.token}/fichier`;
+  const mo = (n: number) => `${(n / 1048576).toFixed(1).replace(".", ",")} Mo`;
+  return `<p style="margin:18px 0 6px"><strong>Vos fichiers (${c.livrables.length})</strong></p><ul style="padding-left:18px;margin:0">${c.livrables.map((f) => `<li style="margin:0 0 10px"><a href="${esc(`${base}/${f.id}`)}" style="color:#e2441a;font-weight:600">${esc(f.nom)}</a> <span style="color:#777">(${mo(f.taille)})</span><br><span style="font-size:12px;color:#777;word-break:break-all">${esc(`${base}/${f.id}`)}</span></li>`).join("")}</ul><p style="font-size:13px;color:#777">Ces liens sont personnels et privés : ne les partagez pas. Les fichiers restent disponibles 90 jours.</p>`;
+};
+
 const lienClient = (c: Commande) => `${env.baseUrl()}/commande/${c.token}`;
 const lienAdmin = (c: Commande) => `${env.baseUrl()}/admin/commande/${c.id}`;
 const destinataire = (c: Commande) => c.brief?.email || c.paiement.emailStripe || "";
@@ -182,11 +196,11 @@ export const courriels = {
 
   aValider: (c: Commande, correction = false) =>
     envoyer(destinataire(c), `Commande ${c.id} — ${correction ? "version corrigée à valider" : "à valider"}`,
-      gabarit(correction ? "Votre version corrigée est prête" : "C'est prêt, à vous de valider", `<p>${correction ? "Nous avons pris en compte votre retouche : la nouvelle version est disponible." : "Votre livraison est disponible."} Regardez-la, puis validez-la ou demandez une retouche depuis votre espace.</p>`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
+      gabarit(correction ? "Votre version corrigée est prête" : "C'est prêt, à vous de valider", `<p>${correction ? "Nous avons pris en compte votre retouche : la nouvelle version est disponible." : "Votre livraison est disponible."} Téléchargez vos fichiers ci-dessous, regardez-les, puis validez la livraison ou demandez une retouche depuis votre espace.</p>${listeLivrables(c)}`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
 
   livree: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — vos fichiers sont disponibles`,
-      gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement depuis votre lien privé. Ils y restent disponibles 90 jours : pensez à les enregistrer.</p>${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
+      gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement. Ils restent disponibles 90 jours : pensez à les enregistrer.</p>${listeLivrables(c)}${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
 
   // — Administrateur —
   // Envoyé UNIQUEMENT quand Stripe a confirmé le paiement (jamais pour une commande seulement créée).
@@ -217,7 +231,7 @@ export const courriels = {
   // Relance automatique d'un client qui a payé sans envoyer son brief.
   relanceBrief: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — il nous manque encore votre brief`,
-      gabarit("Nous attendons votre brief", `<p>Votre paiement est bien enregistré, mais nous n'avons pas encore reçu les informations sur votre produit. Sans elles, nous ne pouvons pas commencer, et le délai de livraison ne démarre qu'à leur réception.</p><p>Cela prend cinq minutes : lien du produit, trois photos, quelques arguments.</p>`, { texte: "Remplir mon brief", url: lienClient(c) }), c.id),
+      gabarit("Nous attendons votre brief", `<p>Votre paiement est bien enregistré, mais nous n'avons pas encore reçu les informations sur votre produit. Sans elles, nous ne pouvons pas commencer, et le délai de livraison ne démarre qu'à leur réception.</p><p>Cela prend cinq minutes : votre produit, trois photos, quelques arguments (un site internet n'est pas nécessaire).</p>`, { texte: "Remplir mon brief", url: lienClient(c) }), c.id),
 
   adminBrief: (c: Commande) =>
     envoyer(env.adminEmail(), `[Studio Accroche] Brief reçu — ${c.id} — ${c.brief?.marque || ""}`,

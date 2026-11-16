@@ -119,11 +119,15 @@ export function validerBrief(d: Record<string, unknown>): { brief?: Brief; erreu
   if (b.nom.length < 2) e.nom = "Indiquez votre nom.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email)) e.email = "Adresse e-mail invalide.";
   if (b.marque.length < 2) e.marque = "Indiquez le nom de votre marque.";
-  try {
-    const u = new URL(b.lien);
-    if (!/^https?:$/.test(u.protocol)) throw new Error();
-  } catch {
-    e.lien = "Indiquez un lien complet commençant par https://";
+  // Le site est facultatif (tous les clients n'en ont pas). S'il est renseigné, « exemple.fr » est complété en « https://exemple.fr ».
+  if (b.lien) {
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(b.lien)) b.lien = `https://${b.lien}`;
+    try {
+      const u = new URL(b.lien);
+      if (!/^https?:$/.test(u.protocol) || !/\.[a-z]{2,}$/i.test(u.hostname)) throw new Error();
+    } catch {
+      e.lien = "Ce lien n'a pas l'air valide (exemple : https://monsite.fr). Laissez vide si vous n'avez pas de site.";
+    }
   }
   if (b.produit.length < 2) e.produit = "Indiquez le produit à mettre en avant.";
   if (!b.style) e.style = "Choisissez un style.";

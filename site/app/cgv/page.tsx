@@ -42,7 +42,7 @@ export default function CGV() {
 
       <h2>4. Brief et obligations du client</h2>
       <p>
-        Après le paiement, le client transmet un brief : lien du produit, photos, arguments et toute information
+        Après le paiement, le client transmet un brief : description du produit (et lien du site s'il en a un), photos, arguments et toute information
         utile. Il garantit détenir les droits sur les éléments transmis (marque, images, textes) et l&apos;exactitude
         des informations sur son produit. Le client reste seul responsable des allégations commerciales qu&apos;il
         demande d&apos;intégrer.

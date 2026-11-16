@@ -16,7 +16,7 @@ export default function Confidentialite() {
       <h2>Données collectées</h2>
       <ul>
         <li><strong>À la commande</strong> : adresse e-mail saisie sur la page de paiement, montant et référence du paiement. Le studio ne reçoit ni ne conserve aucun numéro de carte.</li>
-        <li><strong>Dans le brief</strong> : nom, e-mail, téléphone (facultatif), nom de la marque, lien du produit, informations sur le produit et fichiers transmis.</li>
+        <li><strong>Dans le brief</strong> : nom, e-mail, téléphone (facultatif), nom de la marque, lien du site ou du produit (facultatif), informations sur le produit et fichiers transmis.</li>
         <li><strong>Pendant le suivi</strong> : demandes de retouche et échanges liés à la commande.</li>
       </ul>
       <p>Le site ne collecte aucune donnée de navigation à des fins statistiques ou publicitaires.</p>

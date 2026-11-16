@@ -51,7 +51,7 @@ export default async function Commander({
               </li>
               <li>
                 <strong>Brief</strong>
-                <span>Juste après le paiement : lien du produit, photos, arguments. Cinq minutes.</span>
+                <span>Juste après le paiement : votre produit, photos, arguments (un site internet n'est pas nécessaire). Cinq minutes.</span>
               </li>
               <li>
                 <strong>Script, puis vidéos</strong>
