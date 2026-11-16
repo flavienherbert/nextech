@@ -7,7 +7,8 @@ import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, o
 import { emettreFacture } from "@/lib/factures";
 import { alerter, notificationDeTest } from "@/lib/alertes";
 import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
-import { courriels, enEchec } from "@/lib/mail";
+import { courriels, enEchec, verifierSmtp } from "@/lib/mail";
+import { enregistrerMotDePasseSmtp, oublierMotDePasseSmtp } from "@/lib/reglages";
 import { trierEchecs } from "@/lib/rattrapage";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
 
@@ -51,6 +52,29 @@ export async function renvoyerUtiles() {
     if (enEchec(r)) ko++; else ok++;
   }
   redirect(`/admin/courriels?lot=${ok}-${ko}`);
+}
+
+// Enregistre le mot de passe d'application Gmail saisi dans l'administration : testé avant d'être enregistré, actif tout de suite
+// (aucun redéploiement), puis envoi d'un e-mail de test et renvoi des e-mails encore utiles.
+export async function enregistrerGmail(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const mdp = String(form.get("mdp") || "").replace(/[\s\u00a0\u200b"']/g, "");
+  const echec = (m: string): never => redirect(`/admin/reglages?erreur=${encodeURIComponent(m)}`);
+  if (!/^[a-z]{16}$/.test(mdp)) echec("Un mot de passe d'application Google fait exactement 16 lettres minuscules (les espaces sont ignorés). Ce n'est pas le mot de passe habituel du compte Google.");
+  const v = await verifierSmtp(mdp);
+  if (!v.ok) echec(v.erreur);
+  await enregistrerMotDePasseSmtp(mdp);
+  const test = await notificationDeTest();
+  const decisions = trierEchecs(await store.courriels(), await store.commandes()).filter((d) => d.action === "renvoyer");
+  let renvoyes = 0;
+  for (const d of decisions) if (!enEchec(await courriels.renvoyer(d.courriel))) renvoyes++;
+  redirect(`/admin/reglages?ok=1&mail=${test.email === "envoye" ? "oui" : "non"}&push=${test.push === "envoye" ? "oui" : "non"}&renvoyes=${renvoyes}`);
+}
+
+export async function oublierGmail() {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  await oublierMotDePasseSmtp();
+  redirect("/admin/reglages?supprime=1");
 }
 
 export async function deconnexion() {

@@ -18,6 +18,7 @@ import { veille } from "../lib/veille";
 import { echecsUtiles, trierEchecs } from "../lib/rattrapage";
 import { onRequestError } from "../instrumentation";
 import { suiteValide } from "../lib/auth";
+import { chargerReglages, chiffrer, dechiffrer, enregistrerMotDePasseSmtp, motDePasseSmtpEnregistreLe, oublierMotDePasseSmtp } from "../lib/reglages";
 
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -287,6 +288,22 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const renvoi = await courriels.renvoyer(m);
   verifier("E-mail en échec renvoyé ensuite, à l'identique, par Gmail", renvoi.resultat === "envoyé" && renvoi.pilote === "smtp" && renvoi.objet === m.objet);
   brevo.close();
+}
+{
+  // — Réglages saisis dans l'administration : mot de passe d'application chiffré en base, actif sans redéploiement
+  const x = chiffrer("abcdefghijklmnop");
+  verifier("Réglages : le mot de passe est chiffré (rien de lisible) et se déchiffre", !x.includes("abcdefgh") && dechiffrer(x) === "abcdefghijklmnop");
+  verifier("Réglages : deux chiffrements du même texte diffèrent (valeur initiale aléatoire)", chiffrer("a") !== chiffrer("a"));
+  const ancienne = process.env.SESSION_SECRET; process.env.SESSION_SECRET = "un-autre-secret-de-session-" + "x".repeat(30);
+  let illisible = false; try { dechiffrer(x); } catch { illisible = true; }
+  process.env.SESSION_SECRET = ancienne;
+  verifier("Réglages : illisible sans le SESSION_SECRET d'origine (le contenu de la base ne suffit pas)", illisible);
+  const avantEnv = process.env.SMTP_PASSWORD;
+  await enregistrerMotDePasseSmtp("zzzzyyyyxxxxwwww"); await chargerReglages(true);
+  const brut = (await depot().lire("reglages/smtp.json"))!.corps.toString();
+  verifier("Réglages : le mot de passe saisi dans l'administration l'emporte sur la variable Netlify et n'est pas lisible en base", motDePasseSmtp() === "zzzzyyyyxxxxwwww" && !brut.includes("zzzzyyyy") && Boolean(motDePasseSmtpEnregistreLe()), brut.slice(0, 120));
+  await oublierMotDePasseSmtp(); await chargerReglages(true);
+  verifier("Réglages : une fois supprimé, la variable Netlify reprend la main", motDePasseSmtp() === "abcdefghijklmnop" && process.env.SMTP_PASSWORD === avantEnv && !motDePasseSmtpEnregistreLe());
 }
 {
   // — Règles de suivi

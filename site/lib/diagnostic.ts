@@ -17,7 +17,8 @@ import { configurationStockage } from "./supabase-config.mjs";
 import { LIVRABLE_MAX_MO } from "./fichiers";
 import nodemailer from "nodemailer";
 import { pushConfigure } from "./alertes";
-import { enEchec, envoiReel, motDePasseSmtp, servicesEnvoi } from "./mail";
+import { enEchec, envoiReel, motDePasseSmtp, servicesEnvoi, utilisateurSmtp } from "./mail";
+import { chargerReglages, motDePasseSmtpEnregistreLe } from "./reglages";
 import { echecsUtiles } from "./rattrapage";
 import { stripe } from "./stripe";
 import { store, type Commande } from "./store";
@@ -254,6 +255,7 @@ async function pdf(): Promise<Section> {
 // ───────────────────────── E-mails ─────────────────────────
 async function courriel(): Promise<Section> {
   const l: Ligne[] = [];
+  await chargerReglages(true);
   const pilote = envoiReel();
   const services = servicesEnvoi();
   const expediteur = env.mailFrom().match(/<([^>]+)>/)?.[1] || env.mailFrom().trim();
@@ -264,18 +266,20 @@ async function courriel(): Promise<Section> {
   l.push(expediteur ? ok("Expéditeur (MAIL_FROM)", expediteur) : ko("Expéditeur (MAIL_FROM)", "absent"));
   if (services.includes("smtp")) {
     // Forme du mot de passe d'application (jamais sa valeur) : un mot de passe d'application Google = 16 lettres minuscules.
+    const stocke = motDePasseSmtpEnregistreLe();
+    if (stocke) l.push(info("Mot de passe d'application enregistré dans l'administration", `depuis le ${new Date(stocke).toLocaleString("fr-FR")} (prioritaire sur la variable Netlify)`));
     const brutMdp = process.env.SMTP_PASSWORD || "", propre = motDePasseSmtp();
     const forme = /^[a-z]{16}$/.test(propre);
     l.push(forme ? ok("Mot de passe d'application Gmail (SMTP_PASSWORD)", `forme correcte (16 lettres)${brutMdp !== propre ? ", espaces retirés automatiquement" : ""}`) : avert("Mot de passe d'application Gmail (SMTP_PASSWORD)", `${propre.length} caractère(s), ${/[A-Z0-9]/.test(propre) ? "contient des chiffres ou majuscules" : "lettres minuscules"} : un mot de passe d'application Google fait exactement 16 lettres minuscules (sans espace). ${propre.length === 16 ? "" : "La valeur saisie n'a pas la bonne longueur : s'agit-il bien du mot de passe d'application, et non du mot de passe habituel du compte ?"}`));
     l.push(...(await essayer("Messagerie SMTP", async () => {
       const port = Number(process.env.SMTP_PORT) || 465;
-      const t = nodemailer.createTransport({ host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465, auth: { user: (process.env.SMTP_USER || "").trim(), pass: motDePasseSmtp() }, connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000 });
+      const t = nodemailer.createTransport({ host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465, auth: { user: utilisateurSmtp(), pass: motDePasseSmtp() }, connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000 });
       try {
         await t.verify(); // connexion + authentification, sans envoyer d'e-mail
-        return ok("Messagerie SMTP : connexion et mot de passe valides", `${process.env.SMTP_HOST || "smtp.gmail.com"}:${port} avec ${process.env.SMTP_USER}`);
+        return ok("Messagerie SMTP : connexion et mot de passe valides", `${process.env.SMTP_HOST || "smtp.gmail.com"}:${port} avec ${utilisateurSmtp()}`);
       } catch (e) {
         const m = court(e);
-        const aide = /535|auth|credentials|password/i.test(m) ? " : Google refuse l'identifiant ou le mot de passe. Causes les plus fréquentes : (1) le mot de passe d'application a été créé avec un AUTRE compte Google que ${process.env.SMTP_USER} (vérifiez l'adresse affichée en haut à droite de la page Google au moment de le créer) ; (2) il a été révoqué ou la validation en 2 étapes a été désactivée ; (3) c'est le mot de passe habituel du compte au lieu d'un mot de passe d'application. Remède : supprimer l'ancien mot de passe d'application, en recréer un avec ce compte, le coller dans SMTP_PASSWORD, puis redéployer." : "";
+        const aide = /535|auth|credentials|password/i.test(m) ? ` : Google refuse l'identifiant ou le mot de passe. Causes les plus fréquentes : (1) le mot de passe d'application a été créé avec un AUTRE compte Google que ${utilisateurSmtp()} (vérifiez l'adresse affichée en haut à droite de la page Google au moment de le créer) ; (2) il a été révoqué ou la validation en 2 étapes a été désactivée ; (3) c'est le mot de passe habituel du compte au lieu d'un mot de passe d'application. Remède : supprimer l'ancien mot de passe d'application, en recréer un avec ce compte, puis le coller dans Administration > Réglages e-mail (actif tout de suite, sans redéploiement).` : "";
         return ko("Messagerie SMTP", `${m}${aide}`);
       }
     })));

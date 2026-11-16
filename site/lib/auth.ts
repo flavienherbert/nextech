@@ -64,6 +64,8 @@ export const suiteValide = (s: unknown): string => (typeof s === "string" && /^\
 
 export async function exigerAdmin(suite?: string) {
   if (!(await estAdmin())) redirect(`/admin/connexion${suite ? `?suite=${encodeURIComponent(suite)}` : ""}`);
+  // Les pages d'administration affichent l'état des e-mails : on charge d'abord les réglages saisis dans l'administration.
+  await import("./reglages").then((m) => m.chargerReglages());
 }
 
 // Refuse les requêtes déclenchées depuis un autre site.

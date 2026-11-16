@@ -564,6 +564,34 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.goto(`${BASE}/admin`);
   verifier("Tableau de bord : le bandeau « e-mail non envoyé » a disparu, aucun e-mail supplémentaire n'est parti", !(await admin.locator(".avis-erreur").allTextContents()).join(" ").includes("non envoyé") && (await mails()).length === avantDeuxieme);
 
+  // — Réglages e-mail : mot de passe d'application saisi dans l'administration (actif sans redéploiement), testé avant d'être enregistré
+  await fauxJson("/_vider", "POST"); await fetch(`${FAUX}/_panne?smtp=1`, { method: "POST" });
+  const MQ = await commandeNonPayee("essai");
+  await payerParWebhook(MQ.c, { email: "panne2@exemple.fr", name: "Client Deux" });
+  await admin.goto(`${BASE}/admin/reglages`);
+  await admin.fill('input[name="mdp"]', "trop-court"); await admin.click("button:has-text('Enregistrer et tester')");
+  await admin.waitForURL(/erreur=/);
+  verifier("Réglages e-mail : un mot de passe qui n'a pas la forme d'un mot de passe d'application est refusé avec une explication", (await admin.locator(".avis-erreur").textContent()).includes("16 lettres minuscules"));
+  await admin.fill('input[name="mdp"]', "qwer tyui opas dfgh"); await admin.click("button:has-text('Enregistrer et tester')");
+  await admin.waitForSelector(".avis-erreur:has-text('Google refuse')");
+  verifier("Réglages e-mail : Gmail refuse le mot de passe → il n'est PAS enregistré, message clair (compte, révocation)", (await admin.locator(".avis-erreur").textContent()).includes("Google refuse ce mot de passe") && /Mot de passe enregistré ici\s*non \(/.test(await admin.locator("main").textContent()), (await admin.locator("main").textContent()).replace(/\s+/g, " ").slice(0, 700));
+  await fetch(`${FAUX}/_panne?smtp=0`, { method: "POST" });
+  await fauxJson("/_vider", "POST");
+  await admin.fill('input[name="mdp"]', "qwer tyui opas dfgh"); await admin.click("button:has-text('Enregistrer et tester')");
+  await admin.waitForURL(/ok=1/);
+  const apresGmail = await mails();
+  const texteReglages = await admin.content();
+  verifier("Réglages e-mail : mot de passe testé puis enregistré, e-mail de test réellement envoyé à l'adresse du vendeur", (await admin.locator(".avis-ok").textContent()).includes("Gmail fonctionne") && apresGmail.some((m) => m.a.includes("admin@example.com") && /Test de notification/.test(m.objet)), JSON.stringify(apresGmail.map((m) => m.objet)));
+  verifier("Réglages e-mail : les e-mails restés en échec et encore utiles sont renvoyés une seule fois (client et vendeur), sans doublon", apresGmail.filter((m) => m.a.includes("panne2@exemple.fr") && m.objet.includes(MQ.c.id)).length === 1 && apresGmail.filter((m) => m.a.includes("admin@example.com") && m.objet.includes("Nouvelle commande payée") && m.objet.includes(MQ.c.id)).length === 1, JSON.stringify(apresGmail.map((m) => [m.a[0], m.objet.slice(0, 50)])));
+  verifier("Réglages e-mail : le mot de passe n'apparaît jamais dans la page", !texteReglages.includes("qwertyuiopasdfgh") && !texteReglages.includes("qwer tyui") && /oui \(depuis/.test(await admin.locator("main").textContent()), JSON.stringify({ dansPage: texteReglages.includes("qwertyuiopasdfgh") || texteReglages.includes("qwer tyui"), etat: (await admin.locator("main").textContent()).replace(/\s+/g, " ").slice(0, 400) }));
+  await admin.goto(`${BASE}/admin/diagnostic`);
+  verifier("Diagnostic : le mot de passe enregistré dans l'administration est signalé, sans être affiché", (await admin.locator("main").textContent()).includes("enregistré dans l'administration") && !(await admin.content()).includes("qwertyuiopasdfgh"));
+  await admin.goto(`${BASE}/admin/reglages`);
+  await admin.click("button:has-text('Supprimer le mot de passe enregistré ici')");
+  await admin.waitForURL(/supprime=1/);
+  verifier("Réglages e-mail : suppression du mot de passe enregistré (la variable Netlify reprend la main)", /non \(/.test(await admin.locator("main").textContent()));
+  verifier("Réglages e-mail : page inaccessible sans session administrateur", (await fetch(`${BASE}/admin/reglages`, { redirect: "manual" })).status !== 200);
+
   // — Diagnostic et notification de test
   await admin.goto(`${BASE}/admin/diagnostic`);
   const texteDiag = await admin.locator("main").textContent();

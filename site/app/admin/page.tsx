@@ -56,6 +56,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </div>
           <div className="actions">
             <Link className="bouton bouton-fantome bouton-petit" href="/admin/aide">Mode d&apos;emploi</Link>
+            <Link className="bouton bouton-fantome bouton-petit" href="/admin/reglages">Réglages e-mail</Link>
             <Link className="bouton bouton-fantome bouton-petit" href="/admin/courriels">E-mails</Link>
             <Link className="bouton bouton-fantome bouton-petit" href="/admin/diagnostic">Diagnostic</Link>
             <form action={deconnexion}><button className="bouton bouton-fantome bouton-petit">Déconnexion</button></form>
