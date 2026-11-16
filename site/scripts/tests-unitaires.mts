@@ -147,6 +147,12 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Inventaire : clés, dates récentes et tailles", inv.length === 3 && inv.every((x) => Math.abs(Date.now() - x.modifieLe) < 600_000 && x.taille > 0), JSON.stringify(inv));
   for (const k of ["a", "b", "c"]) await depot().supprimer(`testlire/${k}.json`);
 
+  {
+    // Dépôt partagé injoignable (mauvais mot de passe, base arrêtée…) : le limiteur se rabat sur la mémoire, sans exception
+    const sortie: string = await new Promise((ok) => execFile("npx", ["tsx", "scripts/limiteur-injoignable.mts"], { env: { ...process.env, DATABASE_URL: "postgres://postgres:faux@127.0.0.1:1/inexistant", S3_BUCKET: "", S3_ENDPOINT: "", ENFANT: "" }, timeout: 90000 }, (_e, out) => ok(out.trim().split("\n").pop() || "")));
+    verifier("Limiteur : dépôt injoignable → compteur en mémoire (1, 2, 2, puis 0 après remise à zéro), aucune exception", sortie === "[1,2,2,0]", sortie);
+  }
+
   const pooler = "postgresql://postgres.abcdefghij:p%40ss@aws-0-eu-central-1.pooler.supabase.com:6543/postgres";
   const cfg = configurationStockage({ DATABASE_URL: pooler, S3_ACCESS_KEY_ID: "k", S3_SECRET_ACCESS_KEY: "s" });
   verifier("Supabase : référence et région déduites de l'adresse du pooler", JSON.stringify(deduireSupabase(pooler)) === JSON.stringify({ ref: "abcdefghij", region: "eu-central-1" }));
