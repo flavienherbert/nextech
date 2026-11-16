@@ -275,7 +275,7 @@ async function courriel(): Promise<Section> {
         return ok("Messagerie SMTP : connexion et mot de passe valides", `${process.env.SMTP_HOST || "smtp.gmail.com"}:${port} avec ${process.env.SMTP_USER}`);
       } catch (e) {
         const m = court(e);
-        const aide = /535|auth|credentials|password/i.test(m) ? " : mot de passe refusé. Pour Gmail il faut un « mot de passe d'application » à 16 caractères (compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications), pas le mot de passe habituel." : "";
+        const aide = /535|auth|credentials|password/i.test(m) ? " : Google refuse l'identifiant ou le mot de passe. Causes les plus fréquentes : (1) le mot de passe d'application a été créé avec un AUTRE compte Google que ${process.env.SMTP_USER} (vérifiez l'adresse affichée en haut à droite de la page Google au moment de le créer) ; (2) il a été révoqué ou la validation en 2 étapes a été désactivée ; (3) c'est le mot de passe habituel du compte au lieu d'un mot de passe d'application. Remède : supprimer l'ancien mot de passe d'application, en recréer un avec ce compte, le coller dans SMTP_PASSWORD, puis redéployer." : "";
         return ko("Messagerie SMTP", `${m}${aide}`);
       }
     })));

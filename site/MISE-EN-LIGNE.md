@@ -7,7 +7,7 @@
 Tout le reste est fait et vérifié (voir `LANCEMENT.md`). Ces trois blocs demandent un compte ou un secret que vous seul pouvez fournir. Les secrets se saisissent **uniquement dans Netlify** (*Site configuration*, *Environment variables*, **Add a variable**, cocher **Contains secret values**), jamais dans la conversation. Après chaque bloc, dites-le-moi : je redéploie et je vérifie en ligne.
 
 **Bloc A — E-mails réels (Gmail du studio)**
-1. Connecté à contactstudioaccroche@gmail.com : https://myaccount.google.com/security, activer la **Validation en 2 étapes** si ce n'est pas fait.
+1. Connecté à contactstudioaccroche@gmail.com (vérifiez l'adresse affichée en haut à droite de la page Google : si vous avez plusieurs comptes ouverts, c'est la cause d'erreur la plus fréquente) : https://myaccount.google.com/security, activer la **Validation en 2 étapes** si ce n'est pas fait.
 2. https://myaccount.google.com/apppasswords : nom « Studio Accroche », **Créer**, copier les 16 caractères (affichés une seule fois).
 3. Netlify : variable `SMTP_PASSWORD` = ces 16 caractères, sans espaces.
 *Alternative sans mot de passe* : Brevo, menu du compte, *Security*, **Authorized IPs**, désactiver la restriction. Moins fiable (e-mails envoyés au nom d'une adresse Gmail depuis d'autres serveurs).
