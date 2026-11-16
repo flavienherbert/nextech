@@ -78,7 +78,7 @@ export function analyserAdresseBase(brut: string): Ligne[] {
   const mdp = i < 0 ? "" : identifiants.slice(i + 1);
   const [h, port = "5432"] = hote.split(":");
   l.push(info("Adresse de la base (mot de passe masqué)", `hôte ${h}, port ${port}, utilisateur ${utilisateur}, base ${(chemin || "/").slice(1) || "(aucune)"}, mot de passe de ${mdp.length} caractère(s)`));
-  if (/^\[.*\]$/.test(mdp) || /YOUR-PASSWORD|MOT.?DE.?PASSE|PASSWORD/i.test(mdp)) l.push(ko("Mot de passe de DATABASE_URL", "c'est encore le texte d'exemple (« [YOUR-PASSWORD] ») : remplacez-le, crochets compris, par le vrai mot de passe de la base"));
+  if (/^\[.*\]$/.test(mdp) || /YOUR-PASSWORD|MOT.?DE.?PASSE|PASSWORD/i.test(mdp)) l.push(ko("Mot de passe de DATABASE_URL", "le mot de passe est entouré de crochets [ ] ou est resté le texte d'exemple « [YOUR-PASSWORD] » : saisissez le vrai mot de passe de la base, sans aucun crochet"));
   if (/[#/?\s]/.test(mdp)) l.push(ko("Mot de passe de DATABASE_URL", "contient un caractère spécial non encodé (# / ? espace) : l'adresse est coupée à cet endroit. Encodez : # → %23, / → %2F, ? → %3F, espace → %20, @ → %40"));
   else if (/@|:/.test(mdp)) l.push(avert("Mot de passe de DATABASE_URL", "contient @ ou : non encodé (@ → %40, : → %3A) : à encoder pour être sûr"));
   if (/\.pooler\.supabase\.com$/.test(h) && !/^postgres\.[a-z0-9]{20}$/.test(utilisateur)) l.push(ko("Utilisateur de DATABASE_URL", `avec le « pooler » de Supabase, l'utilisateur doit être postgres.<référence du projet> (et non « ${utilisateur} »)`));

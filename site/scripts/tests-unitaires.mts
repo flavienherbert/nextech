@@ -168,7 +168,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
     const bonne = analyserAdresseBase(`postgresql://postgres.${ref}:Secret123@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
     verifier("Analyse de l'adresse de base : adresse correcte sans erreur, mot de passe jamais affiché", bonne.every((x) => x.etat !== "ko") && !JSON.stringify(bonne).includes("Secret123") && JSON.stringify(bonne).includes("9 caractère"), JSON.stringify(bonne));
     const gabarit = analyserAdresseBase(`postgresql://postgres.${ref}:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
-    verifier("Analyse : mot de passe d'exemple « [YOUR-PASSWORD] » détecté", gabarit.some((x) => x.etat === "ko" && /texte d'exemple/.test(x.detail || "")));
+    verifier("Analyse : mot de passe entouré de crochets ou d'exemple « [YOUR-PASSWORD] » détecté", gabarit.some((x) => x.etat === "ko" && /crochets/.test(x.detail || "")));
     const special = analyserAdresseBase(`postgresql://postgres.${ref}:ab#cd/ef@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
     verifier("Analyse : caractères spéciaux non encodés détectés (# /)", special.some((x) => x.etat === "ko" && /non encodé/.test(x.detail || "")));
     const mauvais = analyserAdresseBase("postgresql://postgres:Secret123@aws-0-eu-central-1.pooler.supabase.com:6543/postgres");

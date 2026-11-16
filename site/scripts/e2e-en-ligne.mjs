@@ -2,7 +2,7 @@
 // production, livrables, livraison, correction, validation. À lancer une fois Supabase, Stripe (test) et l'e-mail configurés.
 //   ADMIN_PASSWORD=… NTFY_TOPIC=… node scripts/e2e-en-ligne.mjs [adresse-du-site]
 // Variables facultatives : PREPROD_PASSWORD (si le site est protégé), EMAIL_TEST (adresse du « client » ; par défaut
-// celle du studio avec un suffixe +test, donc dans votre boîte), FAUX (faux services de notification, pour répéter le
+// celle du studio avec un suffixe +test, donc dans votre boîte), SANS_EMAIL=1 (tester tout le reste tant que l'e-mail n'est pas configuré), FAUX (faux services de notification, pour répéter le
 // scénario en local), MOCK_STRIPE=1 (page de paiement du simulateur local).
 // Garde-fous : refuse de continuer si le paiement n'est pas en mode test ; la carte est la carte de test 4242 ;
 // aucune vente réelle n'est possible (une clé réelle est refusée par le site).
@@ -13,12 +13,15 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const B = (process.argv[2] || "https://studio-accroche-preprod.netlify.app").replace(/\/$/, "");
 const ADM = process.env.ADMIN_PASSWORD || "", PRE = process.env.PREPROD_PASSWORD || "", TOPIC = process.env.NTFY_TOPIC || "";
 const FAUX = process.env.FAUX || "", MOCK = process.env.MOCK_STRIPE === "1";
+const SANS_EMAIL = process.env.SANS_EMAIL === "1"; // e-mail pas encore configuré : les contrôles d'envoi deviennent de simples avertissements
 const EMAIL = process.env.EMAIL_TEST || "contactstudioaccroche+test@gmail.com";
 if (!ADM) { console.error("ADMIN_PASSWORD manquant."); process.exit(2); }
 
 let echecs = 0;
 const verifier = (nom, ok, detail = "") => { if (!ok) echecs++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+// Contrôle d'e-mail : un simple avertissement quand SANS_EMAIL=1.
+const verifierMail = (nom, ok, detail = "") => { if (SANS_EMAIL && !ok) console.log(`⚠ ${nom}  → ${detail || "e-mail non envoyé (attendu : service d'envoi non configuré)"}`); else verifier(nom, ok, detail); };
 const debut = Date.now() - 5000;
 
 // Notifications du téléphone : relues sur ntfy.sh (ou sur les faux services en local).
@@ -60,7 +63,8 @@ try {
   verifier("Stockage de fichiers joignable", stockage, lignes("Stockage").filter((l) => l.etat === "ko").map((l) => `${l.nom} : ${l.detail}`).join(" | "));
   verifier("Paiement Stripe en mode TEST", MOCK || stripeOk, lignes("Paiement").map((l) => `${l.nom} : ${l.detail}`).join(" | "));
   const mailOk = lignes("E-mails").some((l) => /Messagerie SMTP : connexion/.test(l.nom) && l.etat === "ok") || lignes("E-mails").some((l) => /Clé Brevo valide/.test(l.nom) && l.etat === "ok");
-  verifier("Au moins un service d'envoi d'e-mail fonctionne (Gmail ou Brevo)", mailOk, lignes("E-mails").map((l) => `${l.etat} ${l.nom}`).join(" | "));
+  if (SANS_EMAIL && !mailOk) console.log("⚠ E-mail : aucun service d'envoi ne fonctionne (SANS_EMAIL=1) : les contrôles d'e-mail ci-dessous sont des avertissements.");
+  else verifier("Au moins un service d'envoi d'e-mail fonctionne (Gmail ou Brevo)", mailOk, lignes("E-mails").map((l) => `${l.etat} ${l.nom}`).join(" | "));
   if (echecs) throw new Error("Prérequis manquants : le parcours ne peut pas être lancé. Corrigez les lignes ✗ ci-dessus (voir MISE-EN-LIGNE.md).");
 
   // ───────── 1. Le client commande et paie (carte de test)
@@ -126,7 +130,7 @@ try {
   await admin.waitForURL(/ok=production/);
   const banniere = async () => (await admin.locator(".avis").allTextContents()).join(" ");
   const mailPart = async (r) => { const t = await banniere(); return /E-mail envoyé au client/.test(t) ? "oui" : /pas pu être envoyé/.test(t) ? "non" : r; };
-  verifier("Production démarrée : e-mail au client réellement expédié", (await mailPart("?")) === "oui", await banniere());
+  verifierMail("Production démarrée : e-mail au client réellement expédié", (await mailPart("?")) === "oui", await banniere());
   const video = Buffer.concat([Buffer.from("00000018667479706d703432", "hex"), crypto.randomBytes(1024 * 1024)]);
   const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), crypto.randomBytes(4096)]);
   await admin.setInputFiles("#livrable", [{ name: "video-test.mp4", mimeType: "video/mp4", buffer: video }, { name: "script-test.pdf", mimeType: "application/pdf", buffer: pdf }]);
@@ -135,7 +139,7 @@ try {
   await admin.goto(`${B}/admin/commande/${id}`);
   await admin.click("button:has-text('Envoyer la livraison au client')");
   await admin.waitForURL(/ok=livraison/);
-  verifier("Livraison envoyée au client : e-mail réellement expédié", (await mailPart("?")) === "oui", await banniere());
+  verifierMail("Livraison envoyée au client : e-mail réellement expédié", (await mailPart("?")) === "oui", await banniere());
 
   // ───────── 5. Le client télécharge, demande une correction
   console.log("\n— Livraison, correction et validation (client) —");
@@ -157,7 +161,7 @@ try {
   verifier("La demande du client est citée en haut de la commande", (await admin.locator(".etape").textContent()).includes("prix en début de vidéo"));
   await admin.click("button:has-text('Envoyer la version corrigée au client')");
   await admin.waitForURL(/ok=livraison/);
-  verifier("Version corrigée envoyée : e-mail réellement expédié", (await mailPart("?")) === "oui", await banniere());
+  verifierMail("Version corrigée envoyée : e-mail réellement expédié", (await mailPart("?")) === "oui", await banniere());
   await client.goto(`${B}/commande/${token}`);
   await client.click("text=Je valide la livraison");
   await client.waitForSelector("h1:has-text('livrée')");
@@ -166,7 +170,7 @@ try {
   verifier("Tableau de bord : la commande est dans « Terminées »", (await admin.locator('.tableau a[href^="/admin/commande/"]').allTextContents()).map((s) => s.trim()).includes(id));
   await admin.goto(`${B}/admin/commande/${id}`);
   const histo = await admin.locator(".admin-grille").textContent();
-  verifier("Aucun e-mail en échec dans l'historique de la commande", !/\((échec|non envoyé)/.test(histo) && /\(envoyé, via (smtp|brevo|resend)\)/.test(histo), histo.slice(histo.indexOf("Notifications"), histo.indexOf("Notifications") + 500));
+  verifierMail("Aucun e-mail en échec dans l'historique de la commande", !/\((échec|non envoyé)/.test(histo) && /\(envoyé, via (smtp|brevo|resend)\)/.test(histo), histo.slice(histo.indexOf("Notifications"), histo.indexOf("Notifications") + 500));
   verifier("Aucune erreur JavaScript côté client", erreursConsole.length === 0, erreursConsole.join(" | "));
   console.log(`\nCommande de test : ${id} (visible dans l'administration, mode test).`);
 } catch (e) {
