@@ -9,7 +9,7 @@ import { purger } from "../lib/purge";
 import { courriels, enEchec, envoiReel } from "../lib/mail";
 import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
 import { deduireSupabase, configurationStockage } from "../lib/supabase-config.mjs";
-import { executerDiagnostic } from "../lib/diagnostic";
+import { analyserAdresseBase, executerDiagnostic } from "../lib/diagnostic";
 import { createRequire } from "node:module";
 import { alerter } from "../lib/alertes";
 import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief } from "../lib/commandes";
@@ -162,6 +162,21 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Supabase : les variables explicites l'emportent sur la déduction", explicite.endpoint === "https://autre.exemple/s3" && explicite.region === "us-east-1" && explicite.bucket === "mon-bucket" && !explicite.pathStyle && explicite.origine === "https://autre.exemple");
   verifier("Supabase : sans Supabase ni variable, rien n'est déduit", configurationStockage({}).bucket === "" && configurationStockage({ S3_REGION: "auto" }).region === "auto");
 
+  {
+    // Analyse de DATABASE_URL : repère les erreurs de saisie sans jamais afficher le mot de passe
+    const ref = "abcdefghijklmnopqrst";
+    const bonne = analyserAdresseBase(`postgresql://postgres.${ref}:Secret123@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
+    verifier("Analyse de l'adresse de base : adresse correcte sans erreur, mot de passe jamais affiché", bonne.every((x) => x.etat !== "ko") && !JSON.stringify(bonne).includes("Secret123") && JSON.stringify(bonne).includes("9 caractère"), JSON.stringify(bonne));
+    const gabarit = analyserAdresseBase(`postgresql://postgres.${ref}:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
+    verifier("Analyse : mot de passe d'exemple « [YOUR-PASSWORD] » détecté", gabarit.some((x) => x.etat === "ko" && /texte d'exemple/.test(x.detail || "")));
+    const special = analyserAdresseBase(`postgresql://postgres.${ref}:ab#cd/ef@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`);
+    verifier("Analyse : caractères spéciaux non encodés détectés (# /)", special.some((x) => x.etat === "ko" && /non encodé/.test(x.detail || "")));
+    const mauvais = analyserAdresseBase("postgresql://postgres:Secret123@aws-0-eu-central-1.pooler.supabase.com:6543/postgres");
+    verifier("Analyse : pooler Supabase avec l'utilisateur « postgres » seul détecté", mauvais.some((x) => x.etat === "ko" && /postgres\.<référence/.test(x.detail || "")) && !JSON.stringify(mauvais).includes("Secret123"));
+    const direct = analyserAdresseBase(`postgresql://postgres:Secret123@db.${ref}.supabase.co:5432/postgres`);
+    verifier("Analyse : connexion directe signalée (IPv6 seulement)", direct.some((x) => x.etat === "avert" && /IPv6/.test(x.detail || "")));
+    verifier("Analyse : adresse illisible signalée", analyserAdresseBase("n'importe quoi")[0].etat === "ko");
+  }
   const rapport = await executerDiagnostic();
   const brut = JSON.stringify(rapport);
   verifier("Diagnostic : sept sections, synthèse cohérente", rapport.sections.length === 7 && rapport.synthese.ok + rapport.synthese.ko + rapport.synthese.avert + rapport.synthese.info === rapport.sections.flatMap((s) => s.lignes).length);

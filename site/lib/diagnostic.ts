@@ -66,10 +66,31 @@ function configuration(): Section {
   return { titre: "Configuration", lignes: l };
 }
 
+// Lecture de la forme de DATABASE_URL SANS jamais afficher le mot de passe : hôte, utilisateur et longueur seulement.
+// Repère les erreurs de saisie les plus courantes (placeholder, crochets, caractères spéciaux non encodés, mauvais utilisateur).
+export function analyserAdresseBase(brut: string): Ligne[] {
+  const l: Ligne[] = [];
+  const m = brut.match(/^postgres(?:ql)?:\/\/([\s\S]*)@([^@/?#]+)(\/[^?#]*)?(\?[\s\S]*)?$/);
+  if (!m) return [ko("Forme de DATABASE_URL", "illisible : elle doit ressembler à postgresql://utilisateur:motdepasse@hôte:6543/postgres")];
+  const [, identifiants, hote, chemin] = m;
+  const i = identifiants.indexOf(":");
+  const utilisateur = decodeURIComponent(i < 0 ? identifiants : identifiants.slice(0, i));
+  const mdp = i < 0 ? "" : identifiants.slice(i + 1);
+  const [h, port = "5432"] = hote.split(":");
+  l.push(info("Adresse de la base (mot de passe masqué)", `hôte ${h}, port ${port}, utilisateur ${utilisateur}, base ${(chemin || "/").slice(1) || "(aucune)"}, mot de passe de ${mdp.length} caractère(s)`));
+  if (/^\[.*\]$/.test(mdp) || /YOUR-PASSWORD|MOT.?DE.?PASSE|PASSWORD/i.test(mdp)) l.push(ko("Mot de passe de DATABASE_URL", "c'est encore le texte d'exemple (« [YOUR-PASSWORD] ») : remplacez-le, crochets compris, par le vrai mot de passe de la base"));
+  if (/[#/?\s]/.test(mdp)) l.push(ko("Mot de passe de DATABASE_URL", "contient un caractère spécial non encodé (# / ? espace) : l'adresse est coupée à cet endroit. Encodez : # → %23, / → %2F, ? → %3F, espace → %20, @ → %40"));
+  else if (/@|:/.test(mdp)) l.push(avert("Mot de passe de DATABASE_URL", "contient @ ou : non encodé (@ → %40, : → %3A) : à encoder pour être sûr"));
+  if (/\.pooler\.supabase\.com$/.test(h) && !/^postgres\.[a-z0-9]{20}$/.test(utilisateur)) l.push(ko("Utilisateur de DATABASE_URL", `avec le « pooler » de Supabase, l'utilisateur doit être postgres.<référence du projet> (et non « ${utilisateur} »)`));
+  if (/^db\.[a-z0-9]{20}\.supabase\.co$/.test(h)) l.push(avert("Type de connexion", "connexion directe : elle n'est joignable qu'en IPv6 sur l'offre gratuite. Préférez l'adresse « Transaction pooler » (Supabase, bouton Connect), qui fonctionne partout"));
+  return l;
+}
+
 // ───────────────────────── Base de données ─────────────────────────
 async function base(): Promise<Section> {
   const l: Ligne[] = [];
   if (!postgresConfigure()) return { titre: "Base de données (PostgreSQL)", lignes: [(surNetlify() ? ko : info)("Connexion", "DATABASE_URL absent")] };
+  l.push(...analyserAdresseBase(process.env.DATABASE_URL || ""));
   const id = crypto.randomBytes(5).toString("hex");
   const P = `__diagnostic__/${id}`;
   const docs = depotPostgres();
