@@ -70,6 +70,8 @@
 
 - **21/11** — Reprise. Inspection : 12 fichiers du site (+221 lignes) poussés mais **non déployés** (Réglages e-mail, tri des e-mails déjà en ligne depuis le 16/11) ; une nouvelle tentative de publication est toujours refusée par Netlify (« account credit usage exceeded », sans coût). Gmail : Google répond toujours « 535 BadCredentials » (identifiant et mot de passe d'application non appariés ; format correct). Secrets : clés dérivées par usage, session liée au mot de passe administrateur (testé), réglages illisibles signalés ; recommandation de remplacer ADMIN_PASSWORD, SESSION_SECRET et TACHES_SECRET par des valeurs créées comme secrètes (`site/SECURITE.md`). E-mails : accusé de réception des retouches ajouté, tableau des onze étapes (`site/EMAILS.md`), inventaire strict dans le parcours en ligne, procédure du test final (`site/TEST-CLIENT.md`). Tests : 182/182 (disque), 181/181 (PostgreSQL + S3), suites unitaires dans les quatre modes.
 
+- **22/11** — Nettoyage : 20 fichiers `.whl` (30 Mo, restes d'un `pip download` de l'émulateur S3 de test) retirés du dépôt après vérification qu'aucun build, test ni élément du site n'en dépend ; règles `.gitignore` ajoutées ; build, typage, tests unitaires et parcours complet (182/182) repassés. Les blobs restent dans l'historique git (purge possible seulement par réécriture d'historique, non faite). Procédure de remplacement des trois secrets exposés : `site/ROTATION-SECRETS.md` ; lancement des tests : `site/TESTS.md`. Aucune publication, aucun crédit dépensé.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

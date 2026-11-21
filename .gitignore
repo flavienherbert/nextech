@@ -5,3 +5,10 @@ out
 .env*.local
 .vercel
 *.log
+
+# Dépendances Python téléchargées par erreur (pip download) : jamais dans le dépôt
+*.whl
+*.egg-info/
+__pycache__/
+.venv/
+venv/

@@ -10,3 +10,10 @@ data
 *.tsbuildinfo
 .netlify
 sauvegardes
+
+# Dépendances Python téléchargées par erreur (pip download) : jamais dans le dépôt
+*.whl
+*.egg-info/
+__pycache__/
+.venv/
+venv/
