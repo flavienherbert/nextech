@@ -1,0 +1,32 @@
+# E-mails automatiques — un par étape (état du 21 novembre 2026)
+
+Chaque e-mail est **archivé** avant l'envoi (Administration, E-mails), même s'il ne part pas. Ordre d'envoi : Gmail (SMTP) d'abord, Brevo en secours. Les réponses des clients arrivent sur contactstudioaccroche@gmail.com (champ « Répondre à »).
+
+| # | Étape | Déclencheur | Destinataire | Objet | À retenir |
+|---|---|---|---|---|---|
+| 1 | Paiement confirmé | Webhook Stripe signé (jamais avant) | **Vous** | `[Studio Accroche] Nouvelle commande payée — N° — offre — montant` | Numéro, client, e-mail, offre, montant, date, délai, bouton « Ouvrir la commande ». Doublée d'une notification téléphone (sans donnée personnelle). |
+| 2 | Paiement confirmé | idem | Client | `Commande N° confirmée — il nous manque votre brief` | Récapitulatif + bouton vers son lien privé pour remplir le brief. |
+| 3 | Brief manquant depuis 48 h | Tâche quotidienne, une seule fois | Client | `Commande N° — il nous manque encore votre brief` | Relance automatique ; relançable à la main depuis la commande. |
+| 4 | Brief reçu | Envoi du brief par le client | **Vous** | `[Studio Accroche] Brief reçu — N° — marque` | Brief complet, liste des fichiers, lien vers la commande. |
+| 5 | Brief reçu | idem | Client | `Commande N° — brief bien reçu` | Accusé de réception, lien de suivi. |
+| 6 | Production lancée | Bouton « Démarrer la production » | Client | `Commande N° — production lancée` | Lien de suivi. |
+| 7 | Livraison | Bouton « Envoyer la livraison au client » | Client | `Commande N° — à valider` | **Un lien privé par fichier** (vidéo, PDF) + lien de son espace pour valider ou demander une retouche. |
+| 8 | Retouche demandée | Le client demande une correction | **Vous** | `[Studio Accroche] Retouche demandée — N°` | Message du client cité. Doublée d'une notification téléphone. |
+| 9 | Retouche demandée | idem | Client | `Commande N° — votre demande de retouche est bien reçue` | Sa demande citée, nombre de retouches incluses restantes. *(ajout du 21 novembre)* |
+| 10 | Version corrigée | Bouton « Envoyer la version corrigée au client » | Client | `Commande N° — version corrigée à valider` | Liens privés par fichier. |
+| 11 | Validation (ou clôture) | Le client valide, ou vous cliquez sur « Clôturer » | Client | `Commande N° — vos fichiers sont disponibles` | Liens privés par fichier, disponibles 90 jours, numéro de facture. |
+| 12 | Validation | Le client valide | **Vous** | `[Studio Accroche] Commande validée — N°` | Information. |
+| 13 | Alertes | Paiement refusé, erreur technique, e-mail non envoyé… | **Vous** | `[Studio Accroche] ⚠ …` | Toujours doublées d'une notification téléphone. |
+| 14 | Récap du jour | Tâche quotidienne (≈ 7 h–8 h) | **Vous** | `[Studio Accroche] Récap du jour — N points à traiter` | Seulement s'il y a quelque chose à traiter. |
+
+## Garanties
+
+- **Jamais de notification de vente avant le paiement confirmé** (testé : commande créée mais non payée = aucun e-mail, aucune alerte).
+- **Un e-mail qui ne part pas n'est pas perdu** : archivé, signalé sur le téléphone, renvoyable.
+- **Renvoi sans doublon** : « Renvoyer ces e-mails maintenant » (page E-mails) ne renvoie que ce qui est encore utile. Un e-mail déjà renvoyé avec succès, un doublon ou un message devenu inutile (la commande a avancé) n'est jamais renvoyé.
+- **Les liens de téléchargement** contiennent le jeton secret de la commande ; sans lui, ou avec un autre, la réponse est 404. Ils ne fonctionnent qu'une fois la livraison envoyée.
+
+## Comment c'est vérifié
+
+- Tests automatiques (`npm run test:unitaires`, `npm run test:e2e`) : chaque ligne du tableau, avec contenu, destinataire, absence de doublon et gestion des pannes.
+- Parcours complet en ligne (`npm run e2e:en-ligne`) : à la fin, **inventaire strict** des onze e-mails d'une commande — chacun doit exister, être réellement parti (et non seulement archivé), une seule fois, au bon destinataire.

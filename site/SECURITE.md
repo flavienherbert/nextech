@@ -49,6 +49,18 @@ Préparé et testé en local, **pas encore connecté** (voir `SUPABASE.md`).
 - Aucune sauvegarde automatique sur l'offre gratuite : `npm run sauvegarde` (voir `SUPABASE.md`).
 - Connexion à la base chiffrée ; vérification de l'identité du serveur seulement si `DATABASE_CA` est renseigné.
 
+## Secrets : ADMIN_PASSWORD, SESSION_SECRET, TACHES_SECRET — revue du 21 novembre 2026
+
+| Secret | Rôle | Protection dans le code | État des valeurs |
+|---|---|---|---|
+| `ADMIN_PASSWORD` | Connexion à `/admin` | Comparé par empreinte et en temps constant ; 12 caractères minimum ; 5 essais par quart d'heure puis blocage et alerte téléphone | Valeur de 20 caractères aléatoires |
+| `SESSION_SECRET` | Signature de la session d'administration, des jetons de dépôt de fichiers, du limiteur ; chiffrement des réglages | **Une clé différente par usage** (dérivée par HMAC) ; la session est **aussi liée à l'empreinte de `ADMIN_PASSWORD`** : connaître `SESSION_SECRET` seul ne permet pas de fabriquer une session (testé) ; changer l'un ou l'autre déconnecte tout le monde | 64 caractères hexadécimaux |
+| `TACHES_SECRET` | Appel de la tâche quotidienne | Comparé en temps constant ; 24 caractères minimum ; sans lui la route répond 404 | 48 caractères hexadécimaux |
+
+Aucun des trois n'est écrit dans le dépôt, journalisé, renvoyé par une page ou une API, ni affiché par le diagnostic (vérifié par recherche dans le code et par un test).
+
+**Point faible constaté (non corrigeable par le code) :** dans Netlify, ces trois variables ont été créées comme **non secrètes** (la création en « secret » avait échoué le 15 novembre). Leurs valeurs sont donc lisibles dans l'interface Netlify et par l'API Netlify, **ont été lues par l'assistant et affichées dans ses sorties les 15 et 16 novembre**, et sont disponibles pendant la compilation (portées « builds » et « post_processing »). **Recommandation : les remplacer par de nouvelles valeurs créées comme secrètes** (case « Contains secret values », portées Builds, Functions, Runtime), puis redéployer. Effets : toutes les sessions sont déconnectées ; le mot de passe d'application Gmail enregistré dans l'administration (s'il y en a un) devra être ressaisi (il est chiffré avec une clé dérivée de `SESSION_SECRET`) ; la tâche quotidienne reprend avec le nouveau `TACHES_SECRET` au déploiement.
+
 ## Risques qui restent, à connaître
 
 | Risque | Gravité | Ce qu'il faudrait pour le réduire |
