@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BandeauMode, EnteteSimple, Pied } from "../../components/Cadre";
 import Attente from "./Attente";
 import Brief from "./Brief";
+import Lecteur from "./Lecteur";
 import Validation from "./Validation";
 import { store } from "@/lib/store";
 import { retouchesMax } from "@/lib/commandes";
@@ -94,6 +95,14 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                       ) : c.livrables.length === 0 ? (
                         <p className="aide">Les fichiers arrivent.</p>
                       ) : (
+                        <>
+                        {c.livrables.some((l) => /^video\/(mp4|webm|quicktime)$/.test(l.type)) && (
+                          <div className="lecteurs">
+                            {c.livrables.filter((l) => /^video\/(mp4|webm|quicktime)$/.test(l.type)).map((l) => (
+                              <Lecteur key={l.id} src={`/api/commande/${token}/lecture/${l.id}`} nom={l.nom} />
+                            ))}
+                          </div>
+                        )}
                         <ul className="telechargements">
                           {c.livrables.map((l) => (
                             <li key={l.id}>
@@ -105,6 +114,7 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                             </li>
                           ))}
                         </ul>
+                        </>
                       )}
                       {c.statut === "attente_validation" && <Validation token={token} restantes={Math.max(0, retouchesMax(c) - c.retouchesDemandees.length)} />}
                       {c.statut === "livree" && (

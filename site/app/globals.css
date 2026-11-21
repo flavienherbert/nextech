@@ -2730,3 +2730,34 @@ button.bouton-petit {
   font-weight: 600;
   margin-bottom: 2px;
 }
+
+/* ───── Page du client : lecture des vidéos livrées ───── */
+
+.lecteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 240px));
+  gap: 18px;
+  margin: 14px 0 20px;
+}
+
+.lecteur {
+  margin: 0;
+}
+
+.lecteur video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 440px;
+  object-fit: contain;
+  background: #000;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--trait);
+}
+
+.lecteur figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--encre-douce);
+  overflow-wrap: anywhere;
+}

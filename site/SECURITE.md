@@ -73,6 +73,10 @@ Les images et vidéos remplaçables depuis l'administration sont **publiques par
 - **Texte des exemples** (titre, légende) : texte brut, nettoyé et limité en longueur, affiché échappé (vérifié avec une balise `<script>`).
 - Un média publié est visible de tous : n'envoyez rien de confidentiel.
 
+## Lecture des livrables dans la page du client — ajout du 21 novembre 2026
+
+`/api/commande/<jeton>/lecture/<fichier>` : mêmes conditions que le téléchargement (jeton secret de la commande, commande en validation ou livrée), **uniquement pour les vidéos** (MP4, WebM, MOV ; jamais un PDF), réponse jamais mise en cache (`private, no-store`), lecture par plages d'octets ; avec le stockage objet, renvoi vers un lien signé d'une heure. Testé : faux jeton, PDF, fichier inconnu, fichier d'une autre commande : 404.
+
 ## Risques qui restent, à connaître
 
 | Risque | Gravité | Ce qu'il faudrait pour le réduire |

@@ -495,6 +495,22 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   verifier("Tableau de bord : la commande est dans « Livrées »", (await idsVue("livrees")).includes(A.id) && !(await idsVue("afaire")).includes(A.id));
   const rVideo = await fetch(`${BASE}/api/commande/${A.token}/fichier/${A4.livrables.find((x) => x.nom.endsWith(".mp4")).id}`);
   verifier("Le client télécharge sa vidéo par son lien : fichier intact", rVideo.status === 200 && Buffer.from(await rVideo.arrayBuffer()).equals(videoA));
+  {
+    // Lecture intégrée à la page du client (téléphone compris) : vidéo seulement, mêmes conditions d'accès que le téléchargement
+    const idVideo = A4.livrables.find((x) => x.nom.endsWith(".mp4")).id, idPdf = A4.livrables.find((x) => x.nom.endsWith(".pdf")).id;
+    const htmlClient = await (await fetch(`${BASE}/commande/${A.token}`)).text();
+    verifier("Page du client : un lecteur intégré pour la vidéo, aucun pour le PDF", htmlClient.includes(`/api/commande/${A.token}/lecture/${idVideo}`) && !htmlClient.includes(`/lecture/${idPdf}`));
+    const lect = await fetch(`${BASE}/api/commande/${A.token}/lecture/${idVideo}`, { headers: { Range: "bytes=0-9" } });
+    const octets = Buffer.from(await lect.arrayBuffer());
+    verifier("Lecture intégrée : lecture partielle (206), contenu exact, type vidéo, jamais en pièce jointe", lect.status === 206 && octets.length === 10 && octets.equals(videoA.subarray(0, 10)) && /^video\/mp4/.test(lect.headers.get("content-type") || "") && !/attachment/.test(lect.headers.get("content-disposition") || ""), `${lect.status} ${lect.headers.get("content-type")} ${octets.length}`);
+    const autres = await Promise.all([
+      fetch(`${BASE}/api/commande/${"c".repeat(48)}/lecture/${idVideo}`),
+      fetch(`${BASE}/api/commande/${A.token}/lecture/${idPdf}`),
+      fetch(`${BASE}/api/commande/${A.token}/lecture/${"d".repeat(32)}`),
+      fetch(`${BASE}/api/commande/${premier.token}/lecture/${idVideo}`),
+    ]);
+    verifier("Lecture intégrée : mauvais jeton, PDF, fichier inconnu, fichier d'une autre commande → 404", autres.every((r) => r.status === 404), autres.map((r) => r.status).join(","));
+  }
 
   // — Demande de correction du client
   await fauxJson("/_vider", "POST");

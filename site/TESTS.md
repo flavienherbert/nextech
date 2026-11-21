@@ -16,7 +16,7 @@ Aucune dépendance Python n'est stockée dans le dépôt (des fichiers `.whl` y 
 | Vérification | Disque | PostgreSQL + disque | PostgreSQL + S3 | S3 seul |
 |---|---|---|---|---|
 | Tests ciblés (`npm run test:unitaires`) | 172/172 | 172/172 | 172/172 | réussis |
-| Parcours complet dans le navigateur (`npm run test:e2e`) | 185/185 | 185/185 | 184/184 | — |
+| Parcours complet dans le navigateur (`npm run test:e2e`) | 188/188 | 185/185 *(avant l'ajout du lecteur vidéo du client)* | 187/187 | — |
 | Images et vidéos du site (`scripts/e2e-medias.mjs`) | 33/33 | 33/33 | 33/33 | — |
 
 Aussi : pilote PostgreSQL (`npm run test:postgres`) réussi ; politique de sécurité et affichage réel (`npm run test:csp`) 31/31 ; `npx tsc --noEmit` sans erreur ; `npm audit` : 0 vulnérabilité.

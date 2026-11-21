@@ -16,6 +16,8 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `PROGRESS.md` | Avancement réel et journal des décisions |
 | `TODO.md` | Prochaines actions, dont celles qui attendent une autorisation |
 | `listings/` | Textes des fiches ComeUp et Fiverr, prêts à coller |
+| `commercial/RENTABILITE.md` | **Étude de rentabilité** (Seedance 2.0 via Higgsfield) : coûts vérifiés, hypothèses, trois grilles tarifaires, recommandation ; modèle rejouable `commercial/modele-rentabilite.py` |
+| `site/AUDIT-VENTE-LIVRAISON.md` | **Audit de la vente et de la livraison** : ce qui fonctionne en ligne, ce qui n'a été testé qu'en local, ce qui reste à tester |
 | `production/HIGGSFIELD.md` | **Produire une commande avec Higgsfield** : ce qui est automatique ou non, coûts, formats, brief, script, contrôle qualité, livraison |
 | `production/MODELES-MESSAGES.md` | Messages types aux clients (script, précision, refus, retard, relance) |
 | `production/PROCESS.md` | Méthode du brief à la livraison, contrôle qualité |

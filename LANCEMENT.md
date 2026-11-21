@@ -37,6 +37,7 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 
 ## C. Les seules actions qui restent pour vous, dans l'ordre
 
+0. **Décider des tarifs et des retouches** à partir de `commercial/RENTABILITE.md` (recommandation : 35 / 89 / 169 €, retouches en tours 1 / 2 / 2, durée jusqu'à 15 s). Rien n'est modifié sur le site tant que vous n'avez pas tranché. L'audit de la vente et de la livraison est dans `site/AUDIT-VENTE-LIVRAISON.md`.
 1. **Décider pour Netlify** (attendre la remise à zéro, acheter des crédits, ou autre) : c'est ce qui permet de publier tout le reste. Une seule publication suffira.
 2. **Remplacer les trois secrets exposés** (mot de passe administrateur, `SESSION_SECRET`, `TACHES_SECRET`) : `site/ROTATION-SECRETS.md`, une dizaine de minutes. Fait avant l'ouverture, pas après.
 3. **Recréer le mot de passe d'application Gmail** et le saisir dans *Administration → Réglages e-mail* (après la publication).
