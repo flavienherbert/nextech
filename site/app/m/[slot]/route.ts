@@ -9,8 +9,11 @@ export const dynamic = "force-dynamic";
 // Médias publics du site. L'adresse « /m/<emplacement>?v=<version> » désigne un fichier précis qui ne change jamais :
 // on peut donc le garder un an dans le navigateur et sur le CDN. Sans « v », on renvoie vers la version actuelle.
 // Seuls des fichiers du dossier « medias » sont servis (jamais ceux des clients), uniquement JPG, PNG, WebP, MP4, WebM.
-const SOBRE = { "X-Content-Type-Options": "nosniff", "Content-Security-Policy": "default-src 'none'; sandbox" };
-const IMMUABLE = { "Cache-Control": "public, max-age=31536000, immutable" };
+// (La politique de contenu stricte de ces adresses est définie, comme toutes les autres, dans next.config.mjs.)
+const SOBRE = { "X-Content-Type-Options": "nosniff" };
+// « Netlify-CDN-Cache-Control » : consigne propre au réseau de diffusion de Netlify (ignorée ailleurs) pour que l'image ne
+// soit calculée qu'une fois, puis servie sans exécuter de fonction (ce sont les exécutions de fonctions qui consomment les crédits).
+const IMMUABLE = { "Cache-Control": "public, max-age=31536000, immutable", "Netlify-CDN-Cache-Control": "public, max-age=31536000, durable" };
 const introuvable = () => new Response("Introuvable", { status: 404, headers: { "Cache-Control": "public, max-age=60" } });
 
 // Une seule plage d'octets (« bytes=a-b », « bytes=a- », « bytes=-n »), comme le demandent les lecteurs vidéo.

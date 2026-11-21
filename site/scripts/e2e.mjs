@@ -462,6 +462,7 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.click("button:has-text('Envoyer le script au client')");
   await admin.waitForURL(/ok=script&mail=oui/);
   verifier("Script envoyé : e-mail au client avec le texte, date et historique tracés", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("votre script à valider") && m.texte.includes("Arrête d'acheter des gourdes") && m.texte.includes("répondez simplement")) && Boolean(commande(A.id).scriptEnvoyeLe) && commande(A.id).historique.some((h) => h.evenement.includes("Script envoyé")) && commande(A.id).statut === "payee");
+  await admin.waitForSelector('input[name="scriptValide"]');
   verifier("Le bouton de démarrage exige la confirmation de l'accord du client", (await admin.locator('input[name="scriptValide"][required]').count()) === 1);
   await admin.check('input[name="scriptValide"]');
   await admin.click("button:has-text('Démarrer la production')");
@@ -483,7 +484,7 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await admin.waitForURL(/ok=livraison&mail=oui/);
   const A4 = commande(A.id);
   {
-    const mailLiv = (await mails()).find((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && !m.objet.includes("corrigée"));
+    const mailLiv = (await mails()).find((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && !m.objet.includes("corrigée") && !m.objet.includes("script"));
     const liens = [...(mailLiv?.texte.matchAll(/https?:\/\/\S+\/api\/commande\/[0-9a-f]+\/fichier\/[0-9a-f]+/g) || [])].map((x) => x[0]);
     const uniques = [...new Set(liens)];
     const recus = await Promise.all(uniques.map(async (u) => { const rr = await fetch(u.replace(/^https?:\/\/[^/]+/, BASE)); return { statut: rr.status, taille: (await rr.arrayBuffer()).byteLength, disp: rr.headers.get("content-disposition") || "" }; }));

@@ -222,10 +222,10 @@ export default async function Accueil() {
               <Reveal className="tete-section">
                 <p className="surtitre">Exemples</p>
                 <h2>
-                  Des vidéos <em>déjà livrées.</em>
+                  Des vidéos <em>réalisées par le studio.</em>
                 </h2>
                 <p className="intro">
-                  Exemples réalisés par Studio Accroche. Le présentateur est généré par intelligence artificielle.
+                  Exemples réalisés par Studio Accroche, avec un présentateur généré par intelligence artificielle.
                 </p>
               </Reveal>
               <div className="exemples-grille">

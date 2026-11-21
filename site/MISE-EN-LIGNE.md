@@ -13,6 +13,8 @@ Vérifiez dans Netlify : *Team settings* (ou l'icône du compte), **Billing / Us
 
 Pour limiter les déploiements à l'avenir : un mot de passe d'application Gmail se saisit désormais dans **Administration, Réglages e-mail** (actif tout de suite, sans redéploiement), et les secrets ne passent plus par Netlify.
 
+**Pour que la prochaine publication coûte le moins possible (22 novembre)** : tout le travail récent est regroupé dans **un seul déploiement** (15 crédits). Depuis le 22 novembre, l'accueil et les pages légales sont servies depuis un cache (renouvelé toutes les 15 minutes) au lieu d'être calculées à chaque visite : l'usage courant du site consomme beaucoup moins. Ne redéployez pas « pour essayer » : changez les images et vidéos dans *Administration → Images et vidéos* (aucun déploiement), les mots de passe d'application dans *Réglages e-mail* (aucun déploiement).
+
 ## Ce qu'il vous reste à faire — 3 blocs, environ 20 minutes (16 novembre)
 
 Tout le reste est fait et vérifié (voir `LANCEMENT.md`). Ces trois blocs demandent un compte ou un secret que vous seul pouvez fournir. Les secrets se saisissent **uniquement dans Netlify** (*Site configuration*, *Environment variables*, **Add a variable**, cocher **Contains secret values**), jamais dans la conversation. Après chaque bloc, dites-le-moi : je redéploie et je vérifie en ligne.

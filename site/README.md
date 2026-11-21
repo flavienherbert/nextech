@@ -27,17 +27,13 @@ Parcours à suivre :
 
 Pour repartir de zéro : supprimer le dossier `site/data`.
 
-## Activer la vidéo de démonstration
+## Remplacer la vidéo de démonstration, les exemples et les images
 
-L'accueil réserve un emplacement à la vidéo de démonstration (section « Voici ce que vous recevez », juste sous la couverture). Tant qu'aucune vidéo n'est renseignée, il affiche « Emplacement réservé ».
+Tout se fait dans **Administration → Images et vidéos** (`/admin/medias`), sans toucher au code ni redéployer : voir `MEDIAS.md`. Tant qu'aucune vidéo du studio n'est envoyée, l'accueil affiche l'exemple externe provisoire (clairement indiqué) ou un emplacement réservé.
 
-1. Déposer la vidéo et son image d'attente dans `public/media/demo/` :
-   - `demonstration.mp4` : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus ;
-   - `demonstration.jpg` : 720 × 1280, l'image affichée avant la lecture.
-2. Dans `app/config.ts`, bloc `demonstration`, renseigner `video: "/media/demo/demonstration.mp4"` et `poster: "/media/demo/demonstration.jpg"`.
-3. Relancer `npm run demo` : l'étiquette devient « Exemple de vidéo livrée » et le bouton de lecture apparaît.
+Solution de repli (sans l'administration) : déposer `demonstration.mp4` et `demonstration.jpg` dans `public/media/demo/` et renseigner `video` et `poster` dans `app/config.ts`. La vidéo envoyée dans l'administration est toujours prioritaire.
 
-N'y placer qu'une vidéo réellement produite par le studio : c'est le seul endroit du site présenté comme une réalisation. Les photographies portent l'étiquette « Illustration ».
+N'y placer qu'une vidéo réellement produite par le studio : c'est le seul endroit du site présenté comme une réalisation. Les photographies d'origine portent l'étiquette « Illustration ».
 
 ## Si la page s'affiche mal (sections vides, erreur « unsafe-eval » dans la console)
 
@@ -114,14 +110,18 @@ Il vérifie que toutes les sections sont réellement visibles sur ordinateur et 
 | `lib/commandes.ts` | Règles : création, confirmation de paiement, brief, statuts |
 | `lib/depot.ts` | Stockage : pilotes disque et stockage objet |
 | `lib/store.ts` | Commandes, compteurs, e-mails archivés |
-| `lib/fichiers.ts` | Dépôt et téléchargement des fichiers privés |
+| `lib/fichiers.ts` | Dépôt et téléchargement des fichiers privés ; envoi des médias du site |
+| `lib/emplacements.ts`, `lib/medias.ts` | Catalogue des images et vidéos remplaçables ; registre des médias envoyés |
+| `lib/lancement.ts` | Liste de lancement (contrôles automatiques et cases à cocher) |
+| `lib/fiche.ts` | Fiche de production d'une commande |
 | `lib/factures.ts` | Factures PDF |
 | `lib/purge.ts` | Suppression des fichiers après 90 jours |
 | `lib/mail.ts` | Modèles et envoi des e-mails (Brevo, Resend) |
 | `lib/auth.ts` | Session de l'espace administrateur |
 | `app/api/` | Paiement, webhook, brief, fichiers, validation |
 | `app/commander/`, `app/commande/` | Parcours du client |
-| `app/admin/` | Espace administrateur |
+| `app/admin/` | Espace administrateur (commandes, images et vidéos, lancement, e-mails, réglages, diagnostic) |
+| `app/m/[slot]/` | Route publique des images et vidéos envoyées depuis l'administration |
 | `scripts/` | Simulateur Stripe, lanceur de démonstration, tests |
 
 ## Factures

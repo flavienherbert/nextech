@@ -27,7 +27,7 @@ export type Emplacement = {
 export const GROUPES = [
   { id: "ouverture", nom: "Ouverture de la page d'accueil", aide: "La grande photographie tout en haut du site." },
   { id: "demo", nom: "Vidéo de démonstration", aide: "Le téléphone au centre de la page d'accueil. C'est l'élément le plus important pour convaincre : une vraie vidéo faite par vous." },
-  { id: "exemples", nom: "Exemples de vidéos livrées", aide: "Jusqu'à six vidéos. La section « Exemples » n'apparaît sur le site qu'à partir du moment où une vidéo est envoyée." },
+  { id: "exemples", nom: "Exemples de vidéos du studio", aide: "Jusqu'à six vidéos. La section « Exemples » n'apparaît sur le site qu'à partir du moment où une vidéo est envoyée." },
   { id: "temps", nom: "Les quatre temps d'une publicité", aide: "Quatre images verticales qui illustrent l'accroche, la preuve, le bénéfice et l'offre." },
   { id: "formules", nom: "Visuels des trois formules", aide: "Les piles d'images au-dessus de chaque formule : une pour l'essai, trois pour le Pack Test, six pour le Pack Campagne." },
   { id: "divers", nom: "Fond du bas de page et partage", aide: "L'image de fond de la dernière section et la vignette affichée quand le lien du site est partagé." },

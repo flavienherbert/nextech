@@ -1,155 +1,69 @@
-# LANCEMENT — état réel au 14 novembre 2026
+# LANCEMENT — état réel au 22 novembre 2026
 
-Aucune vente réelle, aucun encaissement, rien de publié, personne contacté, 0 € dépensé.
+Aucune vente réelle, aucun encaissement, aucune publication commerciale, personne contacté, **0 € dépensé**. Stripe est en mode test. Le site en ligne (https://studio-accroche-preprod.netlify.app) est une préproduction : il n'est pas référencé par les moteurs de recherche.
 
-## Organisation côté vendeur (16 novembre)
-
-Vous êtes prévenu de chaque commande **payée** par e-mail (contactstudioaccroche@gmail.com) et sur le téléphone (ntfy) ; tout se traite dans `/admin` (catégories, recherche, boutons « Prochaine étape », livraison, corrections). Mode d'emploi : `site/MODE-EMPLOI.md`. Ce qu'il reste à faire de votre côté : mot de passe d'application Gmail dans Netlify, application ntfy, voir `site/MISE-EN-LIGNE.md` (« E-mails du vendeur et notifications »).
-
-## État technique au 15 novembre (soir)
-
-Préproduction en ligne, protégée : https://studio-accroche-preprod.netlify.app (29 adresses testées sans mot de passe : toutes refusées).
-
-- **Vérifié sur le serveur Netlify** (`npm run verifier:en-ligne`, page `/admin/diagnostic`) : génération des factures PDF (corrigée : polices absentes du déploiement), pages d'erreur, connexion administrateur, tâche planifiée déployée mais inactive.
-- **Bloqué, en attente de vous** : variables Supabase et Stripe test à saisir dans Netlify, restriction d'adresses IP de Brevo à désactiver. Liste exacte : `site/MISE-EN-LIGNE.md`, section « Liste définitive ». Ensuite : `site/TEST-CLIENT.md`.
-- **Code** : limiteur de connexion et de commandes partagé (l'ancien, en mémoire, ne protégeait rien sur Netlify), purge complète, délais maximaux Stripe et e-mail, renvoi des e-mails en échec, alerte de paiement non appliqué.
-
-## Stockage : Supabase à la place de Cloudflare R2 (15 novembre)
-
-Décision du fondateur. Fichiers dans Supabase Storage, données de commande dans Supabase PostgreSQL (écritures atomiques). Code prêt et testé en local, **rien connecté** : table SQL non créée, variables Netlify non modifiées, bucket non touché. Détail, limites et ordre des opérations : `site/SUPABASE.md`. Pause automatique après 7 jours sans activité : `site/MAINTIEN-ACTIVITE.md`. Limite des vidéos livrées : 50 Mo.
-
-## Bilan en trois catégories
-
-### TERMINÉ (testé en local)
-
-- Site : accueil, démonstration (emplacement prêt), formules 25 / 69 / 129 €, pages légales, affichage ordinateur et mobile sans débordement.
-- Parcours client complet : commande, paiement simulé, brief et dépôt de fichiers, validation du script, livraison, retouche ou validation, facture spécimen. 88 vérifications de bout en bout réussies le 14 novembre.
-- Administration protégée : commandes, statuts, livrables, notes, e-mails archivés.
-- Photographies libres de droits, sources et licences dans `site/IMAGES.md`.
-- Contact affiché dans le pied de toutes les pages dès que l'adresse du studio est renseignée.
-- Prospection préparée : `commercial/DEMARRAGE.md` (client idéal, arguments, présentation, méthode), 25 prospects, 8 messages.
-- Démonstration : exemple externe provisoire actif sur l'accueil (lecteur YouTube, mention « non réalisée par Studio Accroche »), à remplacer par une vidéo du studio.
-
-### À FAIRE PAR CLAUDE (dès que les décisions sont prises)
-
-1. (Fait) Vidéo de démonstration activée.
-2. Vérifier le site contre les vrais services : Stripe en mode test, stockage, e-mails, hébergeur en préproduction privée.
-3. Compléter mentions légales, conditions de vente et factures avec les informations réelles.
-4. Factures d'avoir en cas de remboursement, sauvegarde du stockage.
-
-### À FAIRE PAR LE FONDATEUR
-
-1. (Fait) Vidéo de démonstration choisie.
-2. Micro-entreprise : en cours (déclaré par le fondateur le 14 novembre). Rien ne peut être encaissé avant le SIRET.
-3. Créer l'adresse e-mail du studio.
-4. Créer les comptes gratuits (hébergeur, stockage, e-mails) et saisir lui-même les clés.
-5. Acheter le nom de domaine (7 à 12 € par an), seule dépense prévue.
-6. Décider : vente aux professionnels uniquement, ou aussi aux particuliers (médiateur de la consommation obligatoire dans le second cas).
-7. Faire relire les conditions de vente ; envoyer lui-même les messages aux prospects.
-
-### Recherche d'une vidéo de démonstration externe (14 novembre)
-
-Aucune vidéo gratuite ne réunit présentateur IA, produit, voix française, montage publicitaire et droit de réutilisation commerciale.
-- Exemples des éditeurs d'outils (Creatify, HeyGen, Arcads…) : contenus réservés, reproduction interdite sans accord écrit (conditions de Creatify, § 7.2 et 7.4).
-- Banques gratuites (Pexels, Pixabay, Coverr, Mixkit) : usage commercial autorisé, mais ce sont des plans muets de vraies personnes, sans voix ni montage, et leurs licences interdisent de suggérer une recommandation par la personne filmée ou de s'attribuer le contenu.
-- Prestataires sur ComeUp ou Fiverr : leurs exemples leur appartiennent.
-Conclusion : la seule démonstration honnête et gratuite est une vidéo produite par le studio.
+Ce document est la seule page à lire pour savoir où on en est. Le détail technique est dans `site/` ; le suivi des commandes au quotidien dans `site/MODE-EMPLOI.md` ; la production des vidéos dans `production/HIGGSFIELD.md`.
 
 ---
 
-Le détail ci-dessous date du 13 novembre et reste valable.
+## A. Ce qui est terminé
 
-## 1. Terminé et vérifié (fonctionne réellement, en local)
+**Le site**
+- Accueil, formules à 25 / 69 / 129 €, FAQ, pages légales, affichage ordinateur et mobile, bandeau de préproduction tant que les paiements réels sont fermés.
+- Accueil et pages légales servies depuis un cache (renouvelé toutes les 15 minutes) : plus rapide pour les visiteurs, presque aucun calcul facturé par Netlify.
+- **Images et vidéos remplaçables sans toucher au code** : Administration → *Images et vidéos*. 30 emplacements (couverture, vidéo de démonstration, six exemples, quatre temps, visuels des formules, fond, vignette de partage). Chaque envoi est contrôlé (type réel, signature, poids), les images lourdes sont réduites automatiquement, un retour à l'image d'origine est possible. Guide : `site/MEDIAS.md`.
 
-| Élément | Preuve |
-|---|---|
-| Page d'accueil cinématique, visuels fixes | Contrôlée sur ordinateur (1440 px) et mobile (390 px), aucun débordement |
-| Trois formules avec prix, vidéos livrées, durée, délai | Test automatique |
-| Page de commande avec récapitulatif et cases obligatoires | Test automatique |
-| Création de commande avec numéro unique | Test automatique |
-| Confirmation du paiement par webhook signé | 12 tests de fraude réussis |
-| Formulaire de brief et dépôt de fichiers privés | Test automatique |
-| Notifications : confirmation client, paiement, brief, production, validation, livraison | Rédigées et archivées à chaque étape |
-| Espace administrateur protégé : liste, détail, statuts, livrables, notes | Test automatique |
-| Livraison par lien privé, validation ou retouche par le client | Test automatique |
-| Paiement annulé ou expiré | Test automatique |
-| Paiements fermés sans autorisation explicite | Vérifié dans 3 configurations |
-| Pages légales : mentions, conditions de vente, confidentialité | Affichées, liens vérifiés |
+**Le parcours client, de la commande à la clôture**
+- Commande → paiement Stripe → confirmation signée par le webhook → brief (site internet facultatif) et photos → **script envoyé au client pour accord** (promis par les conditions de vente, désormais outillé : bouton dans la commande, accord exigé avant de démarrer) → production → livraison par liens privés → correction ou validation → facture PDF numérotée → clôture.
+- Onze e-mails automatiques au client et à vous, plus le script (`site/EMAILS.md`). Un e-mail qui ne part pas est conservé, signalé sur le téléphone et renvoyé d'un clic, sans doublon.
 
-| Stockage durable (stockage objet), survie au redémarrage | 86 tests sur émulateur local |
-| Envoi direct des fichiers au stockage, jusqu'à 300 Mo par vidéo | Test automatique |
-| Factures PDF numérotées, archivées, bloquées sans informations légales | Tests automatiques et ciblés |
-| Suppression des fichiers après 90 jours | Test ciblé |
-| Sécurité de l'administration et des fichiers | Revue et tests, voir `site/SECURITE.md` |
+**L'administration** (`/admin`)
+- Tableau de bord par catégories, recherche, panneau « Prochaine étape », **fiche de production** à copier, livrables, corrections, e-mails, réglages e-mail, diagnostic, **liste de lancement** automatique, images et vidéos.
+- Notification de chaque commande payée sur le téléphone (ntfy, sans donnée personnelle) et par e-mail ; récapitulatif et relance quotidiens.
 
-88 vérifications de bout en bout sur disque, 86 sur stockage objet, 24 tests ciblés sur chacun. Rejouables (`site/README.md`).
+**La production vidéo** : procédure Higgsfield complète, formats, coûts relevés, contrôle qualité, modèles de messages. **Rien n'est automatisé entre le site et Higgsfield** : vous générez, vous contrôlez, vous déposez (`production/HIGGSFIELD.md`, section 0).
 
-## 2. Écrit mais pas encore vérifié en conditions réelles
+**Sécurité et qualité** : 0 vulnérabilité (`npm audit`), secrets séparés par usage, politique de contenu stricte, limiteur de connexion partagé, fichiers privés, médias publics isolés des fichiers des clients, aucun secret dans le dépôt. **Tests du 22 novembre** : 172/172 tests ciblés dans chaque mode de stockage, parcours complet dans le navigateur 185/185 (disque), 185/185 (PostgreSQL + disque), 184/184 (PostgreSQL + S3), médias 33/33 dans les trois, politique de sécurité 31/31 (détail : `site/TESTS.md`). Ces tests sont **locaux** : ils ne prouvent pas le comportement en ligne.
 
-| Élément | Ce qui manque pour le vérifier |
-|---|---|
-| Connexion au vrai Stripe (mode test) | Ta clé de test, saisie chez toi (`site/STRIPE.md`) |
-| Stockage sur un vrai service (Supabase) | Validation du bloc 1 (table SQL), puis du bloc 2 (variables Netlify), puis test sur le vrai bucket (`site/SUPABASE.md`) |
-| Envoi réel des e-mails (Brevo ou Resend) | Un compte et un nom de domaine vérifié |
-| Fonctionnement chez un hébergeur | Le choix de l'hébergeur et un déploiement de préproduction |
-| Facture réelle | Les informations administratives ; seuls des spécimens ont été produits |
+## B. Ce qui reste bloqué (Netlify, Google, vos accès)
 
-## 3. Préparé, non mis en service
-
-- Fiches ComeUp et Fiverr (`listings/`).
-- 25 prospects vérifiés, 8 messages personnalisés prêts (`commercial/`).
-- Publicité du studio, version 0 (`publicite-studio/`), en pause.
-- Dossier micro-entreprise (`ADMIN.md`).
-
-## 4. Reste à faire côté technique
-
-1. Vérifications en conditions réelles du § 2, dans cet ordre : Stripe test, stockage, e-mails, hébergeur.
-2. Factures d'avoir en cas de remboursement, facture d'acompte : non gérées.
-3. Sauvegarde du stockage.
-4. Seconde démonstration dans une autre catégorie de produit (bougie ou soin), à produire plus tard.
-
-## 5. Ce qui nécessite ton intervention
-
-| Action | Pourquoi |
-|---|---|
-| Tester toi-même une commande (`npm run demo`) | Valider le parcours avant d'aller plus loin |
-| Configurer ta clé Stripe de test | `site/STRIPE.md`, sans la communiquer |
-| Créer la micro-entreprise | SIRET obligatoire pour encaisser |
-| Créer une adresse e-mail dédiée | Contact, notifications, mentions légales |
-| Choisir un médiateur de la consommation | Mention obligatoire pour vendre à des particuliers |
-| Valider les choix techniques | `site/CHOIX-TECHNIQUES.md` |
-| Interroger un comptable sur la facturation | Date d'émission de la facture quand le paiement précède la livraison |
-| Faire relire les conditions de vente | Rédigées avec soin, non relues par un juriste |
-| Vérifier les marques INPI « accroche » | Non lisible automatiquement |
-| Envoyer les messages aux prospects | Seulement après mise en ligne et SIRET |
-
-## 6. Ce qui nécessitera une dépense
-
-Comparatif complet dans `site/CHOIX-TECHNIQUES.md`.
-
-| Poste | Choix proposé | Coût |
+| Blocage | Conséquence | Qui peut le lever |
 |---|---|---|
-| Hébergement | Netlify, offre gratuite (repli : Render ou Fly.io, 3 à 8 $/mois) | 0 € |
-| Stockage et base de données | Supabase, offre gratuite (Francfort) | 0 € jusqu'à 1 Go de fichiers, 500 Mo de base |
-| E-mails | Brevo, offre gratuite | 0 € |
-| Nom de domaine | .fr ou .com | ~7 à 12 € par an |
-| Médiateur de la consommation | À choisir | Variable |
-| Stripe | Commission par paiement | Aucun abonnement |
+| **Netlify : crédits de l'offre gratuite épuisés** (300 par mois, 15 par déploiement) | **Rien n'est publié depuis le 16 novembre.** Tout le travail récent (réglages e-mail, tri des e-mails, médias, script, liste de lancement, procédure) est prêt et poussé sur la branche, mais le site en ligne affiche encore l'ancienne version. | Vous : attendre la remise à zéro (gratuit), acheter des crédits, ou changer d'hébergeur. Je ne lance aucun déploiement avant votre accord **et** la fin de ce blocage. |
+| **Google : « 535 BadCredentials »** sur le Gmail du studio | Aucun e-mail réel ne part (clients ni vous). Le site les conserve et les renverra. | Vous : recréer le mot de passe d'application avec le bon compte (`site/MISE-EN-LIGNE.md`, bloc A). Après le déploiement, il se saisit dans *Administration → Réglages e-mail*, sans redéploiement. |
+| **Brevo : restriction d'adresses IP** | La voie de secours Brevo est refusée depuis Netlify. | Vous (réglage Brevo « Authorized IPs »), **non touché à votre demande**. Gmail suffit. |
+| **Paiement Stripe depuis mon environnement** | Je ne peux pas passer moi-même un paiement de test en ligne. | Vous payez une commande de test avec une carte de test (`site/TEST-CLIENT.md`). |
+| **Higgsfield : le compte relié à Claude a 0 crédit (offre gratuite)** | Aucune génération possible tant que vous n'avez pas d'abonnement. Rien n'est souscrit à votre place. | Vous. |
 
-Rien de tout cela n'a été souscrit.
+## C. Les seules actions qui restent pour vous, dans l'ordre
 
-## 7. Informations légales manquantes
+1. **Décider pour Netlify** (attendre la remise à zéro, acheter des crédits, ou autre) : c'est ce qui permet de publier tout le reste. Une seule publication suffira.
+2. **Remplacer les trois secrets exposés** (mot de passe administrateur, `SESSION_SECRET`, `TACHES_SECRET`) : `site/ROTATION-SECRETS.md`, une dizaine de minutes. Fait avant l'ouverture, pas après.
+3. **Recréer le mot de passe d'application Gmail** et le saisir dans *Administration → Réglages e-mail* (après la publication).
+4. **Prendre votre abonnement Higgsfield** (lire les droits d'usage commercial) et suivre `production/HIGGSFIELD.md` § 1 : une commande à blanc complète avant la première vraie.
+5. **Remplacer les images et vidéos de démonstration** par vos créations : *Administration → Images et vidéos*. Priorité : la vidéo de démonstration (aujourd'hui, un exemple d'un autre studio, indiqué comme tel) puis trois exemples.
+6. **Passer un test complet de commande** : `site/TEST-CLIENT.md` (carte de test Stripe).
+7. **Compte Stripe réel** : activation (identité, IBAN), clé réelle et webhook réel dans Netlify.
+8. **Informations légales** : SIRET, adresse, médiateur si vous vendez à des particuliers, relecture des conditions de vente (`site/MISE-EN-LIGNE.md`).
+9. **Donner le feu vert** : `VENTES_REELLES=oui`, puis `INDEXATION=oui`. Votre page *Administration → Lancement* dit, case par case, ce qui reste.
 
-À renseigner dans la configuration (voir `site/.env.example`), aucune n'est inventée sur le site :
-nom du titulaire, SIRET, adresse, e-mail de contact, hébergeur, médiateur.
+Tant que ces points ne sont pas faits, le site refuse d'encaisser de vrais paiements : c'est voulu.
 
-Tant que nom, SIRET, adresse et e-mail sont vides, le site affiche un bandeau « préproduction », les pages légales signalent qu'elles sont incomplètes, et une clé Stripe réelle est refusée.
+---
 
-## 8. Ordre conseillé jusqu'à l'ouverture
+## Ce qui est vérifiable à tout moment
 
-1. Tu testes le parcours en local.
-2. Tu lances la micro-entreprise et crées l'adresse e-mail (délai : 1 à 2 semaines).
-3. Pendant ce délai : test contre Stripe en mode test, choix de l'hébergeur, mise en ligne en préproduction, e-mails réels.
-4. SIRET reçu : mentions légales complétées, relecture des conditions, médiateur.
-5. Ouverture : `VENTES_REELLES=oui`, clé Stripe réelle, une commande réelle de contrôle à 25 € que tu te rembourses.
-6. Fiches marketplace et premiers messages aux prospects.
+| Où | Quoi |
+|---|---|
+| `/admin/lancement` | Ce qui bloque l'ouverture, contrôlé automatiquement, et vos vérifications à cocher |
+| `/admin/diagnostic` | Base, stockage, e-mails, factures, notification de test |
+| `site/TESTS.md` | Lancer les tests en local |
+
+## Ce qui n'a jamais été fait (honnêteté)
+
+- Aucun paiement réel, aucune facture réelle (seulement des spécimens), aucun client réel.
+- L'envoi d'e-mails réels n'a **jamais** abouti en ligne (Google, Brevo).
+- Les conditions de vente et les mentions légales n'ont pas été relues par un juriste.
+- La rentabilité de la production dépend du prix réel de votre crédit Higgsfield et du temps passé : `production/HIGGSFIELD.md` § 2 donne la méthode, pas la réponse.
+- Le premier acheteur est à trouver : `commercial/` contient 25 prospects et 8 messages, rien n'a été envoyé.
+- L'historique Git contient encore d'anciens fichiers volumineux (`.whl`) : sans effet sur le site, purge possible sur votre demande (elle réécrit l'historique).

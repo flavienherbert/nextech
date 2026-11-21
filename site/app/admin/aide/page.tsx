@@ -43,9 +43,10 @@ export default async function Aide() {
           <h2>Je traite une commande ici</h2>
           <ol className="aide-etapes">
             <li>Ouvrez la commande (clic sur son numéro). Le panneau <strong>« Prochaine étape »</strong> en haut vous dit quoi faire.</li>
-            <li>Téléchargez les fichiers du client (colonne de gauche).</li>
-            <li>Cliquez sur <strong>« Démarrer la production »</strong> : le client est prévenu par e-mail.</li>
-            <li>Réalisez la vidéo avec vos outils habituels.</li>
+            <li>Rédigez le script à partir de la <strong>fiche de production</strong> (sous le brief), puis cliquez sur <strong>« Envoyer le script au client »</strong>. Aucune vidéo n&apos;est produite avant son accord.</li>
+            <li>Il répond « OK » par e-mail : cochez « Le client a validé le script ».</li>
+            <li>Téléchargez les fichiers du client (colonne de gauche), puis cliquez sur <strong>« Démarrer la production »</strong> : le client est prévenu par e-mail.</li>
+            <li>Réalisez la vidéo (procédure : <code>production/HIGGSFIELD.md</code> dans le dépôt).</li>
           </ol>
           <p className="aide">Le client n&apos;a pas envoyé son brief ? Il est relancé automatiquement après 48 h ; vous pouvez aussi le relancer d&apos;un clic.</p>
         </section>
@@ -58,6 +59,16 @@ export default async function Aide() {
             <li>S&apos;il valide, la commande passe en « Livrée » toute seule et la facture est émise.</li>
             <li>S&apos;il demande une correction, vous êtes prévenu (téléphone + e-mail) : la commande apparaît dans « Corrections demandées ». Modifiez la vidéo, remplacez le fichier, puis cliquez sur « Envoyer la version corrigée ».</li>
           </ol>
+        </section>
+
+        <section className="bloc">
+          <h2>Remplacer les images et vidéos du site</h2>
+          <p>Ouvrez <Link href="/admin/medias">Images et vidéos</Link> : choisissez un fichier pour l&apos;emplacement voulu, il est publié tout de suite, sans redéploiement. Commencez par la <strong>vidéo de démonstration</strong>, puis trois <strong>exemples</strong>. « Remettre l&apos;image d&apos;origine » annule un changement.</p>
+        </section>
+
+        <section className="bloc">
+          <h2>Où en est mon lancement ?</h2>
+          <p><Link href="/admin/lancement">Lancement</Link> liste ce qui bloque encore l&apos;ouverture à la vente, contrôlé automatiquement, plus des vérifications à cocher vous-même.</p>
         </section>
 
         <section className="bloc">

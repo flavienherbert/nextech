@@ -57,14 +57,18 @@ Cliquez sur son numéro. En haut, le panneau **Prochaine étape** vous dit quoi 
 | Situation | Bouton proposé |
 |---|---|
 | Payée, brief non reçu | **Relancer le client maintenant** |
-| Brief reçu | **Démarrer la production** (le client est prévenu) |
+| Brief reçu | **Envoyer le script au client**, attendre son « OK », puis **Démarrer la production** (le client est prévenu) |
 | En production | **Envoyer la livraison au client** (actif dès qu'un livrable est ajouté) |
 | Correction demandée | message du client cité, puis **Envoyer la version corrigée au client** |
 | Livraison envoyée | **Renvoyer l'e-mail de livraison**, ou **Clôturer** (considérer comme validée) |
 
-Sur la page : le **brief complet**, les **fichiers du client** (bouton Télécharger), les **retouches demandées**, l'**historique** daté (paiement, brief, statuts, livraisons) et les **e-mails envoyés** avec leur résultat. Après chaque bouton, un bandeau confirme ou signale que l'e-mail n'est pas parti.
+Sur la page : le **brief complet** et, dessous, la **fiche de production** (bouton « Copier la fiche » : le brief remis en forme, sans coordonnées ni facturation, à coller dans Higgsfield ou dans Claude), les **fichiers du client** (bouton Télécharger), les **retouches demandées**, l'**historique** daté (paiement, brief, statuts, livraisons) et les **e-mails envoyés** avec leur résultat. Après chaque bouton, un bandeau confirme ou signale que l'e-mail n'est pas parti.
 
 ---
+
+### Avant de produire : le script
+
+Les conditions de vente promettent au client qu'**aucune vidéo n'est produite avant son accord sur le script**. Dans « Prochaine étape » : écrivez le script, **Envoyer le script au client** (e-mail avec le texte), attendez son « OK » (il répond à l'e-mail, dans la boîte du studio), cochez « Le client a validé le script », **Démarrer la production**. Le délai de livraison court à partir de cet accord. La production elle-même (Higgsfield, montage, contrôle) : `production/HIGGSFIELD.md`.
 
 ## 3. Je livre les vidéos ici
 
@@ -103,6 +107,14 @@ Anti-avalanche : une même alerte n'est pas répétée plus d'une fois dans sa f
 4. Une fois par semaine : **Diagnostic** → tout doit être vert ; **Envoyer une notification de test**.
 
 Vous n'avez **jamais** à ouvrir le site pour savoir si une commande est arrivée : le téléphone et l'e-mail vous le disent.
+
+## 5 ter. Je remplace les images et vidéos du site
+
+Administration → **Images et vidéos** : choisissez un fichier pour l'emplacement voulu, c'est publié sans redéploiement. Priorité avant l'ouverture : la **vidéo de démonstration**, puis trois **exemples**. Guide complet : `MEDIAS.md`.
+
+## 5 quater. Où en est mon lancement ?
+
+Administration → **Lancement** : ce qui bloque encore l'ouverture (mentions légales, paiement réel, e-mails, secrets…), contrôlé automatiquement, plus vos vérifications à cocher. Le jour J : `VENTES_REELLES=oui` puis `INDEXATION=oui` dans Netlify.
 
 ## 5 bis. Les e-mails ne partent pas ?
 

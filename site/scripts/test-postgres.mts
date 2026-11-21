@@ -109,7 +109,8 @@ try {
   const parcourir = (dir: string) => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const c = path.join(dir, e.name); if (e.isDirectory()) parcourir(c); else if (/\.(ts|tsx)$/.test(e.name)) sources.push(c); } };
   parcourir("lib"); parcourir("app");
   const conditionnels = sources.filter((f) => !/depot(-postgres)?\.ts$/.test(f) && /siAbsent|siVersion/.test(fs.readFileSync(f, "utf8")));
-  verifier("Inventaire : seuls store.ts, factures.ts, limiteur.ts et diagnostic.ts demandent des écritures conditionnelles", conditionnels.every((f) => /(store|factures|limiteur|diagnostic)\.ts$/.test(f)), conditionnels.join(", "));
+  // medias.ts et lancement.ts : documents JSON (reglages/medias.json, reglages/lancement.json), donc rangés en base ; leurs fichiers (medias/…) n'ont jamais de condition.
+  verifier("Inventaire : seuls store.ts, factures.ts, limiteur.ts, diagnostic.ts, medias.ts et lancement.ts demandent des écritures conditionnelles", conditionnels.every((f) => /(store|factures|limiteur|diagnostic|medias|lancement)\.ts$/.test(f)), conditionnels.join(", "));
   const lignes = conditionnels.flatMap((f) => fs.readFileSync(f, "utf8").split("\n").filter((l) => /siAbsent|siVersion/.test(l)));
   verifier("Inventaire : aucune écriture conditionnelle ne vise un PDF ou un fichier", lignes.length > 0 && lignes.every((l) => !/\.pdf|cleFichier|fichiers\//.test(l)), lignes.filter((l) => /\.pdf|cleFichier|fichiers\//.test(l)).join(" | "));
   verifier("Inventaire : aucun accès direct au SDK S3 hors du dépôt et du diagnostic", sources.filter((f) => !/(depot|diagnostic)\.ts$/.test(f) && /@aws-sdk\/client-s3/.test(fs.readFileSync(f, "utf8"))).length === 0);

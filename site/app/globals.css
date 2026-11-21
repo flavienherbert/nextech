@@ -2700,9 +2700,13 @@ button.bouton-petit {
   margin-top: 8px;
 }
 
+.exemples-grille > * {
+  width: min(100%, 250px);
+}
+
 .exemple {
   margin: 0;
-  width: min(100%, 250px);
+  width: 100%;
 }
 
 .exemple .demo-cadre {

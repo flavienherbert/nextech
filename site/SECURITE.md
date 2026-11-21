@@ -61,6 +61,18 @@ Aucun des trois n'est écrit dans le dépôt, journalisé, renvoyé par une page
 
 **Point faible constaté (non corrigeable par le code) :** dans Netlify, ces trois variables ont été créées comme **non secrètes** (la création en « secret » avait échoué le 15 novembre). Leurs valeurs sont donc lisibles dans l'interface Netlify et par l'API Netlify, **ont été lues par l'assistant et affichées dans ses sorties les 15 et 16 novembre**, et sont disponibles pendant la compilation (portées « builds » et « post_processing »). **Recommandation : les remplacer par de nouvelles valeurs créées comme secrètes** (procédure pas à pas : `ROTATION-SECRETS.md`) (case « Contains secret values », portées Builds, Functions, Runtime), puis redéployer. Effets : toutes les sessions sont déconnectées ; le mot de passe d'application Gmail enregistré dans l'administration (s'il y en a un) devra être ressaisi (il est chiffré avec une clé dérivée de `SESSION_SECRET`) ; la tâche quotidienne reprend avec le nouveau `TACHES_SECRET` au déploiement.
 
+## Médias publics du site (`/m/…`) — ajout du 22 novembre 2026
+
+Les images et vidéos remplaçables depuis l'administration sont **publiques par nature** et rangées à part (`medias/`), **jamais mêlées aux fichiers privés des clients** (`fichiers/`).
+
+- **Envoi réservé à l'administrateur** (session, origine du site, mêmes contrôles que les livrables). Réservation signée d'une heure, liée à un emplacement et à un type.
+- **Contrôle du contenu** : types JPG, PNG, WebP, MP4, WebM uniquement (pas de SVG ni de HTML) ; signature des premiers octets, taille annoncée = taille reçue, type enregistré par le stockage = type annoncé, poids limité par emplacement. Un fichier refusé est supprimé.
+- **Route de lecture** : seuls les emplacements du catalogue et des noms `<32 hexadécimaux>.<extension>` sont acceptés ; un chemin détourné, un emplacement inconnu ou un type qui ne correspond pas à l'emplacement donne 404. Aucune lecture possible hors du dossier `medias/` (testé avec `../`, `%2e%2e`, SVG, mauvais genre).
+- **En-têtes** : `nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` sur les fichiers servis, mise en cache d'un an (adresses versionnées, immuables).
+- **Politique de contenu de la page** : les vidéos peuvent venir du stockage objet configuré (`media-src`) et d'adresses `blob:` (lecture des dimensions d'une vidéo avant envoi, côté administration) ; les images restent limitées à `'self'` et `data:`.
+- **Texte des exemples** (titre, légende) : texte brut, nettoyé et limité en longueur, affiché échappé (vérifié avec une balise `<script>`).
+- Un média publié est visible de tous : n'envoyez rien de confidentiel.
+
 ## Risques qui restent, à connaître
 
 | Risque | Gravité | Ce qu'il faudrait pour le réduire |

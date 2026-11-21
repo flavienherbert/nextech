@@ -72,6 +72,8 @@
 
 - **22/11** — Nettoyage : 20 fichiers `.whl` (30 Mo, restes d'un `pip download` de l'émulateur S3 de test) retirés du dépôt après vérification qu'aucun build, test ni élément du site n'en dépend ; règles `.gitignore` ajoutées ; build, typage, tests unitaires et parcours complet (182/182) repassés. Les blobs restent dans l'historique git (purge possible seulement par réécriture d'historique, non faite). Procédure de remplacement des trois secrets exposés : `site/ROTATION-SECRETS.md` ; lancement des tests : `site/TESTS.md`. Aucune publication, aucun crédit dépensé.
 
+- **22/11 (suite)** — Mission « terminer pour vendre ». Audit complet (site, parcours, sécurité, performances) puis : **images et vidéos remplaçables depuis l'administration** (30 emplacements, envoi contrôlé, route publique `/m/…`, lecture par plages, section Exemples, `site/MEDIAS.md`) ; accueil et pages légales servies depuis un cache de 15 minutes (moins de calcul facturé par Netlify) ; **liste de lancement** automatique (`/admin/lancement`) ; **script envoyé au client** depuis la commande, accord exigé avant la production (les conditions de vente le promettaient, l'outil manquait), **fiche de production** à copier ; **procédure Higgsfield** (`production/HIGGSFIELD.md` : coûts relevés par devis sans dépense, 37,5 crédits pour 15 s en Seedance 2.0 fast 720p ; modèles de messages) ; documents mis à jour (`LANCEMENT.md` refait). Dépendances : 0 vulnérabilité, correctifs appliqués. Aucune publication Netlify, aucune dépense, aucun abonnement.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |

@@ -198,7 +198,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   await depot().ecrire("reglages/medias.json", JSON.stringify({ medias: { inconnu: { id: "x", type: "image/png" }, partage: { id: `${"a".repeat(32)}.jpg`, type: "image/jpeg", nom: "p.jpg", taille: 1, ajouteLe: "x" }, temps: 5 }, textes: { zzz: { titre: "t" } } }));
   const m3 = await chargerMedias();
   verifier("Médias : un registre falsifié ne fait apparaître que des emplacements connus", m3.envoye("partage") && !m3.envoye("inconnu") && m3.url("inconnu") === null);
-  await depot().ecrire("reglages/medias.json", "pas du json");
+  await depot().ecrire("reglages/medias.json", depot().nom.startsWith("postgres") ? "[]" : "pas du json"); // la base refuse un JSON invalide : on lui donne une forme inattendue
   verifier("Médias : un registre illisible laisse le site afficher les images d'origine", (await chargerMedias()).url("cloture") === "/media/photos/cloture.webp");
   await depot().supprimer("reglages/medias.json");
   let refuse = false;

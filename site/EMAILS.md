@@ -9,7 +9,8 @@ Chaque e-mail est **archivé** avant l'envoi (Administration, E-mails), même s'
 | 3 | Brief manquant depuis 48 h | Tâche quotidienne, une seule fois | Client | `Commande N° — il nous manque encore votre brief` | Relance automatique ; relançable à la main depuis la commande. |
 | 4 | Brief reçu | Envoi du brief par le client | **Vous** | `[Studio Accroche] Brief reçu — N° — marque` | Brief complet, liste des fichiers, lien vers la commande. |
 | 5 | Brief reçu | idem | Client | `Commande N° — brief bien reçu` | Accusé de réception, lien de suivi. |
-| 6 | Production lancée | Bouton « Démarrer la production » | Client | `Commande N° — production lancée` | Lien de suivi. |
+| 5 bis | Script à valider | Bouton « Envoyer le script au client » (vous le déclenchez, après le brief) | Client | `Commande N° — votre script à valider` | Le texte du script ; le client valide en répondant « OK » (réponse reçue dans la boîte du studio). Date et envoi tracés dans l'historique. *(ajout du 22 novembre)* |
+| 6 | Production lancée | Bouton « Démarrer la production » (exige la case « le client a validé le script ») | Client | `Commande N° — production lancée` | Lien de suivi. |
 | 7 | Livraison | Bouton « Envoyer la livraison au client » | Client | `Commande N° — à valider` | **Un lien privé par fichier** (vidéo, PDF) + lien de son espace pour valider ou demander une retouche. |
 | 8 | Retouche demandée | Le client demande une correction | **Vous** | `[Studio Accroche] Retouche demandée — N°` | Message du client cité. Doublée d'une notification téléphone. |
 | 9 | Retouche demandée | idem | Client | `Commande N° — votre demande de retouche est bien reçue` | Sa demande citée, nombre de retouches incluses restantes. *(ajout du 21 novembre)* |

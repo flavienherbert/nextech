@@ -1,22 +1,26 @@
 # TODO
 
-Le détail et l'ordre sont dans `LANCEMENT.md`.
+L'état et l'ordre sont dans `LANCEMENT.md` (sections B et C). La page `/admin/lancement` du site vérifie ce qui peut l'être automatiquement.
 
-## Décisions attendues du fondateur
+## Vos actions (dans l'ordre)
 
-1. Valider ou modifier les choix de `site/CHOIX-TECHNIQUES.md` (Netlify + Cloudflare R2 + Brevo + un nom de domaine).
-2. Configurer la clé Stripe de test chez toi (`site/STRIPE.md`).
-3. Lancer la micro-entreprise (dossier dans `ADMIN.md`) et créer l'adresse e-mail dédiée.
-4. Choisir le médiateur de la consommation.
-5. Poser la question de la date de facturation à un comptable.
-6. Faire relire les conditions de vente.
+1. Décider pour Netlify (crédits épuisés) : attendre, acheter des crédits ou changer d'hébergeur.
+2. Remplacer les trois secrets exposés : `site/ROTATION-SECRETS.md`.
+3. Recréer le mot de passe d'application Gmail, le saisir dans Administration → Réglages e-mail.
+4. Prendre l'abonnement Higgsfield, faire une commande à blanc : `production/HIGGSFIELD.md`.
+5. Remplacer les images et vidéos de démonstration : Administration → Images et vidéos (`site/MEDIAS.md`).
+6. Passer un test complet de commande : `site/TEST-CLIENT.md`.
+7. Activer le compte Stripe, ajouter la clé réelle et le webhook réel dans Netlify.
+8. Renseigner SIRET, adresse, médiateur si vente aux particuliers ; faire relire les conditions de vente.
+9. Poser la question de la date de facturation à un comptable.
+10. Feu vert : `VENTES_REELLES=oui`, puis `INDEXATION=oui`.
 
-## À faire par Claude ensuite
+## Possible sur demande (code)
 
-- [ ] Tests en conditions réelles : Stripe test, stockage, e-mails, hébergeur
-- [ ] Factures d'avoir
-- [ ] Sauvegarde du stockage
-- [ ] Reprise de la publicité du studio (en pause)
+- [ ] Factures d'avoir en cas de remboursement (non gérées : remboursement depuis Stripe, avoir à la main)
+- [ ] Sauvegarde périodique du stockage
+- [ ] Purge de l'historique Git (fichiers `.whl` anciens ; réécrit l'historique)
+- [ ] Mise à niveau de Next.js 15 → 16 (changement majeur ; rien d'urgent, aucune faille connue)
 
 ## Commercial (après mise en ligne et SIRET)
 

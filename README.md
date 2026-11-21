@@ -8,7 +8,7 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 
 | Fichier | Contenu |
 |---|---|
-| `LANCEMENT.md` | État réel : ce qui fonctionne, ce qui reste, ce qui dépend du fondateur |
+| `LANCEMENT.md` | **À lire en premier** : ce qui est terminé, ce qui est bloqué, ce qu'il reste à faire pour vous |
 | `RESEARCH.md` | Étude de marché : 12 opportunités comparées, mesures et sources |
 | `BUSINESS.md` | Offre, prix, marges, objectifs |
 | `MARKETING.md` | Canaux d'acquisition, scripts vidéo, arguments |
@@ -16,6 +16,8 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `PROGRESS.md` | Avancement réel et journal des décisions |
 | `TODO.md` | Prochaines actions, dont celles qui attendent une autorisation |
 | `listings/` | Textes des fiches ComeUp et Fiverr, prêts à coller |
+| `production/HIGGSFIELD.md` | **Produire une commande avec Higgsfield** : ce qui est automatique ou non, coûts, formats, brief, script, contrôle qualité, livraison |
+| `production/MODELES-MESSAGES.md` | Messages types aux clients (script, précision, refus, retard, relance) |
 | `production/PROCESS.md` | Méthode du brief à la livraison, contrôle qualité |
 | `production/pipeline/build_ad.py` | Outil d'assemblage vidéo (sous-titres, incrustations, voix off) |
 | `production/essai-01/` | Première publicité test et son rapport |
@@ -28,7 +30,7 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `commercial/ACCROCHES.md` | Trois accroches pour chacun des 8 prospects prioritaires |
 | `commercial/MESSAGES.md` | Huit messages personnalisés prêts à envoyer |
 | `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
-| `site/` | Site de vente et de gestion des commandes (voir `site/README.md`) |
+| `site/` | Site de vente et de gestion des commandes (voir `site/README.md`) ; `site/MODE-EMPLOI.md` au quotidien, `site/MEDIAS.md` pour remplacer images et vidéos |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
 
 ## Tester le site

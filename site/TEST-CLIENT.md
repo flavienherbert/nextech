@@ -1,6 +1,6 @@
 # Test final de commande et d'e-mails en préproduction — procédure
 
-Mise à jour du 21 novembre 2026. Aucun paiement réel : Stripe reste en **mode test**, la carte `4242 4242 4242 4242` ne débite rien. Le site n'est pas ouvert commercialement.
+Mise à jour du 22 novembre 2026. Aucun paiement réel : Stripe reste en **mode test**, la carte `4242 4242 4242 4242` ne débite rien. Le site n'est pas ouvert commercialement.
 
 ## Avant le test (rien à faire si tout est vert)
 
@@ -24,6 +24,10 @@ Mise à jour du 21 novembre 2026. Aucun paiement réel : Stripe reste en **mode 
 - notifications téléphone (nouvelle commande, correction).
 
 Je confirme ensuite la réception réelle : les e-mails clients dans la boîte que mon outil Gmail peut lire (flavienherbert5@gmail.com, si vous l'utilisez comme adresse client), et les événements « delivered » côté Brevo si Brevo a servi.
+
+## À tester vous-même une fois : l'e-mail du script
+
+Le parcours automatique coche seulement « le client a validé le script » (pour garder l'inventaire à onze e-mails). L'e-mail du script, lui, se teste à la main sur la commande de test, **avant** de démarrer la production : colonne « Prochaine étape », collez trois lignes de script, **Envoyer le script au client**. Vérifiez : l'e-mail « votre script à valider » arrive, le texte est lisible, **répondre « OK » arrive bien dans la boîte du studio**, la date d'envoi apparaît dans l'historique de la commande.
 
 ## Si quelque chose échoue
 
