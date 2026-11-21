@@ -3,7 +3,7 @@ import Link from "next/link";
 import { exigerAdmin } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { envoiReel, servicesEnvoi, utilisateurSmtp } from "@/lib/mail";
-import { motDePasseSmtpEnregistreLe } from "@/lib/reglages";
+import { motDePasseSmtpEnregistreLe, motDePasseSmtpIllisible } from "@/lib/reglages";
 import { enregistrerGmail, oublierGmail } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,7 @@ export default async function Reglages({ searchParams }: { searchParams: Promise
         )}
         {q.supprime && <p className="avis avis-ok" role="status">Mot de passe enregistré ici supprimé. La variable Netlify SMTP_PASSWORD (si elle existe) reprend la main.</p>}
         {q.erreur && <p className="avis avis-erreur" role="alert">{q.erreur}</p>}
+        {motDePasseSmtpIllisible() && <p className="avis avis-erreur" role="alert">⚠ Un mot de passe est enregistré ici mais il est illisible (la clé SESSION_SECRET a changé depuis). Ressaisissez-le ci-dessous : il sera de nouveau testé et enregistré.</p>}
 
         <section className="bloc">
           <h2>État actuel</h2>

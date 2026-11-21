@@ -18,7 +18,8 @@ import { veille } from "../lib/veille";
 import { echecsUtiles, trierEchecs } from "../lib/rattrapage";
 import { onRequestError } from "../instrumentation";
 import { suiteValide } from "../lib/auth";
-import { chargerReglages, chiffrer, dechiffrer, enregistrerMotDePasseSmtp, motDePasseSmtpEnregistreLe, oublierMotDePasseSmtp } from "../lib/reglages";
+import { chargerReglages, chiffrer, dechiffrer, enregistrerMotDePasseSmtp, motDePasseSmtpEnregistreLe, motDePasseSmtpIllisible, oublierMotDePasseSmtp } from "../lib/reglages";
+import { cleDerivee } from "../lib/cles";
 
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -290,6 +291,12 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   brevo.close();
 }
 {
+  // — Séparation des clés : un usage compromis ne donne accès à aucun autre
+  const k1 = cleDerivee("session-admin").toString("hex"), k2 = cleDerivee("depot-fichiers").toString("hex"), k3 = cleDerivee("limiteur").toString("hex"), k4 = cleDerivee("reglages-chiffres").toString("hex");
+  verifier("Clés dérivées : quatre usages, quatre clés différentes, stables d'un appel à l'autre", new Set([k1, k2, k3, k4]).size === 4 && k1 === cleDerivee("session-admin").toString("hex") && !k1.includes(process.env.SESSION_SECRET!.slice(0, 12)));
+  verifier("Clés dérivées : la liaison au mot de passe administrateur change la clé de session", cleDerivee("session-admin", "a").toString("hex") !== cleDerivee("session-admin", "b").toString("hex"));
+}
+{
   // — Réglages saisis dans l'administration : mot de passe d'application chiffré en base, actif sans redéploiement
   const x = chiffrer("abcdefghijklmnop");
   verifier("Réglages : le mot de passe est chiffré (rien de lisible) et se déchiffre", !x.includes("abcdefgh") && dechiffrer(x) === "abcdefghijklmnop");
@@ -302,6 +309,12 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   await enregistrerMotDePasseSmtp("zzzzyyyyxxxxwwww"); await chargerReglages(true);
   const brut = (await depot().lire("reglages/smtp.json"))!.corps.toString();
   verifier("Réglages : le mot de passe saisi dans l'administration l'emporte sur la variable Netlify et n'est pas lisible en base", motDePasseSmtp() === "zzzzyyyyxxxxwwww" && !brut.includes("zzzzyyyy") && Boolean(motDePasseSmtpEnregistreLe()), brut.slice(0, 120));
+  // SESSION_SECRET changé après l'enregistrement : le mot de passe devient illisible, signalé (et non une erreur), le site retombe sur la variable
+  const sessionAvant = process.env.SESSION_SECRET; process.env.SESSION_SECRET = "un-nouveau-secret-de-session-" + "y".repeat(30);
+  await chargerReglages(true);
+  verifier("Réglages : SESSION_SECRET changé → mot de passe enregistré signalé illisible, jamais d'exception, variable Netlify utilisée", motDePasseSmtpIllisible() && motDePasseSmtp() === "abcdefghijklmnop");
+  process.env.SESSION_SECRET = sessionAvant; await chargerReglages(true);
+  verifier("Réglages : clé d'origine rétablie → de nouveau lisible", !motDePasseSmtpIllisible() && motDePasseSmtp() === "zzzzyyyyxxxxwwww");
   await oublierMotDePasseSmtp(); await chargerReglages(true);
   verifier("Réglages : une fois supprimé, la variable Netlify reprend la main", motDePasseSmtp() === "abcdefghijklmnop" && process.env.SMTP_PASSWORD === avantEnv && !motDePasseSmtpEnregistreLe());
 }
@@ -427,6 +440,16 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const r2 = d([e8, reussi]);
   verifier("Tri : un e-mail identique déjà renvoyé avec succès plus tard → « déjà renvoyé » (aucun doublon possible)", r2[e8.id] === "deja_envoye" && echecsUtiles([e8, reussi], cs).length === 0);
   verifier("Tri : seul le dernier e-mail utile est à renvoyer, sans compter les autres", echecsUtiles([e1, e2, e3, e4, e4b, e5, e6, e7], cs).map((x) => x.courriel.id).sort().join() === [e1.id, e3.id, e4b.id].sort().join());
+}
+{
+  // — Accusé de réception de la retouche envoyé au client
+  const c = commandeTest({ statut: "en_production", retouchesDemandees: [{ date: maintenant(), message: "Merci de mettre le prix en début de vidéo." }] }); await store.creerCommande(c);
+  const m1 = await courriels.retoucheRecue(c, "Merci de mettre le prix en début de vidéo.", 1);
+  verifier("Retouche : accusé de réception au client, avec sa demande citée et le nombre de retouches restantes", m1.a === "a@exemple.fr" && m1.objet.includes("votre demande de retouche est bien reçue") && m1.texte.includes("prix en début de vidéo") && /Il vous reste 1 retouche incluse/.test(m1.texte) && m1.texte.includes(c.token));
+  const m0 = await courriels.retoucheRecue(c, "x".repeat(12), 0);
+  verifier("Retouche : plus aucune retouche incluse → le client en est informé", /utilisé toutes les retouches/.test(m0.texte));
+  const echec = { ...m1, resultat: "échec smtp : test", date: maintenant() };
+  verifier("Tri : l'accusé de retouche en échec est à renvoyer tant que la commande est en production, périmé ensuite", trierEchecs([echec], [c])[0].action === "renvoyer" && trierEchecs([echec], [{ ...c, statut: "attente_validation" }])[0].action === "obsolete");
 }
 {
   // — Retour après connexion : uniquement vers une page de l'administration

@@ -343,6 +343,17 @@ const bilanTache = rTache.status === 200 ? await rTache.json() : null;
 verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de purge et de veille renvoyés", bilanTache?.ok === true && typeof bilanTache.bilan === "object" && typeof bilanTache.veille === "object", String(rTache.status));
 verifier("Livrable : demande d'envoi refusée sans session administrateur (401)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status === 401);
 verifier("Livrable : requête venant d'un autre site refusée (403)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookies, Origin: "https://site-malveillant.example" }, body: "{}" })).status === 403);
+{
+  // Une session ne se fabrique pas avec SESSION_SECRET seul : il faut aussi le mot de passe administrateur
+  const exp = String(Math.floor(Date.now() / 1000) + 3600);
+  const hmacHex = (cle, v) => crypto.createHmac("sha256", cle).update(v).digest("hex");
+  const SS = process.env.SESSION_SECRET || "";
+  const derivee = (lier) => crypto.createHmac("sha256", SS).update(`studio-accroche|session-admin|${lier}`).digest();
+  const testCookie = async (valeur) => (await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: { Cookie: `sa_admin=${valeur}` } })).status;
+  verifier("Session : un cookie signé avec SESSION_SECRET seul (ancienne méthode) est refusé", (await testCookie(`${exp}.${hmacHex(SS, exp)}`)) === 401);
+  verifier("Session : un cookie signé avec la clé dérivée mais sans le mot de passe administrateur est refusé", (await testCookie(`${exp}.${hmacHex(derivee(""), exp)}`)) === 401);
+  verifier("Session : un cookie signé avec les DEUX secrets (schéma documenté) est accepté — la liaison est bien celle décrite", (await testCookie(`${exp}.${hmacHex(derivee(crypto.createHash("sha256").update(MDP).digest("hex")), exp)}`)) === 200);
+}
 const faux2 = (await adminCtx.cookies()).find((k) => k.name === "sa_admin").value.replace(/^\d+/, String(Math.floor(Date.now() / 1000) + 999999));
 verifier("Cookie de session modifié refusé", (await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: { Cookie: `sa_admin=${faux2}` } })).status === 401);
 const hd = (await fetch(`${BASE}/`)).headers, ha = (await fetch(`${BASE}/admin/connexion`)).headers, hc = (await fetch(`${BASE}/commande/${tokenClient}`)).headers;
@@ -485,6 +496,7 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   await page.waitForSelector(".jalons li.courant:has-text('En production')");
   const pushCorrection = await attendrePush((x) => x.title === "Correction demandée" && String(x.message).includes(A.id));
   verifier("Correction demandée : alerte sur le téléphone avec lien direct, sans le texte du client", pushCorrection && String(pushCorrection.click).endsWith(`/admin/commande/${A.id}`) && !/prix|Claire|@/i.test(JSON.stringify(pushCorrection)), JSON.stringify(pushCorrection));
+  verifier("Correction demandée : accusé de réception envoyé au client (sa demande citée, retouches restantes)", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("votre demande de retouche est bien reçue") && m.texte.includes("prix en début de vidéo") && /retouche/.test(m.texte)));
   verifier("Correction demandée : e-mail au vendeur avec le message du client", (await mails()).some((m) => m.a.includes("admin@example.com") && m.objet.includes("Retouche demandée") && m.texte.includes("prix en début de vidéo")));
   verifier("Tableau de bord : « Corrections demandées » et « À faire » contiennent la commande", (await idsVue("corrections")).includes(A.id) && (await idsVue("afaire")).includes(A.id) && (await compteur("Corrections demandées")) >= 1);
   await admin.goto(`${BASE}/admin/commande/${A.id}`);

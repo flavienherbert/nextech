@@ -14,6 +14,7 @@ const FENETRE = 14 * JOUR;
 const REGLES: { motif: RegExp; statuts: Statut[]; nom: string }[] = [
   { motif: /il nous manque (encore )?votre brief/i, statuts: ["attente_infos"], nom: "demande du brief" },
   { motif: /brief bien reçu/i, statuts: ["payee", "en_production"], nom: "accusé de réception du brief" },
+  { motif: /demande de retouche est bien reçue/i, statuts: ["en_production"], nom: "accusé de réception de la retouche" },
   { motif: /production lancée/i, statuts: ["en_production"], nom: "production lancée" },
   { motif: /(version corrigée )?à valider/i, statuts: ["attente_validation"], nom: "livraison à valider" },
   { motif: /vos fichiers sont disponibles/i, statuts: ["livree"], nom: "livraison finale" },

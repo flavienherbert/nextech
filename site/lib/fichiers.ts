@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 import { Readable } from "node:stream";
 import { depot } from "./depot";
+import { cleDerivee } from "./cles";
 import { env } from "./env";
 import { cleFichier, maintenant, nomPropre, nouvelIdFichier, type Fichier } from "./store";
 
@@ -54,7 +55,7 @@ export function signatureConforme(type: string, d: Buffer): boolean {
 
 type Reservation = { c: string; f: string; n: string; t: string; s: number; r: Role; e: number };
 const secret = () => env.sessionSecret();
-const hmac = (v: string) => crypto.createHmac("sha256", secret()).update(v).digest("base64url");
+const hmac = (v: string) => crypto.createHmac("sha256", cleDerivee("depot-fichiers")).update(v).digest("base64url");
 
 function signer(r: Reservation): string {
   const corps = Buffer.from(JSON.stringify(r)).toString("base64url");

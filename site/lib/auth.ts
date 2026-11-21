@@ -2,6 +2,7 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cleDerivee } from "./cles";
 import { env } from "./env";
 import { compte, enregistrer, remettreAZero } from "./limiteur";
 
@@ -9,7 +10,10 @@ const NOM = "sa_admin";
 // 7 jours : sur téléphone, saisir un long mot de passe chaque jour serait pénible. Changer SESSION_SECRET déconnecte tout le monde.
 const DUREE = 7 * 24 * 3600; // secondes
 
-const signer = (v: string) => crypto.createHmac("sha256", env.sessionSecret()).update(v).digest("hex");
+// La signature de la session dépend à la fois de SESSION_SECRET ET de l'empreinte du mot de passe administrateur :
+// connaître SESSION_SECRET seul ne permet pas de fabriquer une session, et changer le mot de passe déconnecte tout le monde.
+const signer = (v: string) =>
+  crypto.createHmac("sha256", cleDerivee("session-admin", crypto.createHash("sha256").update(env.adminPassword()).digest("hex"))).update(v).digest("hex");
 const egal = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
 export const adminConfigure = () => env.adminPassword().length >= 12 && env.sessionSecret().length >= 32;

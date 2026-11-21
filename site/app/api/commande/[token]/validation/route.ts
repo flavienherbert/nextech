@@ -42,6 +42,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     });
     if (maj) {
       await courriels.adminRetouche(maj, message);
+      await courriels.retoucheRecue(maj, message, Math.max(0, retouchesMax(maj) - maj.retouchesDemandees.length));
       await alerter({ cle: `retouche-${maj.id}-${maj.retouchesDemandees.length}`, titre: "Correction demandée", message: `${maj.id} : le client demande une retouche.`, lien: `${env.baseUrl()}/admin/commande/${maj.id}`, email: false, urgence: "haute", fenetreMs: 30 * 86_400_000 });
     }
     return Response.json({ ok: true });

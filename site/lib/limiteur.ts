@@ -3,7 +3,7 @@
 // L'adresse du visiteur n'est jamais conservée en clair : seule une empreinte signée sert de clé.
 import crypto from "node:crypto";
 import { depot } from "./depot";
-import { env } from "./env";
+import { cleDerivee } from "./cles";
 
 type Etat = { n: number; debut: number };
 
@@ -25,7 +25,7 @@ function memEnregistre(k: string, fenetreMs: number) {
 }
 
 const cle = (portee: string, id: string) =>
-  `limites/${portee}-${crypto.createHmac("sha256", env.sessionSecret() || "local").update(`${portee}:${id}`).digest("hex").slice(0, 32)}.json`;
+  `limites/${portee}-${crypto.createHmac("sha256", cleDerivee("limiteur")).update(`${portee}:${id}`).digest("hex").slice(0, 32)}.json`;
 
 async function lireEtat(k: string): Promise<{ e: Etat | null; version?: string }> {
   const l = await depot().lire(k);

@@ -5,10 +5,10 @@
 // sans SESSION_SECRET, le contenu de la base ne suffit pas à le lire.
 import crypto from "node:crypto";
 import { depot } from "./depot";
-import { env } from "./env";
+import { cleDerivee } from "./cles";
 
 const CLE = "reglages/smtp.json";
-const cleChiffrement = () => crypto.createHash("sha256").update(`studio-accroche|reglages|${env.sessionSecret()}`).digest();
+const cleChiffrement = () => cleDerivee("reglages-chiffres");
 
 export function chiffrer(texte: string): string {
   const iv = crypto.randomBytes(12);
@@ -28,6 +28,7 @@ export function dechiffrer(b64: string): string {
 let smtp: string | undefined;
 let lu = 0;
 let enregistreLe: string | undefined;
+let illisible = false; // enregistré mais impossible à déchiffrer (SESSION_SECRET changé depuis) : à ressaisir
 
 export async function chargerReglages(forcer = false) {
   if (!forcer && Date.now() - lu < 30_000) return;
@@ -35,11 +36,18 @@ export async function chargerReglages(forcer = false) {
     const l = await depot().lire(CLE);
     if (l) {
       const o = JSON.parse(l.corps.toString("utf8")) as { mdp?: string; le?: string };
-      smtp = o.mdp ? dechiffrer(o.mdp) : undefined;
       enregistreLe = o.le;
+      try {
+        smtp = o.mdp ? dechiffrer(o.mdp) : undefined;
+        illisible = false;
+      } catch {
+        smtp = undefined;
+        illisible = true;
+      }
     } else {
       smtp = undefined;
       enregistreLe = undefined;
+      illisible = false;
     }
     lu = Date.now();
   } catch (e) {
@@ -51,14 +59,15 @@ export async function chargerReglages(forcer = false) {
 
 export const motDePasseSmtpStocke = () => smtp;
 export const motDePasseSmtpEnregistreLe = () => enregistreLe;
+export const motDePasseSmtpIllisible = () => illisible;
 
 export async function enregistrerMotDePasseSmtp(mdp: string) {
   const le = new Date().toISOString();
   await depot().ecrire(CLE, JSON.stringify({ mdp: chiffrer(mdp), le }));
-  smtp = mdp; enregistreLe = le; lu = Date.now();
+  smtp = mdp; enregistreLe = le; illisible = false; lu = Date.now();
 }
 
 export async function oublierMotDePasseSmtp() {
   await depot().supprimer(CLE);
-  smtp = undefined; enregistreLe = undefined; lu = Date.now();
+  smtp = undefined; enregistreLe = undefined; illisible = false; lu = Date.now();
 }

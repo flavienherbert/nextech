@@ -223,6 +223,11 @@ export const courriels = {
     envoyer(destinataire(c), `Commande ${c.id} — vos fichiers sont disponibles`,
       gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement. Ils restent disponibles 90 jours : pensez à les enregistrer.</p>${listeLivrables(c)}${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
 
+  // Accusé de réception envoyé au client quand il demande une retouche.
+  retoucheRecue: (c: Commande, message: string, restantes: number) =>
+    envoyer(destinataire(c), `Commande ${c.id} — votre demande de retouche est bien reçue`,
+      gabarit("Nous avons bien reçu votre demande", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Votre demande de retouche est enregistrée. Nous préparons une nouvelle version et vous l'enverrons par e-mail dès qu'elle sera prête.</p><p style="background:#f4f1ec;padding:14px;border-radius:8px">${esc(message).replace(/\n/g, "<br>")}</p>${restantes > 0 ? `<p style="font-size:14px;color:#555">Il vous reste ${restantes} retouche${restantes > 1 ? "s" : ""} incluse${restantes > 1 ? "s" : ""} dans votre formule.</p>` : `<p style="font-size:14px;color:#555">Vous avez utilisé toutes les retouches incluses dans votre formule.</p>`}`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
+
   // — Administrateur —
   // Envoyé UNIQUEMENT quand Stripe a confirmé le paiement (jamais pour une commande seulement créée).
   adminPaiement: (c: Commande) => {

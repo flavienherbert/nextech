@@ -218,6 +218,31 @@ try {
   const histo = await admin.locator(".admin-grille").textContent();
   verifierMail("Aucun e-mail en échec dans l'historique de la commande", !/\((échec|non envoyé)/.test(histo) && /\(envoyé, via (smtp|brevo|resend)\)/.test(histo), histo.slice(histo.indexOf("Notifications"), histo.indexOf("Notifications") + 500));
   verifier("Aucune erreur JavaScript côté client", erreursConsole.length === 0, erreursConsole.join(" | "));
+  // ───────── 6. Inventaire des e-mails de la commande : chacun doit exister, être RÉELLEMENT parti, et une seule fois
+  console.log("\n— E-mails de la commande (un par étape) —");
+  await admin.goto(`${B}/admin/courriels`);
+  const resumes = await admin.locator("details.courriel", { hasText: id }).evaluateAll((els) => els.map((e) => e.querySelector("summary").innerText.replace(/\s+/g, " ").trim()));
+  const adresseVendeur = process.env.ADMIN_EMAIL || "contactstudioaccroche@gmail.com";
+  const ATTENDUS = [
+    ["vendeur", /Nouvelle commande payée/, "Paiement confirmé : notification de nouvelle commande"],
+    ["client", /confirmée — il nous manque votre brief/, "Paiement confirmé : confirmation et demande du brief"],
+    ["vendeur", /Brief reçu/, "Brief reçu : notification au vendeur"],
+    ["client", /brief bien reçu/, "Brief reçu : accusé au client"],
+    ["client", /production lancée/, "Production lancée : e-mail au client"],
+    ["client", /— à valider/, "Livraison : e-mail avec les liens de téléchargement"],
+    ["vendeur", /Retouche demandée/, "Correction demandée : notification au vendeur"],
+    ["client", /demande de retouche est bien reçue/, "Correction demandée : accusé de réception au client"],
+    ["client", /version corrigée à valider/, "Version corrigée : e-mail avec les liens de téléchargement"],
+    ["vendeur", /Commande validée/, "Validation : notification au vendeur"],
+    ["client", /vos fichiers sont disponibles/, "Validation : e-mail de clôture au client"],
+  ];
+  for (const [qui, motif, nom] of ATTENDUS) {
+    const trouves = resumes.filter((r) => motif.test(r));
+    const partis = trouves.filter((r) => /· envoyé$/.test(r));
+    const bonDest = partis.some((r) => (qui === "vendeur" ? r.includes(`à ${adresseVendeur}`) : !r.includes(`à ${adresseVendeur}`)));
+    verifierMail(`${nom} : envoyé${qui === "vendeur" ? " à " + adresseVendeur : " au client"}, une seule fois`, partis.length === 1 && bonDest, `${trouves.length} archivé(s), ${partis.length} réellement envoyé(s)`);
+  }
+
   console.log(`\nCommande de test : ${id} (visible dans l'administration, mode test).`);
 } catch (e) {
   verifier("Déroulement du parcours", false, e.message.split("\n")[0]);
