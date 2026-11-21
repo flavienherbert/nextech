@@ -455,7 +455,15 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
 
   // — Production
   await admin.goto(`${BASE}/admin/commande/${A.id}`);
-  verifier("Panneau « Prochaine étape » : démarrer la production", (await admin.locator(".etape").textContent()).includes("Démarrez la production"));
+  const etapeTexte = await admin.locator(".etape").textContent();
+  verifier("Panneau « Prochaine étape » : script d'abord, puis démarrage de la production", etapeTexte.includes("Rédigez le script") && etapeTexte.includes("démarrez la production"));
+  verifier("La fiche de production est disponible et ne contient ni e-mail ni adresse de facturation du client", await admin.locator("details.fiche-production textarea").evaluate((t) => /COMMANDE SA-/.test(t.value) && /Marque :/.test(t.value) && !/@/.test(t.value) && !/Adresse de facturation/i.test(t.value)));
+  await admin.fill('textarea[name="script"]', "0–3 s ACCROCHE : « Arrête d'acheter des gourdes qui fuient dans ton sac. »\n3–10 s PRODUIT : « Celle-ci, tu peux la retourner. »");
+  await admin.click("button:has-text('Envoyer le script au client')");
+  await admin.waitForURL(/ok=script&mail=oui/);
+  verifier("Script envoyé : e-mail au client avec le texte, date et historique tracés", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("votre script à valider") && m.texte.includes("Arrête d'acheter des gourdes") && m.texte.includes("répondez simplement")) && Boolean(commande(A.id).scriptEnvoyeLe) && commande(A.id).historique.some((h) => h.evenement.includes("Script envoyé")) && commande(A.id).statut === "payee");
+  verifier("Le bouton de démarrage exige la confirmation de l'accord du client", (await admin.locator('input[name="scriptValide"][required]').count()) === 1);
+  await admin.check('input[name="scriptValide"]');
   await admin.click("button:has-text('Démarrer la production')");
   await admin.waitForURL(/ok=production&mail=oui/);
 await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");

@@ -73,6 +73,7 @@ export type Commande = {
   retouchesDemandees: { date: string; message: string; traiteeLe?: string }[];
   vueLe?: string; // première ouverture de la commande par l'administrateur (sert au repère « Nouvelle »)
   relanceBriefLe?: string; // relance automatique envoyée au client qui n'a pas transmis son brief
+  scriptEnvoyeLe?: string; // script envoyé au client pour validation (aucune vidéo n'est produite avant son accord)
   valideeLe?: string;
   notes: string;
   historique: { date: string; evenement: string }[];

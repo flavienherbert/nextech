@@ -130,6 +130,7 @@ export function depotPostgres(): Depot {
     debut: nonPrevu("debut") as never,
     flux: nonPrevu("flux") as never,
     urlLecture: nonPrevu("urlLecture") as never,
+    urlAffichage: nonPrevu("urlAffichage") as never,
     urlEnvoi: nonPrevu("urlEnvoi") as never,
     recevoir: nonPrevu("recevoir") as never,
   };

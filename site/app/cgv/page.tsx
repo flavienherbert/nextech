@@ -3,7 +3,8 @@ import Link from "next/link";
 import { infosLegales, PageLegale } from "../components/Legal";
 import { delaiTexte, euros, formules } from "@/lib/formules";
 
-export const dynamic = "force-dynamic";
+// Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
+export const revalidate = 900;
 export const metadata: Metadata = { title: "Conditions générales de vente — Studio Accroche" };
 
 export default function CGV() {

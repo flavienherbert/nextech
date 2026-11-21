@@ -6,8 +6,10 @@ import { adresseClient } from "@/lib/limiteur";
 import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir, suiteValide } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
 import { alerter, notificationDeTest } from "@/lib/alertes";
-import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, relancerBrief, type Suite } from "@/lib/commandes";
+import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, envoyerScript, relancerBrief, type Suite } from "@/lib/commandes";
 import { courriels, enEchec, verifierSmtp } from "@/lib/mail";
+import { basculerManuel } from "@/lib/lancement";
+import { definirTexte, retirerMedia } from "@/lib/medias";
 import { enregistrerMotDePasseSmtp, oublierMotDePasseSmtp } from "@/lib/reglages";
 import { trierEchecs } from "@/lib/rattrapage";
 import { store, journal, STATUTS, type Statut } from "@/lib/store";
@@ -120,6 +122,29 @@ export async function retirerLivrable(form: FormData) {
   redirect(`/admin/commande/${id}?ok=retire`);
 }
 
+// ───── Médias du site (Administration → Médias) ─────
+// Retour à l'image d'origine pour un emplacement.
+export async function remettreMedia(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const slot = String(form.get("slot") || "");
+  if (!(await retirerMedia(slot))) redirect("/admin/medias?erreur=emplacement");
+  redirect(`/admin/medias?ok=retire#${slot}`);
+}
+
+export async function majTexteMedia(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const slot = String(form.get("slot") || "");
+  if (!(await definirTexte(slot, form.get("titre"), form.get("legende")))) redirect("/admin/medias?erreur=emplacement");
+  redirect(`/admin/medias?ok=texte#${slot}`);
+}
+
+// Case à cocher de la liste de lancement (vérifications que seul le vendeur peut confirmer).
+export async function basculerLancement(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  await basculerManuel(String(form.get("id") || ""));
+  redirect("/admin/lancement");
+}
+
 export async function creerFacture(form: FormData) {
   if (!(await estAdmin())) redirect("/admin/connexion");
   const id = String(form.get("id") || "");
@@ -138,7 +163,13 @@ const retour = (id: string, r: Suite, ok: string): never => {
 export async function lancerProduction(form: FormData) {
   if (!(await estAdmin())) redirect("/admin/connexion");
   const id = String(form.get("id") || "");
-  retour(id, await demarrerProduction(id), "production");
+  retour(id, await demarrerProduction(id, form.get("scriptValide") === "oui"), "production");
+}
+
+export async function proposerScript(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await envoyerScript(id, String(form.get("script") || "")), "script");
 }
 
 export async function livrerAuClient(form: FormData) {

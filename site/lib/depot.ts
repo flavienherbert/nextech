@@ -44,9 +44,12 @@ export interface Depot {
   // Type de contenu enregistré par le stockage (null s'il n'en a pas, ou pour le disque et la base).
   typeStocke(cle: string): Promise<string | null>;
   debut(cle: string, octets: number): Promise<Buffer | null>;
-  flux(cle: string): Promise<Readable | null>;
+  // `plage` : octets `debut` à `fin` inclus (lecture partielle, indispensable à la lecture vidéo sur iPhone).
+  flux(cle: string, plage?: { debut: number; fin: number }): Promise<Readable | null>;
   // Lien signé de téléchargement direct ; null si le pilote ne sait pas (lecture par le serveur).
   urlLecture(cle: string, nomFichier: string, secondes?: number): Promise<string | null>;
+  // Lien signé pour afficher le fichier dans une page (image, vidéo), avec son type ; null si le serveur doit le servir lui-même.
+  urlAffichage(cle: string, type: string, secondes?: number): Promise<string | null>;
   // Lien signé d'envoi direct depuis le navigateur ; null si l'envoi passe par le serveur.
   urlEnvoi(cle: string, type: string, secondes?: number): Promise<string | null>;
   recevoir(cle: string, source: Readable, tailleMax: number): Promise<number>;
@@ -166,10 +169,13 @@ function depotDisque(): Depot {
         return null;
       }
     },
-    async flux(cle) {
-      return (await this.taille(cle)) === null ? null : createReadStream(chemin(cle));
+    async flux(cle, plage) {
+      return (await this.taille(cle)) === null ? null : createReadStream(chemin(cle), plage ? { start: plage.debut, end: plage.fin } : undefined);
     },
     async urlLecture() {
+      return null;
+    },
+    async urlAffichage() {
       return null;
     },
     async urlEnvoi() {
@@ -302,9 +308,9 @@ function depotS3(): Depot {
         throw e;
       }
     },
-    async flux(cle) {
+    async flux(cle, plage) {
       try {
-        return (await client.send(new GetObjectCommand({ Bucket, Key: cleSure(cle) }))).Body as Readable;
+        return (await client.send(new GetObjectCommand({ Bucket, Key: cleSure(cle), ...(plage ? { Range: `bytes=${plage.debut}-${plage.fin}` } : {}) }))).Body as Readable;
       } catch (e) {
         if (absent(e)) return null;
         throw e;
@@ -315,6 +321,13 @@ function depotS3(): Depot {
         Bucket, Key: cleSure(cle),
         ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(nomFichier)}`,
         ResponseContentType: "application/octet-stream",
+      }), { expiresIn: secondes });
+    },
+    urlAffichage(cle, type, secondes = 3600) {
+      return getSignedUrl(client, new GetObjectCommand({
+        Bucket, Key: cleSure(cle),
+        ResponseContentType: type,
+        ResponseContentDisposition: "inline",
       }), { expiresIn: secondes });
     },
     urlEnvoi(cle, type, secondes = 900) {
@@ -335,7 +348,7 @@ export const stockageS3Configure = () => {
 function depotMixte(documents: Depot, fichiers: Depot): Depot {
   const estDocument = (cle: string) => cle.endsWith(".json");
   const pour = (cle: string) => (estDocument(cle) ? documents : fichiers);
-  const prefixesFichiers = ["fichiers", "factures"];
+  const prefixesFichiers = ["fichiers", "factures", "medias"];
   return {
     nom: `postgres+${fichiers.nom as "disque" | "s3"}`,
     lire: (c) => pour(c).lire(c),
@@ -353,8 +366,9 @@ function depotMixte(documents: Depot, fichiers: Depot): Depot {
     lireTous: (p, l) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).lireTous(p, l),
     inventaire: (p) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).inventaire(p),
     debut: (c, n) => pour(c).debut(c, n),
-    flux: (c) => pour(c).flux(c),
+    flux: (c, plage) => pour(c).flux(c, plage),
     urlLecture: (c, nom, s) => pour(c).urlLecture(c, nom, s),
+    urlAffichage: (c, type, s) => pour(c).urlAffichage(c, type, s),
     urlEnvoi: (c, type, s) => pour(c).urlEnvoi(c, type, s),
     recevoir: (c, src, max) => pour(c).recevoir(c, src, max),
     lister: (p) => (prefixesFichiers.includes(p.replace(/\/$/, "")) ? fichiers : documents).lister(p),

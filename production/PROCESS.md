@@ -1,5 +1,7 @@
 # Production — du brief à la livraison
 
+> Procédure détaillée avec Higgsfield, coûts et formats : [`HIGGSFIELD.md`](HIGGSFIELD.md). Modèles de messages aux clients : [`MODELES-MESSAGES.md`](MODELES-MESSAGES.md).
+
 Objectif : 45 minutes pour un Essai, 1 h 15 pour un Pack Test.
 
 ## 1. Brief client (6 questions)
@@ -31,11 +33,11 @@ Trois angles d'accroche pour un Pack Test :
 
 Débit : 2,5 mots par seconde. Un script de 20 secondes fait 50 mots au maximum.
 
-Envoyer le script au client pour validation avant toute génération : une retouche de texte coûte 0 €, une retouche de vidéo coûte une régénération.
+Envoyer le script au client pour validation avant toute génération (bouton « Envoyer le script au client » dans la commande) : une retouche de texte coûte 0 €, une retouche de vidéo coûte une régénération.
 
 ## 3. Génération
 
-Outil à choisir au moment de la première dépense, après vérification des tarifs du jour (voir RESEARCH.md § 3.4). Critères : français naturel avec synchronisation des lèvres, droit d'usage commercial, paiement à l'usage.
+Outil retenu : **Higgsfield** (Seedance 2.0, mode fast, 720p, 9:16). Procédure complète, coûts relevés, formats et organisation : **`HIGGSFIELD.md`**. Rien n'est automatisé entre le site et Higgsfield : vous générez, vous contrôlez, vous déposez.
 
 Méthode :
 1. Générer l'image de départ : présentateur tenant ou montrant le produit, à partir des photos du client.

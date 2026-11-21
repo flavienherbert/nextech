@@ -5,13 +5,15 @@ import { Readable } from "node:stream";
 import { depot } from "./depot";
 import { cleDerivee } from "./cles";
 import { env } from "./env";
+import { cleMedia, emplacement, TYPES_MEDIA, typeAccepteSurEmplacement } from "./emplacements";
 import { cleFichier, maintenant, nomPropre, nouvelIdFichier, type Fichier } from "./store";
 
 export const NB_MAX_CLIENT = 6;
 // Limite des vidéos livrées : 50 Mo, plafond de l'offre gratuite de Supabase Storage (page officielle des tarifs).
 // Pour la relever (offre payante), définir LIVRABLE_MAX_MO.
 export const LIVRABLE_MAX_MO = Math.max(1, Number(process.env.LIVRABLE_MAX_MO) || 50);
-export const TAILLE_MAX = { client: 40 * 1024 * 1024, livrable: LIVRABLE_MAX_MO * 1024 * 1024 } as const;
+// « media » : images et vidéos du site (Administration → Médias) ; la limite exacte dépend de l'emplacement (lib/emplacements.ts).
+export const TAILLE_MAX = { client: 40 * 1024 * 1024, livrable: LIVRABLE_MAX_MO * 1024 * 1024, media: 40 * 1024 * 1024 } as const;
 export type Role = keyof typeof TAILLE_MAX;
 
 const AUTORISES: Record<string, string[]> = {
@@ -53,7 +55,10 @@ export function signatureConforme(type: string, d: Buffer): boolean {
   }
 }
 
+// `c` : numéro de commande, ou (rôle « media ») identifiant de l'emplacement du site.
 type Reservation = { c: string; f: string; n: string; t: string; s: number; r: Role; e: number };
+// Clé de stockage d'une réservation : un média du site porte l'extension de son type (la route publique en déduit le type).
+const cleDe = (r: Pick<Reservation, "f" | "r" | "t">) => (r.r === "media" ? cleMedia(`${r.f}.${TYPES_MEDIA[r.t]?.ext}`) : cleFichier(r.f));
 const secret = () => env.sessionSecret();
 const hmac = (v: string) => crypto.createHmac("sha256", cleDerivee("depot-fichiers")).update(v).digest("base64url");
 
@@ -84,11 +89,20 @@ export async function reserver(commande: string, role: Role, d: Demande): Promis
   const taille = Number(d.taille);
   if (secret().length < 32) return { erreur: "Dépôt de fichiers non configuré.", statut: 503 };
   if (!nom || !Number.isInteger(taille) || taille <= 0) return { erreur: "Fichier invalide.", statut: 400 };
+  if (role === "media") {
+    // Un média du site : seuls les emplacements du catalogue existent, avec leur type et leur poids.
+    const e = emplacement(commande);
+    if (!e) return { erreur: "Emplacement inconnu.", statut: 404 };
+    if (!TYPES_MEDIA[type] || !typeAutorise(nom, type) || !typeAccepteSurEmplacement(e, type)) {
+      return { erreur: e.genre === "video" ? "Format non accepté : cet emplacement attend une vidéo MP4 ou WebM." : "Format non accepté : cet emplacement attend une image JPG, PNG ou WebP.", statut: 415 };
+    }
+    if (taille > e.maxMo * 1048576) return { erreur: `Fichier trop volumineux (${e.maxMo} Mo maximum pour cet emplacement).`, statut: 413 };
+  }
   if (taille > TAILLE_MAX[role]) return { erreur: `Fichier trop volumineux (${TAILLE_MAX[role] / 1048576} Mo maximum).`, statut: 413 };
   if (!typeAutorise(nom, type)) return { erreur: "Format non accepté (images JPG/PNG/WebP/HEIC, vidéos MP4/MOV/WebM, PDF).", statut: 415 };
   const f = nouvelIdFichier();
   const jeton = signer({ c: commande, f, n: nom, t: type, s: taille, r: role, e: Math.floor(Date.now() / 1000) + 3600 });
-  const direct = await depot().urlEnvoi(cleFichier(f), type);
+  const direct = await depot().urlEnvoi(cleDe({ f, r: role, t: type }), type);
   return { jeton, url: direct ?? `/api/depot/${f}?j=${encodeURIComponent(jeton)}`, direct: Boolean(direct) };
 }
 
@@ -97,9 +111,10 @@ export async function recevoir(id: string, jeton: string, corps: ReadableStream<
   const r = lireReservation(jeton);
   if (!r || r.f !== id) return { erreur: "Autorisation d'envoi invalide ou expirée.", statut: 403 };
   if (!corps) return { erreur: "Aucun contenu.", statut: 400 };
-  if ((await depot().taille(cleFichier(id))) !== null) return { erreur: "Fichier déjà reçu.", statut: 409 };
+  const cle = cleDe(r);
+  if ((await depot().taille(cle)) !== null) return { erreur: "Fichier déjà reçu.", statut: 409 };
   try {
-    await depot().recevoir(cleFichier(id), Readable.fromWeb(corps as never), r.s);
+    await depot().recevoir(cle, Readable.fromWeb(corps as never), r.s);
   } catch (e) {
     return (e as Error).message === "TROP_GROS" ? { erreur: "Fichier plus gros qu'annoncé.", statut: 413 } : { erreur: "Réception interrompue.", statut: 500 };
   }
@@ -110,7 +125,7 @@ export async function recevoir(id: string, jeton: string, corps: ReadableStream<
 export async function confirmer(jeton: string, commande: string, role: Role): Promise<{ erreur: string; statut: number } | { fichier: Fichier }> {
   const r = lireReservation(jeton);
   if (!r || r.c !== commande || r.r !== role) return { erreur: "Autorisation invalide ou expirée.", statut: 403 };
-  const cle = cleFichier(r.f);
+  const cle = cleDe(r);
   const taille = await depot().taille(cle);
   if (taille === null) return { erreur: "Fichier non reçu.", statut: 409 };
   const debut = await depot().debut(cle, 32);
@@ -124,7 +139,8 @@ export async function confirmer(jeton: string, commande: string, role: Role): Pr
     await depot().supprimer(cle);
     return { erreur: "Le type du fichier envoyé ne correspond pas à celui annoncé.", statut: 415 };
   }
-  return { fichier: { id: r.f, nom: r.n, taille, type: r.t, ajouteLe: maintenant() } };
+  // Pour un média du site, l'identifiant est la « version » (identifiant + extension) qui compose l'adresse publique.
+  return { fichier: { id: role === "media" ? `${r.f}.${TYPES_MEDIA[r.t].ext}` : r.f, nom: r.n, taille, type: r.t, ajouteLe: maintenant() } };
 }
 
 // Téléchargement : toujours en pièce jointe, jamais affiché par le site.

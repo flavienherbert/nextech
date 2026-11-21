@@ -1,16 +1,10 @@
-// Tout le contenu modifiable du site est ici.
+// Les textes du site sont ici.
 // Les formules et leurs prix sont dans lib/formules.ts.
 // L'e-mail et les mentions légales viennent des variables d'environnement.
+// Les images et les vidéos (démonstration, exemples, couverture…) se remplacent dans Administration → Médias, sans toucher au code.
 
 export type Chapitre = { debut: number; titre: string; texte: string };
 export type Plan = { fichier: string; titre: string; texte: string };
-
-export type Exemple = {
-  src: string; // fichier MP4 dans /public/exemples
-  poster?: string;
-  titre: string;
-  angle: string;
-};
 
 const email = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 
@@ -28,9 +22,10 @@ export const site = {
 };
 
 // Vidéo de démonstration de la page d'accueil.
-// Tant que « video » est vide, la page affiche un emplacement réservé, clairement indiqué comme tel.
-// Pour l'activer : déposer les fichiers dans public/media/demo/ puis renseigner les deux chemins.
-//   video  : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 4 Mo au plus
+// La façon normale de la remplacer : Administration → Médias → « Vidéo de démonstration » (aucun code à toucher).
+// « video » et « poster » ci-dessous ne servent qu'en solution de repli (fichiers déposés dans public/media/demo/) :
+// la vidéo envoyée dans l'administration est toujours prioritaire.
+//   video  : MP4 (H.264 + AAC), 1080 × 1920, environ 15 secondes, 15 Mo au plus
 //   poster : JPG ou WebP, 720 × 1280 (image affichée avant la lecture)
 export const demonstration = {
   video: "", // vidéo du studio : "/media/demo/demonstration.mp4" (désactivée le 14 novembre 2026, jugée insuffisante)
@@ -61,10 +56,6 @@ export const raisons = [
   { chiffre: "3", titre: "Accroches à comparer", texte: "Le Pack Test livre trois débuts différents : vous diffusez, vous gardez celui qui retient." },
   { chiffre: "1", titre: "Prix, payé une fois", texte: "De 25 € à 129 € selon la formule. Pas d'abonnement, script et retouches inclus." },
 ];
-
-// Ajouter ici les vidéos d'exemple une fois produites.
-// La section « Exemples » reste masquée tant que cette liste est vide.
-export const exemples: Exemple[] = [];
 
 export const etapes = [
   {
@@ -190,10 +181,10 @@ export const angles = [
   { lettre: "C", nom: "La curiosité", phrase: "« Cette gourde à 19 € remplace toutes tes bouteilles en plastique. »" },
 ];
 
-// Les quatre temps d'une publicité, illustrés par des images fixes.
+// Les quatre temps d'une publicité, illustrés par des images fixes (remplaçables dans Administration → Médias).
 export const temps = [
-  { image: "temps-01-accroche", numero: "01", titre: "L'accroche", texte: "Un problème, dit face caméra, en trois secondes." },
-  { image: "temps-02-preuve", numero: "02", titre: "La preuve", texte: "Le geste qui montre le bénéfice avant de le dire." },
-  { image: "temps-03-benefice", numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
-  { image: "temps-04-offre", numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
+  { numero: "01", titre: "L'accroche", texte: "Un problème, dit face caméra, en trois secondes." },
+  { numero: "02", titre: "La preuve", texte: "Le geste qui montre le bénéfice avant de le dire." },
+  { numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
+  { numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
 ];

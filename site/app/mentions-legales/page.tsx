@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { infosLegales, PageLegale } from "../components/Legal";
 
-export const dynamic = "force-dynamic";
+// Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
+export const revalidate = 900;
 export const metadata: Metadata = { title: "Mentions légales — Studio Accroche" };
 
 export default function MentionsLegales() {

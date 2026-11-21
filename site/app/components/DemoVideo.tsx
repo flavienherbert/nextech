@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 // Lecteur de la vidéo de démonstration : cadre vertical 9:16, lecture au clic, avec le son.
-export default function DemoVideo({ video, poster }: { video: string; poster?: string }) {
+export default function DemoVideo({ video, poster, libelle = "Lire la vidéo de démonstration, avec le son" }: { video: string; poster?: string; libelle?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [lance, setLance] = useState(false);
 
@@ -14,7 +14,7 @@ export default function DemoVideo({ video, poster }: { video: string; poster?: s
         src={video}
         poster={poster || undefined}
         playsInline
-        preload="metadata"
+        preload={poster ? "none" : "metadata"}
         controls={lance}
         onEnded={() => setLance(false)}
       />
@@ -22,7 +22,7 @@ export default function DemoVideo({ video, poster }: { video: string; poster?: s
         <button
           type="button"
           className="demo-lecture"
-          aria-label="Lire la vidéo de démonstration, avec le son"
+          aria-label={libelle}
           onClick={() => {
             setLance(true);
             void ref.current?.play();

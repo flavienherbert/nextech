@@ -19,7 +19,9 @@ export function politiqueContenu(developpement) {
     `script-src 'self' 'unsafe-inline'${developpement ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
-    "media-src 'self'",
+    // Les vidéos du site (Administration → Médias) sont servies par un lien signé du stockage objet, s'il est configuré.
+    // « blob: » : le navigateur lit les dimensions et la durée d'une vidéo choisie avant de l'envoyer (administration).
+    `media-src 'self' blob: ${origineStockage()}`.trim(),
     "font-src 'self'",
     // Envoi direct des fichiers vers le stockage objet, si configuré.
     `connect-src 'self' ${origineStockage()}${developpement ? " ws: wss:" : ""}`.replace(/\s+/g, " ").trim(),
@@ -80,6 +82,8 @@ export default function config(phase) {
         { source: "/admin/:path*", headers: prive },
         { source: "/commande/:path*", headers: prive },
         { source: "/api/:path*", headers: prive },
+        // Fichiers du vendeur servis tels quels (images, vidéos) : aucun script ni cadre possible si l'adresse est ouverte directement.
+        { source: "/m/:path*", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; sandbox" }] },
       ];
     },
   };

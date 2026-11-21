@@ -4,7 +4,10 @@ import http from "node:http";
 import { depot } from "../lib/depot";
 import { store, maintenant, nouveauNumero, nouveauToken, type Commande } from "../lib/store";
 import { obstaclesFacture, emettreFacture } from "../lib/factures";
-import { signatureConforme } from "../lib/fichiers";
+import { confirmer, lireReservation, reserver, signatureConforme } from "../lib/fichiers";
+import { cleMedia, TYPES_MEDIA } from "../lib/emplacements";
+import { chargerMedias, definirMedia, definirTexte, retirerMedia } from "../lib/medias";
+import { A_FAIRE_SOI_MEME, basculerManuel, controlerLancement, lireManuel } from "../lib/lancement";
 import { purger } from "../lib/purge";
 import { courriels, enEchec, envoiReel, motDePasseSmtp } from "../lib/mail";
 import { enregistrer, compte, remettreAZero } from "../lib/limiteur";
@@ -12,7 +15,7 @@ import { deduireSupabase, configurationStockage } from "../lib/supabase-config.m
 import { analyserAdresseBase, executerDiagnostic } from "../lib/diagnostic";
 import { createRequire } from "node:module";
 import { alerter } from "../lib/alertes";
-import { cloturer, demarrerProduction, envoyerLivraison, marquerPaiementInabouti, marquerVue, relancerBrief, validerBrief } from "../lib/commandes";
+import { cloturer, demarrerProduction, envoyerLivraison, envoyerScript, marquerPaiementInabouti, marquerVue, relancerBrief, validerBrief } from "../lib/commandes";
 import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, trier, VUES } from "../lib/suivi";
 import { veille } from "../lib/veille";
 import { echecsUtiles, trierEchecs } from "../lib/rattrapage";
@@ -127,6 +130,107 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
     verifier("Purge : une commande illisible annule le nettoyage des orphelins (jamais de suppression dans le doute)", (await depot().taille(`fichiers/${id32("b")}`)) !== null);
   }
   await depot().supprimer("commandes/illisible.json"); await depot().supprimer(`fichiers/${reference}`); await depot().supprimer(`fichiers/${etranger}`); await depot().supprimer(`fichiers/${id32("b")}`);
+}
+
+// 7 quater. Médias du site (Administration → Médias) : contrôles d'envoi, remplacement, retour à l'image d'origine, nettoyage
+{
+  const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.from([0x20, 0, 0, 0]), Buffer.from("WEBP"), Buffer.alloc(32)]);
+  const MP4 = Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from("ftypisom"), Buffer.alloc(16)]);
+  const envoyer = async (slot: string, corps: Buffer, type: string, nomFichier: string) => {
+    const r = await reserver(slot, "media", { nom: nomFichier, type, taille: corps.length });
+    if ("erreur" in r) return r;
+    const res = lireReservation(r.jeton)!;
+    await depot().ecrire(cleMedia(`${res.f}.${TYPES_MEDIA[type].ext}`), corps); // ce que fait le navigateur (ou la route de dépôt)
+    return { ...(await confirmer(r.jeton, slot, "media")), jeton: r.jeton };
+  };
+  const m0 = await chargerMedias();
+  verifier("Médias : sans envoi, l'image d'origine est utilisée et la vidéo de démonstration est vide", m0.url("couverture") === "/media/photos/couverture-1920.webp" && m0.url("demo-video") === null && !m0.envoye("couverture"));
+  const demandes = await Promise.all([
+    reserver("inconnu", "media", { nom: "a.webp", type: "image/webp", taille: 100 }),
+    reserver("couverture", "media", { nom: "a.mp4", type: "video/mp4", taille: 100 }),
+    reserver("demo-video", "media", { nom: "a.webp", type: "image/webp", taille: 100 }),
+    reserver("couverture", "media", { nom: "a.svg", type: "image/svg+xml", taille: 100 }),
+    reserver("couverture", "media", { nom: "a.png", type: "image/webp", taille: 100 }),
+    reserver("couverture", "media", { nom: "a.webp", type: "image/webp", taille: 9 * 1048576 }),
+    reserver("demo-video", "media", { nom: "a.mp4", type: "video/mp4", taille: 41 * 1048576 }),
+    reserver("partage", "media", { nom: "a.jpg", type: "image/jpeg", taille: 6 * 1048576 }),
+    reserver("couverture", "media", { nom: "a.heic", type: "image/heic", taille: 100 }),
+  ]);
+  const statuts = demandes.map((d) => ("erreur" in d ? d.statut : 0)).join(",");
+  verifier("Médias : emplacement inconnu, mauvais genre, SVG, extension trompeuse, HEIC, fichier trop lourd pour l'emplacement → tous refusés", statuts === "404,415,415,415,415,413,413,413,415", statuts);
+  let mauvais = await envoyer("couverture", Buffer.from("ceci est du texte, pas une image"), "image/webp", "a.webp");
+  verifier("Médias : un contenu qui n'est pas une image est refusé et supprimé du stockage", "erreur" in mauvais && mauvais.statut === 415 && (await depot().inventaire("medias")).length === 0, JSON.stringify(mauvais));
+  const bon = await envoyer("couverture", WEBP, "image/webp", "mon visuel.webp");
+  verifier("Médias : une image valide est acceptée, son identifiant porte l'extension", "fichier" in bon && /^[0-9a-f]{32}\.webp$/.test(bon.fichier.id), JSON.stringify(bon));
+  if ("fichier" in bon) {
+    verifier("Médias : le jeton d'un emplacement ne sert pas pour un autre", "erreur" in (await confirmer(bon.jeton!, "partage", "media")));
+    await definirMedia("couverture", bon.fichier);
+    const m1 = await chargerMedias();
+    verifier("Médias : le registre renvoie l'adresse versionnée du fichier envoyé", m1.url("couverture") === `/m/couverture?v=${bon.fichier.id}` && m1.envoye("couverture")?.nom === "mon visuel.webp", String(m1.url("couverture")));
+    const second = await envoyer("couverture", WEBP, "image/webp", "autre.webp");
+    if ("fichier" in second) {
+      await definirMedia("couverture", second.fichier);
+      verifier("Médias : un remplacement change l'adresse, l'ancien fichier reste quelques heures (pages en cache)", (await chargerMedias()).url("couverture") === `/m/couverture?v=${second.fichier.id}` && (await depot().taille(cleMedia(bon.fichier.id))) !== null);
+      await purger(true);
+      verifier("Médias : un fichier remplacé depuis moins de 24 h n'est pas encore supprimé", (await depot().taille(cleMedia(bon.fichier.id))) !== null);
+      const bilan = await purger(true, Date.now() + 2 * 86_400_000);
+      verifier("Médias : après 24 h, l'ancien fichier est supprimé, le fichier actuel est conservé", (await depot().taille(cleMedia(bon.fichier.id))) === null && (await depot().taille(cleMedia(second.fichier.id))) !== null && (bilan?.medias ?? 0) >= 1, JSON.stringify(bilan));
+      await retirerMedia("couverture");
+      verifier("Médias : retirer un média rend l'image d'origine", (await chargerMedias()).url("couverture") === "/media/photos/couverture-1920.webp");
+      await purger(true, Date.now() + 4 * 86_400_000);
+      verifier("Médias : le fichier retiré est nettoyé à son tour", (await depot().taille(cleMedia(second.fichier.id))) === null);
+    } else verifier("Médias : second envoi", false, JSON.stringify(second));
+  }
+  const video = await envoyer("demo-video", MP4, "video/mp4", "demo.mp4");
+  verifier("Médias : une vidéo MP4 valide est acceptée sur l'emplacement vidéo", "fichier" in video && video.fichier.id.endsWith(".mp4"), JSON.stringify(video));
+  if ("fichier" in video) await depot().supprimer(cleMedia(video.fichier.id));
+  // Écritures simultanées sur des emplacements différents : aucune n'est perdue (écriture conditionnelle du registre)
+  const ids = ["temps-1", "temps-2", "temps-3", "temps-4", "essai-1", "test-1", "test-2", "test-3"];
+  await Promise.all(ids.map((slot, i) => definirMedia(slot, { id: `${String(i).repeat(32)}.png`, nom: `${slot}.png`, taille: 1, type: "image/png", ajouteLe: maintenant() })));
+  const m2 = await chargerMedias();
+  verifier("Médias : 8 enregistrements simultanés, aucun perdu", ids.every((slot) => m2.envoye(slot)), ids.filter((slot) => !m2.envoye(slot)).join(","));
+  await Promise.all(ids.map((slot) => retirerMedia(slot)));
+  verifier("Médias : titre et légende d'un exemple, nettoyés et limités en longueur", (await definirTexte("exemple-1", "Titre\u0007  avec\n sauts", "x".repeat(300))) && (await chargerMedias()).texte("exemple-1").titre === "Titre avec sauts" && (await chargerMedias()).texte("exemple-1").legende.length === 160);
+  verifier("Médias : le texte n'est accepté que pour les vidéos d'exemple", !(await definirTexte("couverture", "t", "l")) && !(await definirTexte("exemple-1-affiche", "t", "l")) && !(await definirTexte("inconnu", "t", "l")));
+  await definirTexte("exemple-1", "", "");
+  verifier("Médias : un texte vide efface le texte", (await chargerMedias()).texte("exemple-1").titre === "");
+  // Registre abîmé ou falsifié : seuls les emplacements connus sont lus
+  await depot().ecrire("reglages/medias.json", JSON.stringify({ medias: { inconnu: { id: "x", type: "image/png" }, partage: { id: `${"a".repeat(32)}.jpg`, type: "image/jpeg", nom: "p.jpg", taille: 1, ajouteLe: "x" }, temps: 5 }, textes: { zzz: { titre: "t" } } }));
+  const m3 = await chargerMedias();
+  verifier("Médias : un registre falsifié ne fait apparaître que des emplacements connus", m3.envoye("partage") && !m3.envoye("inconnu") && m3.url("inconnu") === null);
+  await depot().ecrire("reglages/medias.json", "pas du json");
+  verifier("Médias : un registre illisible laisse le site afficher les images d'origine", (await chargerMedias()).url("cloture") === "/media/photos/cloture.webp");
+  await depot().supprimer("reglages/medias.json");
+  let refuse = false;
+  try { cleMedia("../fichiers/abc"); } catch { refuse = true; }
+  verifier("Médias : une clé de stockage hors du dossier des médias est impossible à construire", refuse);
+}
+
+// 7 quinquies. Liste de lancement : contrôles automatiques et cases à cocher
+{
+  const etat = async (id: string) => (await controlerLancement()).groupes.flatMap((g) => g.controles).find((x) => x.id === id)?.etat;
+  const avant = { mdp: process.env.ADMIN_PASSWORD, nom: process.env.NEXT_PUBLIC_LEGAL_NAME, taches: process.env.TACHES_SECRET };
+  process.env.ADMIN_PASSWORD = "demonstration";
+  verifier("Lancement : un mot de passe administrateur courant ou trop court est bloquant", (await etat("mdp")) === "bloquant");
+  process.env.ADMIN_PASSWORD = "Un-vrai-mot-de-passe-long-9137";
+  verifier("Lancement : un mot de passe long est accepté (et jamais affiché)", (await etat("mdp")) === "ok" && !JSON.stringify(await controlerLancement()).includes("Un-vrai-mot-de-passe"));
+  process.env.NEXT_PUBLIC_LEGAL_NAME = "";
+  verifier("Lancement : une mention légale manquante est bloquante", (await etat("legal")) === "bloquant");
+  process.env.NEXT_PUBLIC_LEGAL_NAME = "Titulaire De Test";
+  verifier("Lancement : mentions légales complètes → prêt", (await etat("legal")) === "ok");
+  delete process.env.TACHES_SECRET;
+  verifier("Lancement : clé des tâches quotidiennes absente → bloquant", (await etat("taches")) === "bloquant");
+  verifier("Lancement : les paiements en mode test ne sont pas « prêts » pour la vente réelle", (await etat("paiement")) === "bloquant");
+  verifier("Lancement : sans vidéo du studio, le conseil de la remplacer est donné", (await etat("demo")) !== "ok" || Boolean((await chargerMedias()).envoye("demo-video")));
+  const r = await controlerLancement();
+  verifier("Lancement : le bilan compte les points bloquants", r.bloquants >= 1 && r.groupes.length >= 6, String(r.bloquants));
+  const premier = A_FAIRE_SOI_MEME[0].id;
+  verifier("Lancement : cocher une vérification manuelle la mémorise, la recocher l'annule", (await basculerManuel(premier)) && (await lireManuel()).has(premier) && (await basculerManuel(premier)) && !(await lireManuel()).has(premier));
+  verifier("Lancement : une case inconnue est refusée", !(await basculerManuel("inconnue")));
+  await depot().supprimer("reglages/lancement.json");
+  if (avant.mdp !== undefined) process.env.ADMIN_PASSWORD = avant.mdp; else delete process.env.ADMIN_PASSWORD;
+  if (avant.nom !== undefined) process.env.NEXT_PUBLIC_LEGAL_NAME = avant.nom; else delete process.env.NEXT_PUBLIC_LEGAL_NAME;
+  if (avant.taches !== undefined) process.env.TACHES_SECRET = avant.taches;
 }
 
 // 7 ter. Limiteur partagé, lectures groupées, configuration Supabase
@@ -354,9 +458,13 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const nbMails = async () => (await store.courriels(cmd.id)).length;
   let r = await envoyerLivraison(cmd.id);
   verifier("Livraison impossible tant que la commande n'est pas en production", Boolean(r.erreur) && (await store.commande(cmd.id))!.statut === "payee");
+  verifier("Script : refusé s'il est trop court", Boolean((await envoyerScript(cmd.id, "court")).erreur));
+  r = await envoyerScript(cmd.id, "0–3 s ACCROCHE : « Arrête d'acheter des gourdes qui fuient. »\n3–10 s PRODUIT : « Celle-ci se retourne. »");
+  verifier("Script : e-mail au client avec le texte, date et historique enregistrés, statut inchangé", r.courrielOk === true && r.commande?.statut === "payee" && Boolean(r.commande?.scriptEnvoyeLe) && r.commande!.historique.some((h) => h.evenement.includes("Script envoyé")) && (await store.courriels(cmd.id)).some((m) => m.objet.includes("votre script à valider") && m.texte.includes("Arrête d'acheter") && m.a === "a@exemple.fr"), JSON.stringify(r.erreur));
+  verifier("Production : refusée tant que l'accord du client sur le script n'est pas confirmé", Boolean((await demarrerProduction(cmd.id, false)).erreur) && (await store.commande(cmd.id))!.statut === "payee");
   r = await demarrerProduction(cmd.id);
   verifier("Démarrer la production : statut, journal, e-mail au client", r.commande?.statut === "en_production" && r.courrielOk === true && (await store.courriels(cmd.id)).some((m) => m.objet.includes("production lancée") && m.a === "a@exemple.fr"), JSON.stringify(r.erreur));
-  verifier("Démarrer deux fois : refusé, aucun e-mail en double", Boolean((await demarrerProduction(cmd.id)).erreur) && (await nbMails()) === 1);
+  verifier("Démarrer deux fois : refusé, aucun e-mail en double", Boolean((await demarrerProduction(cmd.id)).erreur) && (await nbMails()) === 2);
   r = await envoyerLivraison(cmd.id);
   verifier("Livraison refusée sans fichier livrable", Boolean(r.erreur?.includes("livrable")) && (await store.commande(cmd.id))!.statut === "en_production");
   await store.modifier(cmd.id, (c) => { c.livrables.push({ id: "f".repeat(32), nom: "v.mp4", taille: 10, type: "video/mp4", ajouteLe: maintenant() }); c.retouchesDemandees.push({ date: maintenant(), message: "raccourcir" }); });
@@ -437,6 +545,11 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   verifier("Tri : e-mail de livraison finale d'une commande livrée → à renvoyer", r1[e3.id] === "renvoyer");
   verifier("Tri : deux échecs identiques → le plus récent à renvoyer, l'ancien en doublon", r1[e4b.id] === "renvoyer" && r1[e4.id] === "doublon");
   verifier("Tri : alerte technique déjà signalée sur le téléphone, échec de plus de 14 jours, commande introuvable → périmés", r1[e5.id] === "obsolete" && r1[e6.id] === "obsolete" && r1[e7.id] === "obsolete");
+  const prete = commandeTest({ statut: "payee" });
+  const sc1 = mail({ commande: prete.id, objet: `Commande ${prete.id} — votre script à valider` });
+  const sc2 = mail({ commande: enValid.id, objet: `Commande ${enValid.id} — votre script à valider` });
+  const rs = Object.fromEntries(trierEchecs([sc1, sc2], [...cs, prete]).map((x) => [x.courriel.id, x.action]));
+  verifier("Tri : le script à valider est renvoyé tant que la commande attend le démarrage, périmé ensuite (jamais confondu avec « à valider »)", rs[sc1.id] === "renvoyer" && rs[sc2.id] === "obsolete", JSON.stringify(rs));
   const r2 = d([e8, reussi]);
   verifier("Tri : un e-mail identique déjà renvoyé avec succès plus tard → « déjà renvoyé » (aucun doublon possible)", r2[e8.id] === "deja_envoye" && echecsUtiles([e8, reussi], cs).length === 0);
   verifier("Tri : seul le dernier e-mail utile est à renvoyer, sans compter les autres", echecsUtiles([e1, e2, e3, e4, e4b, e5, e6, e7], cs).map((x) => x.courriel.id).sort().join() === [e1.id, e3.id, e4b.id].sort().join());

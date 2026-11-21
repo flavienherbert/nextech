@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cloturerCommande, creerFacture, lancerProduction, livrerAuClient, majNotes, majStatut, relancerClient, retirerLivrable } from "../../actions";
+import { cloturerCommande, creerFacture, lancerProduction, livrerAuClient, majNotes, majStatut, proposerScript, relancerClient, retirerLivrable } from "../../actions";
+import Copier from "../../Copier";
+import { ficheProduction } from "@/lib/fiche";
 import Livrable from "../../Livrable";
 import { LIVRABLE_MAX_MO } from "@/lib/fichiers";
 import { obstaclesFacture } from "@/lib/factures";
@@ -19,6 +21,7 @@ export const metadata: Metadata = { title: "Commande — Administration", robots
 const quand = (iso?: string) => (iso ? new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 const MESSAGES: Record<string, string> = {
   production: "Production lancée.",
+  script: "Script envoyé au client.",
   livraison: "Livraison envoyée au client.",
   cloture: "Commande clôturée.",
   relance: "Client relancé.",
@@ -75,8 +78,18 @@ export default async function Detail({ params, searchParams }: { params: Promise
             )}
             {c.statut === "payee" && (
               <>
-                <p><strong>1.</strong> Téléchargez les fichiers du client (colonne de gauche, « Fichiers du client »). <strong>2.</strong> Démarrez la production : le client en est prévenu par e-mail.</p>
-                <form action={lancerProduction}><input type="hidden" name="id" value={c.id} /><button className="bouton" type="submit">Démarrer la production</button></form>
+                <p><strong>1.</strong> Rédigez le script à partir de la fiche de production (colonne de gauche, « Brief ») et envoyez-le au client ci-dessous. <strong>2.</strong> Attendez son « OK » : il répond à l&apos;e-mail, dans la boîte du studio. <strong>3.</strong> Téléchargez ses fichiers, puis démarrez la production : le client en est prévenu. Les conditions de vente promettent qu&apos;aucune vidéo n&apos;est produite avant son accord.</p>
+                {c.scriptEnvoyeLe && <p className="aide">Script envoyé au client le {quand(c.scriptEnvoyeLe)}. Vous pouvez en renvoyer une version corrigée.</p>}
+                <form action={proposerScript} className="formulaire">
+                  <input type="hidden" name="id" value={c.id} />
+                  <label className="champ champ-large"><span>Script à envoyer au client</span><textarea name="script" rows={7} required minLength={20} maxLength={5000} placeholder={"0–3 s  ACCROCHE : « … »\n3–10 s  PRODUIT : « … »\n10–16 s  BÉNÉFICE : « … »\n16–20 s  APPEL À L'ACTION : « … »"} /></label>
+                  <button className="bouton bouton-fantome" type="submit">{c.scriptEnvoyeLe ? "Renvoyer le script au client" : "Envoyer le script au client"}</button>
+                </form>
+                <form action={lancerProduction} className="formulaire">
+                  <input type="hidden" name="id" value={c.id} />
+                  <label className="case"><input type="checkbox" name="scriptValide" value="oui" required /> <span>Le client a validé le script (réponse reçue par e-mail)</span></label>
+                  <button className="bouton" type="submit">Démarrer la production</button>
+                </form>
               </>
             )}
             {c.statut === "en_production" && (
@@ -149,6 +162,12 @@ export default async function Detail({ params, searchParams }: { params: Promise
                   {ligne("Adresse de facturation", b.adresseFacture)}
                   {ligne("SIREN / SIRET", b.sirenClient)}
                 </dl>
+              )}
+              {b && (
+                <details className="fiche-production">
+                  <summary>Fiche de production (à copier dans Higgsfield)</summary>
+                  <Copier texte={ficheProduction(c)} />
+                </details>
               )}
               <h3>Fichiers du client ({c.fichiersClient.length})</h3>
               {c.fichiersClient.length === 0 ? <p className="aide">Aucun fichier.</p> : (

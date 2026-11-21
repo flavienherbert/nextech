@@ -188,10 +188,28 @@ export async function marquerVue(id: string) {
   });
 }
 
-export async function demarrerProduction(id: string): Promise<Suite> {
+// Envoie le script au client pour validation (conditions de vente : aucune vidéo n'est produite avant son accord).
+export async function envoyerScript(id: string, texte: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.statut !== "payee") return suite(c0, undefined, "Le script s'envoie une fois le brief reçu et avant le démarrage de la production.");
+  const t = texte.replace(/\r\n/g, "\n").trim();
+  if (t.length < 20) return suite(c0, undefined, "Le script est trop court : écrivez le texte que dira le présentateur.");
+  if (t.length > 5000) return suite(c0, undefined, "Le script est trop long (5 000 caractères au plus).");
+  const c = await store.modifier(id, (cmd) => {
+    cmd.scriptEnvoyeLe = maintenant();
+    journal(cmd, "Script envoyé au client pour validation.");
+  });
+  return suite(c, c ? await courriels.script(c, t) : undefined);
+}
+
+// `scriptValide` : l'administrateur confirme avoir l'accord du client sur le script (le geste du bouton l'exige).
+export async function demarrerProduction(id: string, scriptValide = true): Promise<Suite> {
   const c0 = await store.commande(id);
   if (!c0) return suite(null, undefined, "Commande introuvable.");
   if (c0.statut !== "payee") return suite(c0, undefined, "Cette commande n'est pas prête à démarrer (le brief doit d'abord être reçu).");
+  if (!scriptValide) return suite(c0, undefined, "Confirmez que le client a validé le script : aucune vidéo n'est produite avant son accord.");
+  await store.modifier(id, (cmd) => { journal(cmd, "Accord du client sur le script confirmé par l'administrateur."); });
   const { commande, courriel } = await changerStatutAvecCourriel(id, "en_production", true);
   return suite(commande, courriel);
 }

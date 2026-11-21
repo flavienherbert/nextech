@@ -211,6 +211,11 @@ export const courriels = {
     envoyer(destinataire(c), `Commande ${c.id} — brief bien reçu`,
       gabarit("Nous avons tout ce qu'il faut", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Votre brief est bien arrivé. Vous recevrez d'abord le script pour validation, puis ${formuleParId(c.formule)!.videos > 1 ? "vos vidéos" : "votre vidéo"}.</p>${recap(c)}<p>Vous pouvez suivre l'avancement à tout moment :</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
 
+  // Script proposé au client : aucune vidéo n'est produite avant son accord (conditions de vente). Il valide en répondant à l'e-mail.
+  script: (c: Commande, texte: string) =>
+    envoyer(destinataire(c), `Commande ${c.id} — votre script à valider`,
+      gabarit("Voici le script de votre publicité", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Voici le script proposé pour ${formuleParId(c.formule)!.videos > 1 ? "vos vidéos" : "votre vidéo"}. Aucune vidéo n'est produite avant votre accord.</p><div style="white-space:pre-wrap;background:#f4f1ec;border-radius:8px;padding:14px 16px;margin:14px 0;font-size:15px">${esc(texte)}</div><p><strong>Pour valider, répondez simplement à ce message par « OK ».</strong> Pour demander une modification du texte, répondez en indiquant ce que vous souhaitez changer : une modification de texte à ce stade ne coûte rien.</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
+
   enProduction: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — production lancée`,
       gabarit("Votre commande est en production", `<p>La réalisation a commencé. Vous recevrez un e-mail dès que le résultat sera prêt à être validé.</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),

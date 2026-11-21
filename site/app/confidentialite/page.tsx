@@ -3,7 +3,8 @@ import { infosLegales, PageLegale } from "../components/Legal";
 import { demonstration } from "../config";
 import { stockageSupabase } from "@/lib/env";
 
-export const dynamic = "force-dynamic";
+// Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
+export const revalidate = 900;
 export const metadata: Metadata = { title: "Politique de confidentialité — Studio Accroche" };
 
 export default function Confidentialite() {

@@ -160,6 +160,7 @@ try {
     if (nbFichiers) { const [dl] = await Promise.all([admin.waitForEvent("download"), admin.locator(`a[href^="/api/admin/fichier/${id}/"]`).first().click()]); verifier("Téléchargement d'un fichier du client par l'administrateur", Boolean(dl.suggestedFilename())); }
   }
   if (await admin.locator("button:has-text('Démarrer la production')").count()) {
+    await admin.check('input[name="scriptValide"]');
     await admin.click("button:has-text('Démarrer la production')");
     await admin.waitForURL(/ok=production/);
   }

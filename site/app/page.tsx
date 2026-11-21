@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "./components/Reveal";
 import { BandeauMode, Pied } from "./components/Cadre";
@@ -5,8 +6,19 @@ import DemoVideo from "./components/DemoVideo";
 import DemoYoutube from "./components/DemoYoutube";
 import { angles, demonstration, engagements, etapes, faq, raisons, site, temps } from "./config";
 import { delaiTexte, euros, formules } from "@/lib/formules";
+import { chargerMedias } from "@/lib/medias";
 
-export const dynamic = "force-dynamic";
+// Page servie depuis le cache et renouvelée au plus toutes les 15 minutes (et tout de suite quand le vendeur change un média) :
+// rapide pour les visiteurs, et presque aucun calcul facturé par l'hébergeur.
+export const revalidate = 900;
+
+const titre = `${site.marque} — Publicités vidéo avec présentateur IA`;
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await chargerMedias();
+  return {
+    openGraph: { title: titre, description: site.sousTitre, locale: "fr_FR", type: "website", images: [m.url("partage") ?? "/media/photos/couverture-partage.jpg"] },
+  };
+}
 
 const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", "Format 9:16", "Livré en 48 h"];
 // Une pile de photographies propre à chaque formule : une, trois, puis six, toutes différentes.
@@ -16,15 +28,29 @@ const piles: Record<string, string[]> = {
   campagne: ["campagne-1", "campagne-2", "campagne-3", "campagne-4", "campagne-5", "campagne-6"],
 };
 
-// Ce que montre le cadre de démonstration : une vidéo du studio en priorité,
-// sinon un exemple externe autorisé par écrit, sinon un emplacement réservé.
-const demo: "studio" | "externe" | "vide" = demonstration.video
-  ? "studio"
-  : demonstration.externe.autorisee && demonstration.externe.youtubeId
-    ? "externe"
-    : "vide";
+const NB_EXEMPLES = 6;
 
-export default function Accueil() {
+export default async function Accueil() {
+  const m = await chargerMedias();
+
+  // Ce que montre le cadre de démonstration : la vidéo du studio (envoyée dans Administration → Médias, ou déclarée
+  // dans app/config.ts) en priorité, sinon un exemple externe autorisé par écrit, sinon un emplacement réservé.
+  const videoDemo = m.envoye("demo-video") ? m.url("demo-video")! : demonstration.video;
+  const afficheDemo = m.envoye("demo-affiche") ? m.url("demo-affiche")! : demonstration.poster;
+  const demo: "studio" | "externe" | "vide" = videoDemo
+    ? "studio"
+    : demonstration.externe.autorisee && demonstration.externe.youtubeId
+      ? "externe"
+      : "vide";
+
+  // Couverture : si seule la version ordinateur est personnalisée, elle sert aussi sur téléphone (jamais un mélange avec l'image d'origine).
+  const couvertureBureau = m.envoye("couverture") ? m.url("couverture")! : null;
+  const couvertureMobile = m.envoye("couverture-mobile") ? m.url("couverture-mobile")! : couvertureBureau;
+  // Exemples de vidéos livrées : la section n'existe que si au moins une vidéo a été envoyée.
+  const exemples = Array.from({ length: NB_EXEMPLES }, (_, i) => i + 1)
+    .filter((n) => m.envoye(`exemple-${n}`))
+    .map((n) => ({ n, video: m.url(`exemple-${n}`)!, affiche: m.envoye(`exemple-${n}-affiche`) ? m.url(`exemple-${n}-affiche`)! : undefined, texte: m.texte(`exemple-${n}`) }));
+
   return (
     <>
       <BandeauMode />
@@ -35,6 +61,7 @@ export default function Accueil() {
           </a>
           <nav className="navigation" aria-label="Navigation principale">
             <a href="#demonstration">Démonstration</a>
+            {exemples.length > 0 && <a href="#exemples">Exemples</a>}
             <a href="#anatomie">La méthode</a>
             <a href="#formules">Formules</a>
             <a href="#questions">Questions</a>
@@ -51,14 +78,18 @@ export default function Accueil() {
           <div className="hero-media hero-photo" aria-hidden="true">
             {/* eslint-disable @next/next/no-img-element */}
             <picture>
-              <source media="(max-width: 819px)" srcSet="/media/photos/couverture-mobile.webp" />
-              <img
-                src="/media/photos/couverture-1920.webp"
-                srcSet="/media/photos/couverture-1280.webp 1280w, /media/photos/couverture-1920.webp 1920w"
-                sizes="100vw"
-                alt=""
-                fetchPriority="high"
-              />
+              <source media="(max-width: 819px)" srcSet={couvertureMobile ?? m.url("couverture-mobile")!} />
+              {couvertureBureau ? (
+                <img src={couvertureBureau} alt="" fetchPriority="high" />
+              ) : (
+                <img
+                  src="/media/photos/couverture-1920.webp"
+                  srcSet="/media/photos/couverture-1280.webp 1280w, /media/photos/couverture-1920.webp 1920w"
+                  sizes="100vw"
+                  alt=""
+                  fetchPriority="high"
+                />
+              )}
             </picture>
           </div>
           <div className="hero-voile" aria-hidden="true" />
@@ -134,7 +165,7 @@ export default function Accueil() {
             <Reveal className="demo-colonne">
               <figure className="demo-figure">
                 <div className={`demo-cadre${demo === "studio" ? "" : " demo-vide"}`}>
-                  {demo === "studio" && <DemoVideo video={demonstration.video} poster={demonstration.poster} />}
+                  {demo === "studio" && <DemoVideo video={videoDemo} poster={afficheDemo} />}
                   {demo === "externe" && (
                     <DemoYoutube id={demonstration.externe.youtubeId} chaine={demonstration.externe.chaine} />
                   )}
@@ -184,6 +215,41 @@ export default function Accueil() {
           </div>
         </section>
 
+        {/* ——— Exemples de vidéos livrées (visible dès qu'une vidéo est envoyée dans Administration → Médias) ——— */}
+        {exemples.length > 0 && (
+          <section className="section section-bord" id="exemples">
+            <div className="conteneur">
+              <Reveal className="tete-section">
+                <p className="surtitre">Exemples</p>
+                <h2>
+                  Des vidéos <em>déjà livrées.</em>
+                </h2>
+                <p className="intro">
+                  Exemples réalisés par Studio Accroche. Le présentateur est généré par intelligence artificielle.
+                </p>
+              </Reveal>
+              <div className="exemples-grille">
+                {exemples.map((x, i) => (
+                  <Reveal key={x.n} delay={i * 80}>
+                    <figure className="exemple">
+                      <div className="demo-cadre">
+                        <DemoVideo video={x.video} poster={x.affiche} libelle={`Lire l'exemple ${x.n}${x.texte.titre ? ` : ${x.texte.titre}` : ""}`} />
+                        <span className="etiquette etiquette-realisation">Exemple</span>
+                      </div>
+                      {(x.texte.titre || x.texte.legende) && (
+                        <figcaption>
+                          {x.texte.titre && <strong>{x.texte.titre}</strong>}
+                          {x.texte.legende}
+                        </figcaption>
+                      )}
+                    </figure>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ——— Anatomie ——— */}
         <section className="section" id="anatomie">
           <div className="conteneur">
@@ -200,7 +266,7 @@ export default function Accueil() {
               {temps.map((t, i) => (
                 <Reveal as="article" key={t.numero} delay={i * 110} className="temps-carte">
                   <div className="temps-cadre">
-                    <img src={`/media/photos/${t.image}.webp`} alt="" loading="lazy" />
+                    <img src={m.url(`temps-${i + 1}`) ?? ""} alt="" loading="lazy" />
                     <span className="plan-numero">{t.numero}</span>
                     <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
@@ -302,7 +368,7 @@ export default function Accueil() {
                 <Reveal as="article" key={f.id} delay={i * 110} className={`formule${f.misEnAvant ? " formule-avant" : ""}`}>
                   <div className={`pile pile-${f.videos}`} aria-hidden="true">
                     {(piles[f.id] ?? []).map((v, k) => (
-                      <img key={k} src={`/media/photos/${v}.webp`} alt="" loading="lazy" />
+                      <img key={k} src={m.url(v) ?? ""} alt="" loading="lazy" />
                     ))}
                     <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
@@ -383,7 +449,7 @@ export default function Accueil() {
 
         {/* ——— Clôture ——— */}
         <section className="cloture" id="contact">
-          <div className="cloture-fond" aria-hidden="true" />
+          <div className="cloture-fond" aria-hidden="true" style={{ ["--fond-cloture" as string]: `url("${m.url("cloture")}")` }} />
           <div className="grain" aria-hidden="true" />
           <div className="conteneur cloture-contenu">
             <Reveal>
