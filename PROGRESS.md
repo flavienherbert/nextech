@@ -68,6 +68,8 @@
 
 - **16/11 (nuit)** — E-mails : Gmail (SMTP) est refusé par Google (« 535 BadCredentials » : mot de passe d'application à régénérer avec le bon compte). Ajouts prêts mais non déployés : page Administration > Réglages e-mail (mot de passe testé puis enregistré chiffré en base, actif sans redéploiement, renvoi automatique des e-mails utiles), tri des e-mails en échec (utiles / périmés / déjà renvoyés / doublons) et renvoi groupé sans doublon. **Blocage : le plafond de 300 crédits de l'offre gratuite Netlify est atteint (15 crédits par déploiement) ; plus aucun déploiement possible tant que le quota n'est pas rétabli** (voir `site/MISE-EN-LIGNE.md`).
 
+- **21/11** — Reprise. Inspection : 12 fichiers du site (+221 lignes) poussés mais **non déployés** (Réglages e-mail, tri des e-mails déjà en ligne depuis le 16/11) ; une nouvelle tentative de publication est toujours refusée par Netlify (« account credit usage exceeded », sans coût). Gmail : Google répond toujours « 535 BadCredentials » (identifiant et mot de passe d'application non appariés ; format correct). Secrets : clés dérivées par usage, session liée au mot de passe administrateur (testé), réglages illisibles signalés ; recommandation de remplacer ADMIN_PASSWORD, SESSION_SECRET et TACHES_SECRET par des valeurs créées comme secrètes (`site/SECURITE.md`). E-mails : accusé de réception des retouches ajouté, tableau des onze étapes (`site/EMAILS.md`), inventaire strict dans le parcours en ligne, procédure du test final (`site/TEST-CLIENT.md`). Tests : 182/182 (disque), 181/181 (PostgreSQL + S3), suites unitaires dans les quatre modes.
+
 ## Relevé hebdomadaire
 
 | Semaine | Vues fiches | Messages | Commandes | Chiffre d'affaires | Coût génération | Heures |
