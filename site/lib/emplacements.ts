@@ -38,7 +38,7 @@ const vertical = (id: string, groupe: string, nom: string, role: string, defaut?
 });
 
 const exemples: Emplacement[] = Array.from({ length: 6 }, (_, i) => i + 1).flatMap((n) => [
-  { id: `exemple-${n}`, groupe: "exemples", nom: `Exemple ${n} : vidéo`, genre: "video" as const, role: `Vidéo n° ${n} de la section « Exemples ».`, conseil: "Vidéo verticale 9:16 (1080 × 1920 px), MP4 (H.264 + AAC) ou WebM, 15 à 30 secondes, 15 Mo au plus de préférence.", ratio: 9 / 16, maxMo: 40 },
+  { id: `exemple-${n}`, groupe: "exemples", nom: `Exemple ${n} : vidéo`, genre: "video" as const, role: `Vidéo n° ${n} de la section « Exemples ».`, conseil: "Vidéo verticale 9:16 (1080 × 1920 px), MP4 (H.264 + AAC) ou WebM, 15 secondes maximum (la durée que vous vendez), 15 Mo au plus de préférence.", ratio: 9 / 16, maxMo: 40 },
   { id: `exemple-${n}-affiche`, groupe: "exemples", nom: `Exemple ${n} : image d'attente (facultatif)`, genre: "image" as const, role: "Image affichée avant la lecture. Sans elle, la première image de la vidéo est utilisée.", conseil: "Image verticale 9:16, par exemple 720 × 1280 px.", ratio: 9 / 16, largeurMax: 1080, maxMo: 8 },
 ]);
 

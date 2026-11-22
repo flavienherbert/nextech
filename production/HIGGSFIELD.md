@@ -22,7 +22,7 @@ Le site n'appelle jamais Higgsfield. Aucune génération n'est déclenchée par 
 1. **Abonnement Higgsfield** : choisissez-le vous-même sur higgsfield.ai (rien n'est souscrit à votre place). Au moment de l'écriture, le compte relié à Claude est en offre gratuite avec **0 crédit** : aucune génération n'y est possible.
    - Le modèle Seedance 2.0 en mode **standard** (1080p) exige un abonnement Plus ou supérieur ; le mode **fast** (480p/720p) est ouvert dès les abonnements d'entrée. Vérifiez sur la page des tarifs avant de payer.
    - **Droits d'usage commercial** : lisez les conditions de votre abonnement. Les clients reçoivent des droits d'exploitation publicitaire : vous devez avoir ceux de l'outil.
-2. **Calculez le prix de votre crédit** : prix mensuel ÷ crédits inclus. Il décide si l'Essai à 25 € est rentable (§ 2).
+2. **Calculez le prix de votre crédit** : prix mensuel ÷ crédits inclus. Il décide si l'Essai à 35 € est rentable (§ 2).
 3. **Faites une commande à blanc** : une vidéo complète avec un faux produit, de la génération à l'export, chronomètre en main. Les trois premières vraies commandes prendront 2 à 3 heures chacune.
 4. Installez FFmpeg si vous utilisez `build_ad.py` (`production/essai-01/RAPPORT.md` explique le montage).
 
@@ -38,13 +38,13 @@ Une génération n'est jamais réussie du premier coup à coup sûr : comptez **
 
 | Formule | Prix | Vidéos | Crédits (1 essai) | Crédits (2 essais) | Crédit maximal pour garder 80 % de marge sur la génération |
 |---|---|---|---|---|---|
-| Essai | 25 € | 1 | ≈ 38 | ≈ 112 (3 essais) | 0,044 € |
-| Pack Test | 69 € | 3 | ≈ 113 | ≈ 225 | 0,061 € |
-| Pack Campagne | 129 € | 6 | ≈ 225 | ≈ 450 | 0,057 € |
+| Essai | 35 € | 1 | ≈ 38 | ≈ 112 (3 essais) | 0,062 € |
+| Pack Test | 89 € | 3 | ≈ 113 | ≈ 225 | 0,079 € |
+| Pack Campagne | 169 € | 6 | ≈ 225 | ≈ 450 | 0,075 € |
 
-**Lecture :** si votre crédit coûte plus de ≈ 4,4 centimes, l'Essai devient peu rentable dès le troisième essai. Ajoutez les frais Stripe (environ 1,5 % + 0,25 € pour une carte européenne standard : 0,63 € sur 25 €, à vérifier sur stripe.com) et les cotisations de votre statut.
+**Lecture :** si votre crédit coûte plus de ≈ 6 centimes, l'Essai devient peu rentable dès le troisième essai. Ajoutez les frais Stripe (environ 1,5 % + 0,25 € pour une carte européenne standard : 0,78 € sur 35 €, à vérifier sur stripe.com) et les cotisations de votre statut.
 
-**Votre temps compte aussi** : un Essai en 1 h, c'est 25 € de chiffre d'affaires pour 1 h. L'Essai est un produit d'appel (il mène au Pack Test), pas une source de revenu. Le Pack Test (69 €, environ 1 h 30) est celui qui paie.
+**Votre temps compte aussi** : un Essai en 1 h, c'est 35 € de chiffre d'affaires pour 1 h : pour atteindre 25 €/h, il doit tenir **en moins de 47 minutes** (35 minutes abonnement compris), brief, script et livraison inclus (`commercial/GRILLES-ET-PLATEFORMES.md`). L'Essai est un produit d'appel (il mène au Pack Test). Le Pack Test (89 €) doit tenir en moins de 1 h 55 ; le Pack Campagne (169 €) en moins de 3 h 34.
 
 Relevez à chaque commande le coût réel et le temps passé (§ 8) : après dix commandes, vous saurez si les prix tiennent.
 
@@ -55,7 +55,7 @@ Relevez à chaque commande le coût réel et le temps passé (§ 8) : après dix
 | Fichier | **MP4**, H.264 + AAC |
 | Dimensions | **1080 × 1920** (9:16). Pack Campagne : aussi un export **1080 × 1080** (1:1) |
 | Cadence | 30 images/s |
-| Durée | Essai 10 à 15 s ; Pack Test et Campagne 15 à 20 s |
+| Durée | **15 secondes maximum par vidéo**, toutes formules (une durée supérieure n'est pas proposée pour le moment) |
 | Poids | **50 Mo maximum par fichier** (limite du stockage) ; viser 8 à 15 Mo |
 | Son | une seule voix du début à la fin, niveau ≈ −15 LUFS, musique discrète sous la voix |
 | Sous-titres | français, animés, incrustés, lisibles sans le son, hors du produit |
@@ -80,7 +80,7 @@ Si une case n'est pas cochée : écrivez au client (modèle dans `MODELES-MESSAG
 
 ## 5. Le script (15 minutes) : avant toute génération
 
-1. Écrivez le script avec la structure de `PROCESS.md` (accroche 0–3 s, produit 3–10 s, bénéfice 10–16 s, appel 16–20 s ; 2,5 mots/s ; **50 mots maximum pour 20 s**).
+1. Écrivez le script avec la structure de `PROCESS.md` (accroche 0–3 s, produit 3–8 s, bénéfice 8–12 s, appel 12–15 s ; 2,5 mots/s ; **37 mots maximum pour 15 s**).
 2. Pack Test : trois accroches, trois angles : **A problème · B résultat · C curiosité**. Formulez le « résultat » comme une présentation (« Avec ça, tu… »), jamais comme un avis fictif.
 3. Dans la commande, panneau « Prochaine étape » : collez le script, **Envoyer le script au client**. Il reçoit un e-mail et répond « OK » (à la boîte du studio).
 4. Quand il répond OK : cochez « Le client a validé le script » puis **Démarrer la production**. Le client est prévenu.
@@ -123,7 +123,8 @@ Autres modèles proposés par Higgsfield (Marketing Studio, Intone pour une têt
 
 1. Colonne de droite « Livrables » → **Ajouter** les MP4 (et le script en PDF ou texte si vous voulez).
 2. **Envoyer la livraison au client** : il reçoit un lien privé par fichier.
-3. Il valide ou demande une retouche. Retouche : vous êtes prévenu, vous corrigez, « Retirer » l'ancien fichier, ajoutez le nouveau, **Envoyer la version corrigée**.
+3. Il valide ou demande un **tour de retouches**. Un tour = **une seule demande qui regroupe toutes ses remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs). Vous êtes prévenu, vous corrigez, « Retirer » l'ancien fichier, ajoutez le nouveau, **Envoyer la version corrigée**.
+   - Si la demande change le produit, le brief, le script validé, le présentateur, l'angle ou la durée, **ce n'est pas une retouche** : bouton **« Refuser : hors périmètre »** (explication au client, tour non décompté), puis proposez une nouvelle commande (modèle de message 7).
 4. Sans réponse du client : **Clôturer**. La facture est émise à la validation.
 
 Les fichiers sont supprimés 90 jours après la livraison. Rappel au client (déjà dans l'e-mail de livraison) : activer la mention « contenu généré par IA » sur la plateforme de diffusion.

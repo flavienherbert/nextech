@@ -5,8 +5,9 @@ import { stripe } from "./stripe";
 import { alerter } from "./alertes";
 import { courriels, enEchec } from "./mail";
 import { emettreFacture } from "./factures";
-import { euros, formuleParId, type FormuleId } from "./formules";
+import { DUREE_TEXTE, euros, formuleParId, type FormuleId } from "./formules";
 import { correctionOuverte } from "./suivi";
+import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, echeanceRetouche, miseADisposition } from "./delais";
 import { store, journal, maintenant, nouveauNumero, nouveauToken, type Brief, type Commande, type Courriel, type Statut } from "./store";
 
 export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ url: string; commande: Commande }> {
@@ -24,7 +25,7 @@ export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ ur
     payment_intent_data: { metadata: { commande: id }, description: `Studio Accroche — ${f.nom} — ${id}` },
     line_items: [{
       quantity: 1,
-      price_data: { currency: "eur", unit_amount: f.prixCents, product_data: { name: `Studio Accroche — ${f.nom}`, description: `${f.videos} vidéo${f.videos > 1 ? "s" : ""} publicitaire${f.videos > 1 ? "s" : ""} verticale${f.videos > 1 ? "s" : ""}, script et sous-titres inclus` } },
+      price_data: { currency: "eur", unit_amount: f.prixCents, product_data: { name: `Studio Accroche — ${f.nom}`, description: `${f.videos} vidéo${f.videos > 1 ? "s" : ""} publicitaire${f.videos > 1 ? "s" : ""} verticale${f.videos > 1 ? "s" : ""} de ${DUREE_TEXTE}, script et sous-titres inclus` } },
     }],
     success_url: `${base}/commande/${token}?retour=paiement`,
     cancel_url: `${base}/commander/${f.id}?annule=1`,
@@ -158,6 +159,7 @@ export async function changerStatutAvecCourriel(id: string, statut: Statut, prev
     change = true;
     cmd.statut = statut;
     if (statut === "livree") cmd.livreeLe = maintenant();
+    if (statut === "attente_validation") cmd.derniereLivraisonLe = maintenant();
     // Les retouches demandées sont traitées dès que le client reçoit une nouvelle version ou que la commande est close.
     if (statut === "attente_validation" || statut === "livree") for (const r of cmd.retouchesDemandees) if (!r.traiteeLe) r.traiteeLe = maintenant();
     journal(cmd, `Statut passé à « ${statut} » par l'administrateur.`);
@@ -224,7 +226,10 @@ export async function envoyerLivraison(id: string): Promise<Suite> {
   const renvoi = c0.statut === "attente_validation";
   const c = await store.modifier(id, (cmd) => {
     for (const r of cmd.retouchesDemandees) if (!r.traiteeLe) r.traiteeLe = maintenant();
-    if (cmd.statut === "en_production") cmd.statut = "attente_validation";
+    if (cmd.statut === "en_production") {
+      cmd.statut = "attente_validation";
+      cmd.derniereLivraisonLe = maintenant(); // le délai de 14 jours court de là ; un simple renvoi de l'e-mail ne le relance pas
+    }
     journal(cmd, renvoi ? "E-mail de livraison renvoyé au client." : correction ? "Version corrigée envoyée au client." : "Livraison envoyée au client.");
   });
   const m = c ? await courriels.aValider(c, correction) : undefined;
@@ -238,6 +243,41 @@ export async function cloturer(id: string): Promise<Suite> {
   if (c0.statut !== "attente_validation") return suite(c0, undefined, "Seule une livraison en attente de validation peut être clôturée.");
   const { commande, courriel } = await changerStatutAvecCourriel(id, "livree", true);
   return suite(commande, courriel);
+}
+
+// Livraison réputée acceptée : le délai de 14 jours (conditions de vente, article 7) est écoulé sans validation ni retouche.
+// La commande est clôturée, la facture émise, le client informé par e-mail ; le résultat de l'envoi est tracé dans l'historique de la
+// commande (un e-mail qui échoue est archivé, signalé sur le téléphone et renvoyable). `demandeTardive` : texte d'une demande de retouche
+// reçue après l'échéance, refusée et non décomptée. Sans effet si la commande n'est pas en attente de validation ou si le délai court encore.
+export async function cloturerParExpiration(id: string, opts: { demandeTardive?: string; maintenantMs?: number } = {}): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (c0.statut !== "attente_validation") return suite(c0, undefined, "Cette commande n'est pas en attente de validation.");
+  const mise = miseADisposition(c0);
+  if ((opts.maintenantMs ?? Date.now()) <= echeanceRetouche(mise)) return suite(c0, undefined, `Le délai de ${DELAI_RETOUCHE_JOURS} jours court jusqu'au ${dateEcheanceTexte(mise)}.`);
+  const tardive = (opts.demandeTardive || "").trim().slice(0, 2000);
+  let ferme = false;
+  const c = await store.modifier(id, (cmd) => {
+    if (cmd.statut !== "attente_validation") return false; // une autre exécution (ou le client) a déjà tranché : aucun doublon
+    ferme = true;
+    const t = maintenant();
+    cmd.statut = "livree";
+    cmd.livreeLe = t;
+    cmd.clotureAutoLe = t;
+    for (const r of cmd.retouchesDemandees) if (!r.traiteeLe) r.traiteeLe = t;
+    if (tardive) {
+      cmd.retouchesDemandees.push({ date: t, message: tardive, traiteeLe: t, tardive: true });
+      journal(cmd, `Demande de retouche reçue après le délai de ${DELAI_RETOUCHE_JOURS} jours : refusée, non décomptée.`);
+    }
+    journal(cmd, `Livraison réputée acceptée : aucun retour du client dans le délai de ${DELAI_RETOUCHE_JOURS} jours (échéance : ${dateEcheanceTexte(mise)}). Commande clôturée automatiquement.`);
+  });
+  if (!c || !ferme) return suite(c, undefined, c ? undefined : "Commande introuvable.");
+  await facturerSiPossible(id);
+  const m = await courriels.livraisonAcceptee((await store.commande(id)) || c, Boolean(tardive));
+  await store.modifier(id, (cmd) => {
+    journal(cmd, enEchec(m) ? "E-mail « livraison réputée acceptée » NON ENVOYÉ au client : tentative archivée (Administration → E-mails), renvoi possible." : "E-mail « livraison réputée acceptée » envoyé au client.");
+  });
+  return suite((await store.commande(id)) || c, m);
 }
 
 // Relance manuelle d'un client qui n'a pas envoyé son brief.
@@ -267,7 +307,22 @@ export async function facturerSiPossible(id: string) {
   }
 }
 
-export const retouchesMax = (c: Commande) => {
-  const f = formuleParId(c.formule)!;
-  return f.retouches * f.videos;
-};
+// Refuse la dernière demande du client parce qu'elle sort du périmètre d'une retouche (changement de produit, de brief, de script validé,
+// d'angle…) : elle n'est pas exécutée, elle n'est pas décomptée, le client est informé et la commande revient en attente de validation.
+export async function refuserRetouche(id: string, explication: string): Promise<Suite> {
+  const c0 = await store.commande(id);
+  if (!c0) return suite(null, undefined, "Commande introuvable.");
+  if (!correctionOuverte(c0)) return suite(c0, undefined, "Aucune demande de retouche en attente à refuser.");
+  const t = explication.replace(/\r\n/g, "\n").trim();
+  if (t.length < 10) return suite(c0, undefined, "Expliquez au client pourquoi sa demande sort du périmètre d'une retouche (10 caractères minimum).");
+  if (t.length > 2000) return suite(c0, undefined, "L'explication est trop longue (2 000 caractères au plus).");
+  const c = await store.modifier(id, (cmd) => {
+    const r = cmd.retouchesDemandees.at(-1);
+    if (!r || r.traiteeLe || cmd.statut !== "en_production") return false;
+    r.traiteeLe = maintenant();
+    r.horsPerimetre = t;
+    cmd.statut = "attente_validation";
+    journal(cmd, "Demande de retouche refusée (hors périmètre) : le tour n'est pas décompté.");
+  });
+  return suite(c, c ? await courriels.retoucheRefusee(c, t) : undefined);
+}

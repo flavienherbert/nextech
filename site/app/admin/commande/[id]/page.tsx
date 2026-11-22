@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cloturerCommande, creerFacture, lancerProduction, livrerAuClient, majNotes, majStatut, proposerScript, relancerClient, retirerLivrable } from "../../actions";
+import { cloturerCommande, creerFacture, lancerProduction, livrerAuClient, majNotes, majStatut, proposerScript, refuserHorsPerimetre, relancerClient, retirerLivrable } from "../../actions";
 import Copier from "../../Copier";
 import { ficheProduction } from "@/lib/fiche";
 import Livrable from "../../Livrable";
@@ -13,6 +13,8 @@ import { delaiTexte, euros, formuleParId } from "@/lib/formules";
 import { marquerVue } from "@/lib/commandes";
 import { enEchec } from "@/lib/mail";
 import { nomStatut, store, STATUTS } from "@/lib/store";
+import { toursMax, toursUtilises } from "@/lib/tours";
+import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, miseADisposition } from "@/lib/delais";
 import { correctionOuverte, echeance, enRetard, payee } from "@/lib/suivi";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +24,7 @@ const quand = (iso?: string) => (iso ? new Date(iso).toLocaleString("fr-FR", { d
 const MESSAGES: Record<string, string> = {
   production: "Production lancée.",
   script: "Script envoyé au client.",
+  refus: "Demande refusée : le client est informé, son tour de retouches n'est pas décompté.",
   livraison: "Livraison envoyée au client.",
   cloture: "Commande clôturée.",
   relance: "Client relancé.",
@@ -82,7 +85,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
                 {c.scriptEnvoyeLe && <p className="aide">Script envoyé au client le {quand(c.scriptEnvoyeLe)}. Vous pouvez en renvoyer une version corrigée.</p>}
                 <form action={proposerScript} className="formulaire">
                   <input type="hidden" name="id" value={c.id} />
-                  <label className="champ champ-large"><span>Script à envoyer au client</span><textarea name="script" rows={7} required minLength={20} maxLength={5000} placeholder={"0–3 s  ACCROCHE : « … »\n3–10 s  PRODUIT : « … »\n10–16 s  BÉNÉFICE : « … »\n16–20 s  APPEL À L'ACTION : « … »"} /></label>
+                  <label className="champ champ-large"><span>Script à envoyer au client</span><textarea name="script" rows={7} required minLength={20} maxLength={5000} placeholder={"0–3 s  ACCROCHE : « … »\n3–8 s  PRODUIT : « … »\n8–12 s  BÉNÉFICE : « … »\n12–15 s  APPEL À L'ACTION : « … »\n(15 secondes maximum par vidéo : environ 37 mots)"} /></label>
                   <button className="bouton bouton-fantome" type="submit">{c.scriptEnvoyeLe ? "Renvoyer le script au client" : "Envoyer le script au client"}</button>
                 </form>
                 <form action={lancerProduction} className="formulaire">
@@ -99,6 +102,12 @@ export default async function Detail({ params, searchParams }: { params: Promise
                     <p><strong>Le client demande une correction</strong> ({quand(dernierRetour?.date)}) :</p>
                     <p className="citation">{dernierRetour?.message}</p>
                     <p>Faites la modification, ajoutez la nouvelle version dans « Livrables » (retirez l&apos;ancienne si besoin), puis renvoyez-la au client.</p>
+                    <p className="aide">Tour de retouches {toursUtilises(c)} sur {toursMax(c)}. Il reste dans le périmètre s&apos;il porte sur le texte à l&apos;écran, les sous-titres, le rythme ou le remplacement d&apos;un plan, à script constant.</p>
+                    <form action={refuserHorsPerimetre} className="formulaire">
+                      <input type="hidden" name="id" value={c.id} />
+                      <label className="champ champ-large"><span>La demande change le produit, le brief, le script validé, l&apos;angle ou la durée ? Expliquez-le au client : il n&apos;est pas décompté d&apos;un tour.</span><textarea name="explication" rows={3} required minLength={10} maxLength={2000} /></label>
+                      <button className="bouton bouton-fantome" type="submit">Refuser : hors périmètre</button>
+                    </form>
                   </>
                 ) : (
                   <p>Réalisez la vidéo, ajoutez les fichiers terminés dans « Livrables » (colonne de droite), puis envoyez la livraison au client.</p>
@@ -114,13 +123,14 @@ export default async function Detail({ params, searchParams }: { params: Promise
             {c.statut === "attente_validation" && (
               <>
                 <p>La livraison est chez le client. Il peut la valider ou demander une retouche depuis son lien privé : vous serez prévenu dans les deux cas.</p>
+                <p className="aide">Délai de {DELAI_RETOUCHE_JOURS} jours : jusqu&apos;au {dateEcheanceTexte(miseADisposition(c))} inclus (heure de Paris). Sans réponse, la commande est <strong>clôturée automatiquement</strong> (livraison réputée acceptée, facture émise, client prévenu par e-mail) ; une demande de retouche tardive est refusée automatiquement.</p>
                 <div className="actions">
                   <form action={livrerAuClient}><input type="hidden" name="id" value={c.id} /><button className="bouton bouton-fantome" type="submit">Renvoyer l&apos;e-mail de livraison</button></form>
                   <form action={cloturerCommande}><input type="hidden" name="id" value={c.id} /><button className="bouton bouton-fantome" type="submit">Clôturer : considérer comme validée</button></form>
                 </div>
               </>
             )}
-            {c.statut === "livree" && <p>✓ Commande terminée{c.livreeLe ? ` (livrée le ${quand(c.livreeLe)})` : ""}. Les fichiers restent téléchargeables par le client pendant 90 jours, puis sont supprimés automatiquement.</p>}
+            {c.statut === "livree" && <p>✓ Commande terminée{c.livreeLe ? ` (livrée le ${quand(c.livreeLe)})` : ""}{c.clotureAutoLe ? ` — clôturée automatiquement : aucun retour du client dans le délai de ${DELAI_RETOUCHE_JOURS} jours` : ""}. Les fichiers restent téléchargeables par le client pendant 90 jours, puis sont supprimés automatiquement.</p>}
           </section>
         )}
         {!payee(c) && <p className="avis">Cette commande n&apos;est pas payée : ce n&apos;est pas une vente. Rien à faire.</p>}
@@ -181,9 +191,9 @@ export default async function Detail({ params, searchParams }: { params: Promise
 
             {c.retouchesDemandees.length > 0 && (
               <section className="bloc">
-                <h2>Retouches demandées</h2>
+                <h2>Retouches demandées ({toursUtilises(c)} tour{toursUtilises(c) > 1 ? "s" : ""} utilisé{toursUtilises(c) > 1 ? "s" : ""} sur {toursMax(c)})</h2>
                 {c.retouchesDemandees.map((r) => (
-                  <p key={r.date} className="citation"><small>{quand(r.date)} — {r.traiteeLe ? `traitée le ${quand(r.traiteeLe)}` : "à traiter"}</small><br />{r.message}</p>
+                  <p key={r.date} className="citation"><small>{quand(r.date)} — {r.tardive ? `refusée : reçue après le délai de ${DELAI_RETOUCHE_JOURS} jours (non décomptée)` : r.horsPerimetre ? "refusée : hors périmètre (non décomptée)" : r.traiteeLe ? `traitée le ${quand(r.traiteeLe)}` : "à traiter"}</small><br />{r.message}{r.horsPerimetre && <><br /><em>Réponse au client : {r.horsPerimetre}</em></>}</p>
                 ))}
               </section>
             )}

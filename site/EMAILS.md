@@ -10,15 +10,17 @@ Chaque e-mail est **archivé** avant l'envoi (Administration, E-mails), même s'
 | 4 | Brief reçu | Envoi du brief par le client | **Vous** | `[Studio Accroche] Brief reçu — N° — marque` | Brief complet, liste des fichiers, lien vers la commande. |
 | 5 | Brief reçu | idem | Client | `Commande N° — brief bien reçu` | Accusé de réception, lien de suivi. |
 | 5 bis | Script à valider | Bouton « Envoyer le script au client » (vous le déclenchez, après le brief) | Client | `Commande N° — votre script à valider` | Le texte du script ; le client valide en répondant « OK » (réponse reçue dans la boîte du studio). Date et envoi tracés dans l'historique. *(ajout du 22 novembre)* |
+| 5 ter | Demande hors périmètre | Bouton « Refuser : hors périmètre » (changement de produit, de brief, de script validé, d'angle ou de durée) | Client | `Commande N° — votre demande de retouche est hors périmètre` | L'explication de l'administrateur, la définition d'un tour de retouches, **le tour n'est pas décompté**. *(ajout du 22 novembre)* |
 | 6 | Production lancée | Bouton « Démarrer la production » (exige la case « le client a validé le script ») | Client | `Commande N° — production lancée` | Lien de suivi. |
-| 7 | Livraison | Bouton « Envoyer la livraison au client » | Client | `Commande N° — à valider` | **Un lien privé par fichier** (vidéo, PDF) + lien de son espace pour valider ou demander une retouche. |
+| 7 | Livraison | Bouton « Envoyer la livraison au client » | Client | `Commande N° — à valider` | **Un lien privé par fichier** (vidéo, PDF) + lien de son espace pour valider ou demander une retouche, **avec la date limite** (14 jours, jusqu'à minuit heure de Paris). |
 | 8 | Retouche demandée | Le client demande une correction | **Vous** | `[Studio Accroche] Retouche demandée — N°` | Message du client cité. Doublée d'une notification téléphone. |
-| 9 | Retouche demandée | idem | Client | `Commande N° — votre demande de retouche est bien reçue` | Sa demande citée, nombre de retouches incluses restantes. *(ajout du 21 novembre)* |
+| 9 | Retouche demandée | idem | Client | `Commande N° — votre demande de retouche est bien reçue` | Sa demande citée, nombre de **tours** de retouches restants (1 / 2 / 2 selon la formule ; un tour = une seule demande consolidée). *(ajout du 21 novembre)* |
 | 10 | Version corrigée | Bouton « Envoyer la version corrigée au client » | Client | `Commande N° — version corrigée à valider` | Liens privés par fichier. |
 | 11 | Validation (ou clôture) | Le client valide, ou vous cliquez sur « Clôturer » | Client | `Commande N° — vos fichiers sont disponibles` | Liens privés par fichier, disponibles 90 jours, numéro de facture. |
+| 11 bis | Livraison réputée acceptée | Tâche quotidienne (≈ 7 h–8 h) 14 jours après la livraison sans réponse, ou demande de retouche reçue après l'échéance | Client | `Commande N° — livraison réputée acceptée (délai de 14 jours écoulé)` | La date d'échéance, la mention de la demande tardive refusée le cas échéant, le lien vers sa commande et la marche à suivre (nouvelle commande pour toute autre demande). **Si l'envoi échoue, la commande est quand même clôturée** : la tentative est archivée (Administration → E-mails), l'historique de la commande porte « NON ENVOYÉ » et l'e-mail se renvoie d'un clic. *(ajout du 22 novembre)* |
 | 12 | Validation | Le client valide | **Vous** | `[Studio Accroche] Commande validée — N°` | Information. |
 | 13 | Alertes | Paiement refusé, erreur technique, e-mail non envoyé… | **Vous** | `[Studio Accroche] ⚠ …` | Toujours doublées d'une notification téléphone. |
-| 14 | Récap du jour | Tâche quotidienne (≈ 7 h–8 h) | **Vous** | `[Studio Accroche] Récap du jour — N points à traiter` | Seulement s'il y a quelque chose à traiter. |
+| 14 | Récap du jour | Tâche quotidienne (≈ 7 h–8 h) | **Vous** | `[Studio Accroche] Récap du jour — N points à traiter` | Seulement s'il y a quelque chose à traiter. Mentionne aussi les commandes clôturées automatiquement dans les dernières 36 heures, avec le numéro de facture. |
 
 ## Garanties
 

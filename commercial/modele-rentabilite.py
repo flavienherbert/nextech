@@ -2,6 +2,7 @@
 """Modèle de rentabilité de Studio Accroche (production avec Seedance 2.0 via Higgsfield).
 
 Usage :  python3 commercial/modele-rentabilite.py            # imprime les tableaux de commercial/RENTABILITE.md
+         python3 commercial/modele-rentabilite.py decision   # décisions du 22/11/2026 : direct, ComeUp, Fiverr, temps maximal pour 25 €/h
 Aucune dépendance. Modifiez les hypothèses dans SCEN, PLANS, GRILLES, puis relancez.
 
 Légende des sources :
@@ -32,6 +33,8 @@ SUR = {"essai": 5, "test": 5, "campagne": 8}       # crédits annexes (images de
 NOM = {"essai": "Essai", "test": "Pack Test", "campagne": "Pack Campagne"}
 
 GRILLES = {
+  # Décisions du 22/11/2026 : prix directs 35 / 89 / 169 €, tours de retouches 1 / 2 / 2, 15 secondes maximum par vidéo.
+  "décidée":     dict(prix=dict(essai=35, test=89, campagne=169),  mode="fast720", cap=dict(essai=1, test=2, campagne=2),  extra=dict(),                             plus=0.0),
   "actuelle":    dict(prix=dict(essai=25, test=69, campagne=129),  mode="fast720", cap=dict(essai=1, test=3, campagne=12), extra=dict(),                             plus=0.0),
   "économique":  dict(prix=dict(essai=25, test=69, campagne=129),  mode="fast720", cap=dict(essai=1, test=2, campagne=2),  extra=dict(),                             plus=0.0),
   "recommandée": dict(prix=dict(essai=35, test=89, campagne=169),  mode="fast720", cap=dict(essai=1, test=2, campagne=2),  extra=dict(),                             plus=0.0),
@@ -90,7 +93,70 @@ def prix_pour(g, scen, f, cible):
 def md(titre, lignes):
     print(f"\n#### {titre}\n"); print(lignes)
 
+# ───── Vente sur les plateformes (décisions du 22/11/2026) ─────
+# Commissions : ComeUp (pages d'aide officielles, 22/11/2026) : 20 % du prix hors taxes ; offre Plus : 1 € par commande (abonnement 12 € HT/mois, page comeup.com/plus).
+#               Fiverr : 20 % (sources tierces ; les pages officielles refusent la lecture automatique : À VÉRIFIER dans votre espace vendeur).
+# Frais payés par l'acheteur en plus (Fiverr : 5,5 % + frais de petite commande ; ComeUp : frais bancaires) : non déduits du vendeur, donc absents du calcul.
+# HYPOTHÈSES : cotisations calculées sur le prix payé par l'acheteur (prudent : base exacte non établie) ; autres frais Fiverr (retrait, conversion $ → €) 2 % ;
+#              frais de retrait ComeUp (Hyperwallet) non trouvés, comptés 0 ; 1 $ = 0,92 €.
+CANAUX = {
+  "ComeUp (offre gratuite, 20 %)": dict(c=0.20, e=0.0, fixe=0.0, prix=dict(essai=47, test=119, campagne=229)),
+  "ComeUp Plus (1 €/commande)":    dict(c=0.0,  e=0.0, fixe=1.0, prix=dict(essai=36, test=90,  campagne=170)),
+  "Fiverr (20 %, en dollars)":     dict(c=0.20, e=0.02, fixe=0.0, prix=dict(essai=54 * 0.92, test=135 * 0.92, campagne=255 * 0.92)),
+}
+
+def canal(g, scen, f, P, c, e, fixe=0.0, base="brut"):
+    s = SCEN[scen]; cr = credits(f, s, g); ia = cr * prix_credit(s)
+    com = c * P + fixe; autres = e * P
+    cot = s["cotis"] * (P if base == "brut" else P * (1 - c))
+    net = P - com - autres - cot - ia; h = minutes(f, s, g) / 60
+    return dict(prix=P, com=com, autres=autres, cotis=cot, ia=ia, net=net, h=h, eurh=net / h)
+
+def parite(g, f, c, e, fixe=0.0, base="brut", scen="central"):
+    """Prix de plateforme qui laisse le même bénéfice net que la vente directe (scénario central)."""
+    cible = formule(g, scen, f)["net"]; lo, hi = 1.0, 2000.0
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        if canal(g, scen, f, mid, c, e, fixe, base)["net"] < cible: lo = mid
+        else: hi = mid
+    return hi
+
+def decision():
+    g = GRILLES["décidée"]; CIBLE = 25.0
+    print("### Vente directe (35 / 89 / 169 €, tours 1 / 2 / 2, 15 s maximum)\n\n| Formule | Scénario | Bénéfice avant abonnement | Temps | €/h |\n|---|---|---|---|---|")
+    for f in NV:
+        for scen in SCEN:
+            r = formule(g, scen, f); print(f"| {NOM[f]} | {scen} | {r['net']:.1f} € | {r['h']:.2f} h | {r['eurh']:.1f} |")
+    print("\n### Prix de plateforme à bénéfice égal à la vente directe (central)\n\n| Plateforme | Base des cotisations | Essai | Pack Test | Pack Campagne |\n|---|---|---|---|---|")
+    for nom, d in CANAUX.items():
+        for base in ("brut", "net"):
+            print(f"| {nom} | prix payé ({base}) | " + " | ".join(f"{parite(g, f, d['c'], d['e'], d['fixe'], base):.1f} €" for f in NV) + " |")
+    print("\n### €/h aux prix de plateforme retenus (cotisations sur le prix payé)\n\n| Plateforme | Formule | Prix | Optimiste | Central | Prudent |\n|---|---|---|---|---|---|")
+    for nom, d in CANAUX.items():
+        for f in NV:
+            r = [canal(g, sc, f, d["prix"][f], d["c"], d["e"], d["fixe"]) for sc in ("optimiste", "central", "prudent")]
+            print(f"| {nom} | {NOM[f]} | {d['prix'][f]:.2f} € | {r[0]['net']:.1f} € ({r[0]['eurh']:.1f} €/h) | {r[1]['net']:.1f} € ({r[1]['eurh']:.1f} €/h) | {r[2]['net']:.1f} € ({r[2]['eurh']:.1f} €/h) |")
+    print("\n### Mêmes prix que le site sur une plateforme (sans compensation), central\n")
+    for nom, d in CANAUX.items():
+        print(f"- {nom} : " + " · ".join(f"{NOM[f]} {canal(g, 'central', f, g['prix'][f], d['c'], d['e'], d['fixe'])['net']:.1f} € ({canal(g, 'central', f, g['prix'][f], d['c'], d['e'], d['fixe'])['eurh']:.1f} €/h)" for f in NV))
+    print("\n### Temps maximal par commande pour 25 €/h\n\n| Formule | Avant abonnement | Après abonnement (12 commandes/mois) | Temps estimé (optimiste / central / prudent) |\n|---|---|---|---|")
+    mix = "croissance (12 cmd/mois)"; s = SCEN["central"]; mo = mois(g, "central", mix); m = MIX[mix]
+    tot_cr = sum(m[f] * credits(f, s, g) for f in m)
+    for f in NV:
+        avant = formule(g, "central", f)["net"] / CIBLE
+        apres = (formule(g, "central", f)["net"] - mo["abo"] * credits(f, s, g) / tot_cr) / CIBLE
+        h = " / ".join(f"{formule(g, sc, f)['h']:.1f} h" for sc in SCEN)
+        print(f"| {NOM[f]} | {avant:.2f} h | {max(apres, 0):.2f} h | {h} |")
+    for mixn in MIX:
+        for sc in ("optimiste", "central"):
+            r = mois(g, sc, mixn); print(f"\n- {mixn}, {sc} : abonnement {r['plan']} {r['abo']:.0f} €, bénéfice du mois {r['net']:.0f} € en {r['h']:.1f} h → {r['eurh']:.1f} €/h (temps admissible pour 25 €/h : {max(r['net'], 0) / CIBLE:.1f} h)")
+    # Option « durée supérieure » : NON PROPOSÉE pour le moment (décision du 22/11/2026) ; calcul conservé pour mémoire
+    s = SCEN["central"]; cout = 12.5 * s["essais"] * prix_credit(s); tps = (s["revue"] * s["essais"] + s["prep"] + 8 + 3) / 60
+    print(f"\n### Option « durée supérieure à 15 s » (second clip de 5 s) : crédits {12.5 * s['essais']:.0f} ({cout:.2f} €), {tps * 60:.0f} min → {(CIBLE * tps + cout + STRIPE_FIXE) / (1 - s['stripe'] - s['cotis']):.1f} € par vidéo et par tranche de 5 s pour 25 €/h")
+
 if __name__ == "__main__":
+    if sys.argv[1:] == ["decision"]:
+        decision(); sys.exit(0)
     for gnom in sys.argv[1:] or ["actuelle", "économique", "recommandée", "premium"]:
         g = GRILLES[gnom]
         print(f"\n### Grille {gnom} ({g['prix']['essai']} / {g['prix']['test']} / {g['prix']['campagne']} €)")

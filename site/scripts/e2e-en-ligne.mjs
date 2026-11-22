@@ -196,9 +196,9 @@ try {
   const r = await fetch(new URL(lienVideo, B), PRE ? { headers: { Authorization: "Basic " + Buffer.from("x:" + PRE).toString("base64") } } : {});
   const recu = Buffer.from(await r.arrayBuffer());
   verifier("Le client télécharge ses fichiers par son lien privé (contenu intact)", r.status === 200 && (recu.equals(video) || recu.equals(pdf)), `HTTP ${r.status}, ${recu.length} octets`);
-  await client.click("text=Demander une retouche");
+  await client.click("text=Demander un tour de retouches");
   await client.fill(".validation textarea", "Merci de mettre le prix en début de vidéo.");
-  await client.click("text=Envoyer la demande");
+  await client.click("text=Envoyer ma demande");
   await client.waitForSelector(".jalons li.courant:has-text('En production')");
   const pushCorr = await attendrePush((m) => m.title === "Correction demandée" && (m.time ? m.time * 1000 >= debut : true));
   if (pushCorr !== undefined) verifier("Correction demandée : alerte reçue sur le téléphone", Boolean(pushCorr), "aucune alerte");

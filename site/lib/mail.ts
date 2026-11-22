@@ -7,7 +7,9 @@ import { store, maintenant, nomStatut, type Commande, type Courriel } from "./st
 import nodemailer from "nodemailer";
 import { alerter } from "./alertes";
 import { chargerReglages, motDePasseSmtpStocke } from "./reglages";
-import { formuleParId, euros, delaiTexte } from "./formules";
+import { DUREE_TEXTE, formuleParId, euros, delaiTexte, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte } from "./formules";
+import { toursRestants } from "./tours";
+import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, miseADisposition } from "./delais";
 
 const esc = (s: string) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -214,7 +216,7 @@ export const courriels = {
   // Script proposé au client : aucune vidéo n'est produite avant son accord (conditions de vente). Il valide en répondant à l'e-mail.
   script: (c: Commande, texte: string) =>
     envoyer(destinataire(c), `Commande ${c.id} — votre script à valider`,
-      gabarit("Voici le script de votre publicité", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Voici le script proposé pour ${formuleParId(c.formule)!.videos > 1 ? "vos vidéos" : "votre vidéo"}. Aucune vidéo n'est produite avant votre accord.</p><div style="white-space:pre-wrap;background:#f4f1ec;border-radius:8px;padding:14px 16px;margin:14px 0;font-size:15px">${esc(texte)}</div><p><strong>Pour valider, répondez simplement à ce message par « OK ».</strong> Pour demander une modification du texte, répondez en indiquant ce que vous souhaitez changer : une modification de texte à ce stade ne coûte rien.</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
+      gabarit("Voici le script de votre publicité", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Voici le script proposé pour ${formuleParId(c.formule)!.videos > 1 ? "vos vidéos" : "votre vidéo"}. Aucune vidéo n'est produite avant votre accord. Chaque vidéo dure ${DUREE_TEXTE}.</p><div style="white-space:pre-wrap;background:#f4f1ec;border-radius:8px;padding:14px 16px;margin:14px 0;font-size:15px">${esc(texte)}</div><p><strong>Pour valider, répondez simplement à ce message par « OK ».</strong> Pour demander une modification du texte, répondez en indiquant ce que vous souhaitez changer : une modification de texte à ce stade ne coûte rien.</p>`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
 
   enProduction: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — production lancée`,
@@ -222,16 +224,27 @@ export const courriels = {
 
   aValider: (c: Commande, correction = false) =>
     envoyer(destinataire(c), `Commande ${c.id} — ${correction ? "version corrigée à valider" : "à valider"}`,
-      gabarit(correction ? "Votre version corrigée est prête" : "C'est prêt, à vous de valider", `<p>${correction ? "Nous avons pris en compte votre retouche : la nouvelle version est disponible." : "Votre livraison est disponible."} Téléchargez vos fichiers ci-dessous, regardez-les, puis validez la livraison ou demandez une retouche depuis votre espace.</p>${listeLivrables(c)}`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
+      gabarit(correction ? "Votre version corrigée est prête" : "C'est prêt, à vous de valider", `<p>${correction ? "Nous avons pris en compte votre retouche : la nouvelle version est disponible." : "Votre livraison est disponible."} Regardez vos vidéos et téléchargez-les ci-dessous, puis validez la livraison ou demandez un tour de retouches depuis votre espace.</p><p style="font-size:14px;color:#555">Votre formule inclut ${toursTexte(formuleParId(c.formule)!)}${correction ? ` (il vous en reste ${toursRestants(c)})` : ""}. ${TOUR_DEFINITION} ${TOUR_PERIMETRE}</p><p style="font-size:14px;color:#555"><strong>Vous avez ${DELAI_RETOUCHE_JOURS} jours, jusqu'au ${dateEcheanceTexte(miseADisposition(c))} inclus (heure de Paris), pour valider ou demander un tour de retouches.</strong> Passé ce délai, la livraison est réputée acceptée : la commande est clôturée et votre facture émise.</p>${listeLivrables(c)}`, { texte: "Voir et valider", url: lienClient(c) }), c.id),
 
   livree: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — vos fichiers sont disponibles`,
       gabarit("Votre commande est livrée", `<p>Vos fichiers sont prêts au téléchargement. Ils restent disponibles 90 jours : pensez à les enregistrer.</p>${listeLivrables(c)}${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Rappel : ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la mention « contenu généré par IA » proposée par la plateforme.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
 
+  // Délai de 14 jours écoulé sans réponse : la livraison est réputée acceptée (conditions de vente, article 7). `tardive` : le client a
+  // tenté de demander une retouche après l'échéance.
+  livraisonAcceptee: (c: Commande, tardive = false) =>
+    envoyer(destinataire(c), `Commande ${c.id} — livraison réputée acceptée (délai de ${DELAI_RETOUCHE_JOURS} jours écoulé)`,
+      gabarit("Votre livraison est réputée acceptée", `<p>Bonjour ${esc(c.brief?.nom || "")},</p>${tardive ? `<p>Votre demande de retouche nous est parvenue après l'échéance et ne peut pas être traitée.</p>` : ""}<p>Le délai de ${DELAI_RETOUCHE_JOURS} jours pour valider la livraison ou demander un tour de retouches a pris fin le ${esc(dateEcheanceTexte(miseADisposition(c)))} (heure de Paris). Conformément aux conditions de vente (article 7), <strong>la livraison est réputée acceptée</strong> et la commande est clôturée.</p><p>Vos fichiers restent disponibles 90 jours : pensez à les enregistrer.</p>${listeLivrables(c)}${c.facture && !c.facture.specimen ? `<p>Votre facture n° ${esc(c.facture.numero)} est disponible sur la même page.</p>` : ""}<p style="font-size:14px;color:#555">Pour toute autre demande, répondez à ce message : elle fera l'objet d'une nouvelle commande.</p>`, { texte: "Télécharger mes fichiers", url: lienClient(c) }), c.id),
+
   // Accusé de réception envoyé au client quand il demande une retouche.
   retoucheRecue: (c: Commande, message: string, restantes: number) =>
     envoyer(destinataire(c), `Commande ${c.id} — votre demande de retouche est bien reçue`,
-      gabarit("Nous avons bien reçu votre demande", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Votre demande de retouche est enregistrée. Nous préparons une nouvelle version et vous l'enverrons par e-mail dès qu'elle sera prête.</p><p style="background:#f4f1ec;padding:14px;border-radius:8px">${esc(message).replace(/\n/g, "<br>")}</p>${restantes > 0 ? `<p style="font-size:14px;color:#555">Il vous reste ${restantes} retouche${restantes > 1 ? "s" : ""} incluse${restantes > 1 ? "s" : ""} dans votre formule.</p>` : `<p style="font-size:14px;color:#555">Vous avez utilisé toutes les retouches incluses dans votre formule.</p>`}`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
+      gabarit("Nous avons bien reçu votre demande", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Votre demande de retouche est enregistrée : c'est un tour de retouches. Nous préparons une nouvelle version et vous l'enverrons par e-mail dès qu'elle sera prête.</p><p style="background:#f4f1ec;padding:14px;border-radius:8px">${esc(message).replace(/\n/g, "<br>")}</p>${restantes > 0 ? `<p style="font-size:14px;color:#555">Il vous reste ${restantes} tour${restantes > 1 ? "s" : ""} de retouches inclus dans votre formule. ${TOUR_DEFINITION}</p>` : `<p style="font-size:14px;color:#555">Vous avez utilisé tous les tours de retouches inclus dans votre formule. ${TOUR_HORS_PERIMETRE}</p>`}`, { texte: "Suivre ma commande", url: lienClient(c) }), c.id),
+
+  // Demande refusée parce qu'elle sort du périmètre d'une retouche : le client est informé, son tour n'est pas décompté.
+  retoucheRefusee: (c: Commande, explication: string) =>
+    envoyer(destinataire(c), `Commande ${c.id} — votre demande de retouche est hors périmètre`,
+      gabarit("Cette demande n'est pas une retouche", `<p>Bonjour ${esc(c.brief?.nom || "")},</p><p>Nous ne pouvons pas traiter votre dernière demande comme une retouche :</p><p style="background:#f4f1ec;padding:14px;border-radius:8px">${esc(explication).replace(/\n/g, "<br>")}</p><p>${TOUR_DEFINITION} ${TOUR_PERIMETRE} ${TOUR_HORS_PERIMETRE}</p><p><strong>Ce tour ne vous est pas décompté</strong> : il vous reste ${toursRestants(c)} tour${toursRestants(c) > 1 ? "s" : ""} de retouches. Vous pouvez envoyer une nouvelle demande dans ce périmètre, valider la livraison, ou nous écrire pour une nouvelle commande.</p>`, { texte: "Revenir à ma commande", url: lienClient(c) }), c.id),
 
   // — Administrateur —
   // Envoyé UNIQUEMENT quand Stripe a confirmé le paiement (jamais pour une commande seulement créée).

@@ -57,7 +57,8 @@ export default async function Aide() {
             <li>Sur la commande, colonne de droite, « Livrables » : ajoutez vos vidéos et PDF terminés.</li>
             <li>Cliquez sur <strong>« Envoyer la livraison au client »</strong> (en haut de la page). Le client reçoit un e-mail avec son lien privé pour valider ou demander une retouche.</li>
             <li>S&apos;il valide, la commande passe en « Livrée » toute seule et la facture est émise.</li>
-            <li>S&apos;il demande une correction, vous êtes prévenu (téléphone + e-mail) : la commande apparaît dans « Corrections demandées ». Modifiez la vidéo, remplacez le fichier, puis cliquez sur « Envoyer la version corrigée ».</li>
+            <li>S&apos;il demande un tour de retouches (une seule demande qui regroupe toutes ses remarques ; 1 tour pour l&apos;Essai, 2 pour les packs), vous êtes prévenu (téléphone + e-mail) : la commande apparaît dans « Corrections demandées ». Modifiez la vidéo, remplacez le fichier, puis cliquez sur « Envoyer la version corrigée ».</li>
+            <li>Si la demande change le produit, le brief, le script validé, le présentateur, l&apos;angle ou la durée, <strong>ce n&apos;est pas une retouche</strong> : cliquez sur « Refuser : hors périmètre » et expliquez-le. Le client est prévenu, son tour n&apos;est pas décompté ; proposez-lui une nouvelle commande.</li>
           </ol>
         </section>
 

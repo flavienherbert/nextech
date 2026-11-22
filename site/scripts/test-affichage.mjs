@@ -76,10 +76,10 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   verifier("Anatomie : 4 plans visibles", e.temps.n === 4 && e.temps.visibles === 4);
   verifier("Accroches : 3 angles visibles", e.angles.n === 3 && e.angles.visibles === 3);
   verifier("Parcours : 4 étapes visibles", e.etapes.n === 4 && e.etapes.visibles === 4);
-  verifier("Offres : 3 formules visibles avec leurs prix", e.formules.visibles === 3 && e.prix.join("|") === "25 €|69 €|129 €", e.prix.join("|"));
+  verifier("Offres : 3 formules visibles avec leurs prix", e.formules.visibles === 3 && e.prix.join("|") === "35 €|89 €|169 €", e.prix.join("|"));
   verifier("Offres : 3 boutons de commande visibles", e.boutons === 3);
   verifier("Engagements : 3 blocs visibles", e.engagements.n === 3 && e.engagements.visibles === 3);
-  verifier("Questions : 5 entrées visibles", e.questions.n === 5 && e.questions.visibles === 5);
+  verifier("Questions : 6 entrées visibles", e.questions.n === 6 && e.questions.visibles === 6);
   verifier(`Toutes les images sont chargées (${e.images.length})`, e.images.length >= 12 && e.images.every(Boolean));
   verifier("Images des plans et des formules visibles", e.imagesVisibles >= 14, String(e.imagesVisibles));
   verifier("Aucun débordement horizontal", e.debordement <= 0, String(e.debordement));
@@ -92,7 +92,7 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   await page.locator('.formule a[href="/commander/test"]').click();
   await page.waitForURL("**/commander/test");
   await page.waitForSelector(".recap");
-  verifier("Commande : page récapitulative affichée à 69 €", (await page.locator(".total strong").innerText()).includes("69") && await page.locator('.recap button[type="submit"]').isVisible());
+  verifier("Commande : page récapitulative affichée à 89 €", (await page.locator(".total strong").innerText()).includes("89") && await page.locator('.recap button[type="submit"]').isVisible());
   const actif = await page.locator('.recap button[type="submit"]').isEnabled();
   if (actif) {
     await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');

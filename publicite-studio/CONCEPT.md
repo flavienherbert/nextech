@@ -48,7 +48,7 @@ Le manque principal est le troisième : avec un seul produit, « des exemples de
 | 4 | 8,0–9,0 | Écran noir, le nom apparaît lettre par lettre, rideau qui s'ouvre. | « Studio *Accroche* » | « Studio Accroche. » | Montage |
 | 5 | 9,0–14,0 | Triptyque qui change toutes les 0,8 s : gourde, bougie, savon, face caméra et gros plans. Léger zoom continu, musique pleine. | « Nous écrivons l'accroche. » puis « Nous produisons la vidéo. » | « Nous écrivons vos accroches et nous produisons vos vidéos. Sans tournage, sans colis. » | Existant + G3, G4, G5, G6 |
 | 6 | 14,0–18,0 | Trois téléphones côte à côte, même produit, trois débuts différents surlignés A, B, C. Celui du milieu s'agrandit. | « Un lien. Trois photos. 48 h. » | « Un lien, trois photos, quarante-huit heures. » | Capture du site + montage |
-| 7 | 18,0–22,0 | Fond noir, prix qui monte en grand, puis adresse du site et bouton. Dernière image fixe 1 s. | « Dès 25 € » puis « [adresse du site] — Commander » | « À partir de vingt-cinq euros. » | Montage |
+| 7 | 18,0–22,0 | Fond noir, prix qui monte en grand, puis adresse du site et bouton. Dernière image fixe 1 s. | « Dès 35 € » puis « [adresse du site] — Commander » | « À partir de trente-cinq euros. » | Montage |
 
 Transitions : coupes sèches calées sur la musique pour les plans 1 à 3, rideau pour le plan 4, fondu enchaîné très court (4 images) dans le triptyque, glissement vertical entre 6 et 7.
 
@@ -168,7 +168,7 @@ Recommandation : option A, en commençant par G3 et G5 (les deux plans parlés, 
 
 ## 10. Version 0 — montée sans aucune génération (13/11/2026)
 
-Fichier : `studio-accroche-pub-v0.mp4`, 22 s, 1080×1920, avec voix off et musique.
+Fichier : `studio-accroche-pub-v0.mp4`, 22 s, 1080×1920, avec voix off et musique. **Attention : cette version v0 annonce « Dès 25 € » (image et voix off), l'ancien prix. Le prix du site est 35 € depuis le 22 novembre 2026 : ne pas la diffuser telle quelle ; le script et l'animation sources sont déjà à 35 €, mais la voix off et le rendu sont à refaire.**
 
 Elle suit le storyboard avec les seuls éléments existants :
 - plan 1 : fil de fiches produit ternes dessiné au montage, à la place du pouce filmé (G1) ;

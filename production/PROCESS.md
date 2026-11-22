@@ -17,21 +17,21 @@ Vérifier avant d'accepter : pas de faux témoignage demandé, pas d'allégation
 
 ## 2. Script (15 minutes)
 
-Structure d'une vidéo de 15–20 secondes :
+Structure d'une vidéo de **15 secondes maximum** (toutes formules ; une durée supérieure n'est pas proposée pour le moment) :
 
 | Temps | Rôle | Longueur |
 |---|---|---|
 | 0–3 s | Accroche | 8 à 12 mots |
-| 3–10 s | Problème puis produit | 20 mots |
-| 10–16 s | Bénéfice concret, une preuve vérifiable | 18 mots |
-| 16–20 s | Appel à l'action | 6 à 8 mots |
+| 3–8 s | Problème puis produit | 12 mots |
+| 8–12 s | Bénéfice concret, une preuve vérifiable | 10 mots |
+| 12–15 s | Appel à l'action | 6 à 8 mots |
 
 Trois angles d'accroche pour un Pack Test :
 - **Problème** : « Arrête de [geste pénible]. »
 - **Résultat** : « Depuis que j'utilise ça, [changement mesurable]. » — formulé comme une présentation, jamais comme un avis client fictif. Préférer « Avec ça, tu… » à « J'ai testé pendant 3 semaines… ».
 - **Curiosité** : « Ce truc à [prix] remplace [habitude]. »
 
-Débit : 2,5 mots par seconde. Un script de 20 secondes fait 50 mots au maximum.
+Débit : 2,5 mots par seconde. Un script de 15 secondes fait 37 mots au maximum.
 
 Envoyer le script au client pour validation avant toute génération (bouton « Envoyer le script au client » dans la commande) : une retouche de texte coûte 0 €, une retouche de vidéo coûte une régénération.
 

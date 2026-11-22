@@ -8,6 +8,7 @@ import { euros, formuleParId } from "@/lib/formules";
 import { envoiReel } from "@/lib/mail";
 import { echecsUtiles } from "@/lib/rattrapage";
 import { depot } from "@/lib/depot";
+import { cloturerExpireesSiNecessaire } from "@/lib/echeances";
 import { purger } from "@/lib/purge";
 import { nomStatut, store } from "@/lib/store";
 import { compterVues, correctionOuverte, correspond, dansVue, echeance, enRetard, payee, TAILLE_PAGE, trier, VUES, type Vue } from "@/lib/suivi";
@@ -26,6 +27,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const vue: Vue = VUES.some((v) => v.id === p.vue) ? (p.vue as Vue) : "afaire";
   const recherche = (p.q || "").slice(0, 80);
   await purger().catch((e) => console.error("[purge]", (e as Error).message));
+  // Filet de sécurité de la clôture automatique à 14 jours (la tâche quotidienne est le déclencheur normal) : au plus une fois par heure.
+  await cloturerExpireesSiNecessaire().catch((e) => console.error("[échéances]", (e as Error).message));
   const toutes = await store.commandes();
   const maintenant = Date.now();
   const nombres = compterVues(toutes, maintenant);

@@ -7,7 +7,8 @@ import Brief from "./Brief";
 import Lecteur from "./Lecteur";
 import Validation from "./Validation";
 import { store } from "@/lib/store";
-import { retouchesMax } from "@/lib/commandes";
+import { toursMax, toursRestants } from "@/lib/tours";
+import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, delaiExpire, miseADisposition } from "@/lib/delais";
 import { delaiTexte, euros, formuleParId } from "@/lib/formules";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ const jalons = [
   { id: "livree", nom: "Livrée" },
 ];
 
-const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "");
+const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" }) : "");
 
 export default async function PageCommande({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -84,6 +85,12 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                     ))}
                   </ol>
 
+                  {c.statut === "attente_validation" && c.retouchesDemandees.at(-1)?.horsPerimetre && (
+                    <p className="avis" role="status">Votre dernière demande ne pouvait pas être traitée comme une retouche : {c.retouchesDemandees.at(-1)!.horsPerimetre} Elle ne vous est pas décomptée.</p>
+                  )}
+                  {c.statut === "livree" && c.clotureAutoLe && (
+                    <p className="avis" role="status">Le délai de {DELAI_RETOUCHE_JOURS} jours est écoulé sans retour de votre part : la livraison a été réputée acceptée le {date(c.clotureAutoLe)} (conditions de vente, article 7). Vos fichiers restent disponibles 90 jours.</p>
+                  )}
                   {c.statut === "payee" && <p className="chapeau">Brief bien reçu le {date(c.brief.recuLe)}. Vous recevrez le script par e-mail avant toute production.</p>}
                   {c.statut === "en_production" && <p className="chapeau">La production est lancée. Vous recevrez un e-mail dès que le résultat sera prêt à être validé.</p>}
 
@@ -116,7 +123,7 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                         </ul>
                         </>
                       )}
-                      {c.statut === "attente_validation" && <Validation token={token} restantes={Math.max(0, retouchesMax(c) - c.retouchesDemandees.length)} />}
+                      {c.statut === "attente_validation" && <Validation token={token} restantes={toursRestants(c)} total={toursMax(c)} echeance={dateEcheanceTexte(miseADisposition(c))} expire={delaiExpire(miseADisposition(c))} jours={DELAI_RETOUCHE_JOURS} />}
                       {c.statut === "livree" && (
                         <p className="aide">
                           Ces vidéos sont générées par intelligence artificielle. Lors de leur diffusion, activez la

@@ -70,9 +70,13 @@ export type Commande = {
   facture?: Facture;
   livreeLe?: string;
   fichiersPurgesLe?: string;
-  retouchesDemandees: { date: string; message: string; traiteeLe?: string }[];
+  // Chaque demande est un « tour » de retouches. `horsPerimetre` : demande refusée (explication donnée au client), non décomptée.
+  // `tardive` : demande reçue après le délai de 14 jours, refusée et non décomptée.
+  retouchesDemandees: { date: string; message: string; traiteeLe?: string; horsPerimetre?: string; tardive?: boolean }[];
   vueLe?: string; // première ouverture de la commande par l'administrateur (sert au repère « Nouvelle »)
   relanceBriefLe?: string; // relance automatique envoyée au client qui n'a pas transmis son brief
+  derniereLivraisonLe?: string; // mise à disposition de la dernière livraison (première version ou version corrigée) : le délai de 14 jours court de là (lib/delais.ts)
+  clotureAutoLe?: string; // livraison réputée acceptée : clôture automatique après 14 jours sans réponse du client
   scriptEnvoyeLe?: string; // script envoyé au client pour validation (aucune vidéo n'est produite avant son accord)
   valideeLe?: string;
   notes: string;

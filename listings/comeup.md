@@ -1,7 +1,11 @@
 # Fiches ComeUp — prêtes à coller
 
 Pseudo vendeur : `Studio_Accroche`. Catégorie : Audiovisuel → Vidéos et photos UGC.
-Vérifier les paliers de prix autorisés par ComeUp au moment de la saisie et arrondir au palier le plus proche.
+Vérifier les paliers de prix autorisés par ComeUp au moment de la saisie et arrondir au palier le plus proche (prix de départ minimum : 15 €).
+
+**Prix propres à ComeUp (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; ComeUp prélève 20 % du prix hors taxes (offre gratuite, source : support ComeUp, article 1490), donc les prix ci-dessous sont relevés pour que le bénéfice reste le même : **47 / 119 / 229 €**. **ComeUp Plus (12 € HT/mois, 1 € par commande) : décision du 22 novembre 2026, attendre les premières ventes** ; la grille serait alors 36 / 90 / 170 €. Détail et calculs : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
+
+**Règles communes à toutes les fiches** : 15 secondes maximum par vidéo ; **un tour de retouches = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
 
 ## Profil vendeur
 
@@ -20,7 +24,7 @@ Ce que je ne fais pas : les faux avis clients. Mes vidéos présentent votre pro
 
 **Titre** : Je vais créer votre publicité vidéo avec présentateur IA pour TikTok et Meta Ads
 
-**Prix de base** : 25 € — 1 vidéo de 10 à 15 secondes, livrée en 2 jours.
+**Prix de base** : 47 € — 1 vidéo de 15 secondes maximum, livrée en 2 jours.
 
 **Description**
 
@@ -28,12 +32,12 @@ Votre publicité s'essouffle et vous n'avez pas le budget pour payer un créateu
 
 Je crée pour vous une publicité vidéo verticale avec un présentateur IA réaliste qui parle français et met votre produit en avant. Pas de tournage, pas de colis à envoyer : un lien et trois photos suffisent.
 
-**Ce que comprend le service de base (25 €)**
-- 1 vidéo de 10 à 15 secondes au format vertical 9:16, en 1080p
+**Ce que comprend le service de base (47 €)**
+- 1 vidéo de 15 secondes maximum au format vertical 9:16, en 1080p
 - Le script écrit par mes soins : accroche, bénéfice, appel à l'action
 - Un présentateur IA choisi selon votre cible
 - Sous-titres animés
-- 1 retouche
+- 1 tour de retouches (une seule demande qui regroupe toutes vos remarques)
 - Livraison en 48 h
 
 **Comment ça se passe**
@@ -50,8 +54,8 @@ Je crée pour vous une publicité vidéo verticale avec un présentateur IA réa
 **Options**
 | Option | Prix | Délai |
 |---|---|---|
-| Pack Test : 3 vidéos de 15–20 s, 3 accroches différentes | +44 € | +1 jour |
-| Pack Campagne : 6 vidéos, 2 présentateurs, formats 9:16 et 1:1 | +104 € | +3 jours |
+| Pack Test : 3 vidéos de 15 s maximum, 3 accroches différentes, 2 tours de retouches | +72 € | +1 jour |
+| Pack Campagne : 6 vidéos de 15 s maximum, 2 présentateurs, formats 9:16 et 1:1, 2 tours de retouches | +182 € | +3 jours |
 | Livraison en 24 h | +15 € | −1 jour |
 | Version anglaise de la vidéo | +15 € | +1 jour |
 | Script supplémentaire | +10 € | — |
@@ -74,7 +78,7 @@ Je crée pour vous une publicité vidéo verticale avec un présentateur IA réa
 
 **Titre** : Je vais créer 3 publicités vidéo IA avec 3 accroches différentes pour tester vos ads
 
-**Prix de base** : 69 € — 3 vidéos de 15 à 20 secondes, livrées en 3 jours.
+**Prix de base** : 119 € — 3 vidéos de 15 secondes maximum, livrées en 3 jours.
 
 **Description**
 
@@ -83,10 +87,10 @@ Une seule vidéo ne vous dit rien : si elle ne marche pas, vous ne savez pas pou
 Avec ce pack, vous recevez 3 publicités vidéo sur le même produit, chacune avec un début différent : un angle problème, un angle résultat, un angle curiosité. Vous les lancez en parallèle, vous gardez la gagnante.
 
 **Inclus**
-- 3 vidéos de 15 à 20 secondes, 9:16, 1080p
+- 3 vidéos de 15 secondes maximum, 9:16, 1080p
 - 3 accroches écrites sur 3 angles différents, argumentaire commun
 - Présentateur IA francophone, sous-titres animés
-- 1 retouche par vidéo
+- 2 tours de retouches (une seule demande par tour, qui regroupe toutes vos remarques sur les 3 vidéos)
 - Un court mémo : quelle métrique regarder pour choisir la gagnante
 
 **Options** : second présentateur (+30 €), format carré 1:1 (+15 €), livraison 48 h (+20 €).
@@ -105,14 +109,14 @@ Mêmes engagements que mes autres services : pas de faux témoignages, mention I
 
 Vous tournez vos vidéos vous-même mais vous séchez sur les premières secondes ?
 
-Je vous écris 5 accroches publicitaires sur 5 angles différents, plus un script complet de 20 secondes, prêt à être tourné ou confié à un créateur.
+Je vous écris 5 accroches publicitaires sur 5 angles différents, plus un script complet de 15 secondes, prêt à être tourné ou confié à un créateur.
 
 **Inclus**
 - 5 accroches de 3 secondes
 - 1 script complet : accroche, problème, solution, preuve, appel à l'action
 - Indications de plans et de texte à l'écran
 
-**Option** : je réalise la vidéo avec présentateur IA à partir de ce script (+25 €).
+**Option** : je réalise la vidéo avec présentateur IA à partir de ce script (+40 €, à valider : le service Essai complet est à 47 €).
 
 ---
 
@@ -125,7 +129,7 @@ Je vous écris 5 accroches publicitaires sur 5 angles différents, plus un scrip
 > Voici le script proposé. L'accroche vise [cible] avec l'angle [angle]. Dites-moi si la promesse vous convient ou si vous préférez insister sur autre chose. Dès validation, je lance la vidéo.
 
 **Livraison**
-> Votre vidéo est prête. Elle est signalée comme générée par IA, pensez à activer la mention correspondante sur TikTok ou Meta au moment de la publier. Une retouche est incluse : dites-moi ce que vous voulez ajuster. Si le résultat vous convient, un avis m'aide beaucoup en ce début d'activité.
+> Votre vidéo est prête. Elle est signalée comme générée par IA, pensez à activer la mention correspondante sur TikTok ou Meta au moment de la publier. Un tour de retouches est inclus : regroupez toutes vos remarques en un seul message (texte à l'écran, sous-titres, rythme, remplacement d'un plan). Si le résultat vous convient, un avis m'aide beaucoup en ce début d'activité.
 
 **Refus d'un faux témoignage**
 > Je ne réalise pas de vidéo où un personnage IA se présente comme un client ayant utilisé le produit : c'est assimilable à un faux avis. Je peux en revanche faire une présentation du produit tout aussi directe, sans prétendre à une expérience vécue.

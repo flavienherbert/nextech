@@ -13,6 +13,10 @@ const DATA = path.resolve(process.env.DATA_DIR || "./data");
 const SECRET = process.env.STRIPE_WEBHOOK_SECRET || "whsec_simulation";
 const MDP = process.env.ADMIN_PASSWORD || "demonstration";
 const CAPTURES = process.env.CAPTURES || "";
+// Contrat de prix et de retouches décidé le 22 novembre 2026. lib/formules.ts est la source unique : en changer une valeur impose de changer celle-ci,
+// et ce test le rappelle. Les montants sont en centimes.
+const PRIX = { essai: 3500, test: 8900, campagne: 16900 };
+const eur = (cents) => `${cents / 100}`;
 
 const resultats = [];
 const verifier = (nom, ok, detail = "") => { resultats.push({ nom, ok: Boolean(ok) }); console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
@@ -45,10 +49,24 @@ page.on("pageerror", (e) => erreursConsole.push(e.message));
 // ───────────── 1. Parcours client complet ─────────────
 console.log("\n— Parcours client —");
 await page.goto(BASE);
-verifier("Accueil : trois formules avec prix", (await page.locator(".formule").count()) === 3 && (await page.locator(".formule .prix").allTextContents()).join("|").replace(/ | /g, " ") === "25 €|69 €|129 €", (await page.locator(".formule .prix").allTextContents()).join("|"));
+verifier("Accueil : trois formules avec prix", (await page.locator(".formule").count()) === 3 && (await page.locator(".formule .prix").allTextContents()).join("|").replace(/ | /g, " ") === Object.values(PRIX).map((c) => `${eur(c)} €`).join("|"), (await page.locator(".formule .prix").allTextContents()).join("|"));
+{
+  // Cohérence des textes commerciaux de l'accueil et des conditions de vente avec le catalogue
+  const norm = (t) => t.replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " ");
+  const accueil = norm(await page.locator("body").innerText());
+  verifier("Accueil : « 15 secondes maximum » dans chaque formule, jamais « 15 à 20 » ni « 10 à 15 », aucun ancien prix", (accueil.match(/15 secondes maximum/g) || []).length >= 3 && !/15 à 20|10 à 15|20 secondes/.test(accueil) && !/(^|[^\d])(25|69|129) €/.test(accueil), accueil.match(/.{20}(15 à 20|10 à 15|(25|69|129) €).{20}/)?.[0]);
+  verifier("Accueil : fourchette de prix et délais lus dans le catalogue", accueil.includes("De 35 € à 169 € selon la formule") && accueil.includes("Essai 48 h, Pack Test 3 jours, Pack Campagne 5 jours"));
+  verifier("Accueil : 1 / 2 / 2 tours de retouches dans les trois formules", (await page.locator(".formule").allInnerTexts()).map((t) => t.match(/(\d) tours? de retouches/)?.[1]).join("/") === "1/2/2");
+  const cg = await ctx.newPage();
+  await cg.goto(`${BASE}/cgv`);
+  const cgv = norm(await cg.locator("body").innerText());
+  verifier("Conditions de vente : prix, durée de 15 secondes maximum et tours de retouches identiques au catalogue", [`Essai — 35 €`, `Pack Test — 89 €`, `Pack Campagne — 169 €`, "1 vidéo de 15 secondes maximum, 1 tour de retouches", "3 vidéos de 15 secondes maximum, 2 tours de retouches", "6 vidéos de 15 secondes maximum, 2 tours de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
+  verifier("Conditions de vente : définition d'un tour (demande consolidée), hors périmètre = nouvelle commande, durée supérieure non proposée", /Un tour de retouches est une seule demande, qui regroupe toutes vos remarques sur l'ensemble des vidéos livrées/.test(cgv) && /changement de produit, de brief, de script validé, de présentateur, d'angle ou de durée n'est pas une retouche/.test(cgv) && /Une durée supérieure n'est pas proposée à ce jour/.test(cgv));
+  await cg.close();
+}
 await page.locator('.formule a[href="/commander/test"]').click();
 await page.waitForURL("**/commander/test");
-verifier("Clic sur « Pack Test » → page de commande à 69 €", (await page.locator(".total strong").textContent()).includes("69"));
+verifier(`Clic sur « Pack Test » → page de commande à ${eur(PRIX.test)} €`, (await page.locator(".total strong").textContent()).includes(eur(PRIX.test)));
 await cap(page, "02-commander");
 await page.locator('button[type="submit"]').click();
 verifier("Paiement refusé tant que les deux cases ne sont pas cochées", page.url().includes("/commander/test"));
@@ -59,7 +77,12 @@ await page.waitForURL(`${MOCK}/pay/**`);
 verifier("Redirection vers la page de paiement", true);
 let c = commandes().find((x) => !avant.has(x.id));
 verifier("Commande créée avec un numéro unique, non payée", c && /^SA-\d{6}-[A-Z0-9]{5}$/.test(c.id) && c.paiement.etat === "en_attente" && c.statut === "attente_paiement", JSON.stringify(c?.id));
-verifier("Montant envoyé à Stripe = 6900 centimes", (await session(c.paiement.sessionId)).amount_total === 6900);
+verifier(`Montant envoyé à Stripe = ${PRIX.test} centimes`, (await session(c.paiement.sessionId)).amount_total === PRIX.test);
+for (const [id, cents] of Object.entries(PRIX)) {
+  const x = await commandeNonPayee(id);
+  const sx = await session(x.c.paiement.sessionId);
+  verifier(`Stripe : la formule « ${id} » est facturée exactement ${cents} centimes en euros, et la commande enregistre le même montant`, x.c.montantCents === cents && sx.amount_total === cents && sx.currency === "eur", JSON.stringify([x.c.montantCents, sx.amount_total, sx.currency]));
+}
 await page.fill('input[name="email"]', "marie@exemple-marque.fr");
 await page.click('button[value="payer"]');
 await page.waitForURL(`${BASE}/commande/**`);
@@ -69,7 +92,7 @@ c = commande(c.id);
 verifier("Commande marquée payée par le webhook", c.paiement.etat === "paye" && c.statut === "attente_infos" && c.paiement.emailStripe === "marie@exemple-marque.fr");
 let m = courriels(c.id);
 verifier("E-mail de confirmation rédigé pour le client", m.some((x) => x.a === "marie@exemple-marque.fr" && x.objet.includes(c.id) && x.texte.includes("/commande/" + c.token)));
-verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Nouvelle commande payée") && x.objet.includes("69") && x.texte.includes("Pack Test")));
+verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Nouvelle commande payée") && x.objet.includes(eur(PRIX.test)) && x.texte.includes("Pack Test")));
 await cap(page, "03-brief");
 
 // Brief : validation des champs, dépôt de fichiers
@@ -104,7 +127,7 @@ c = commande(c.id);
 verifier("Brief enregistré, commande « Payée — brief reçu »", c.statut === "payee" && c.brief.marque === "Exemple Marque" && c.fichiersClient.length === 2);
 m = courriels(c.id);
 const notif = m.find((x) => x.objet.includes("Brief reçu"));
-verifier("Notification admin : client, formule, montant, brief, fichiers, numéro", notif && ["Marie Durand", "Pack Test", "69", "Gourde inox 750 ml", "produit-face.png", c.id].every((s) => notif.texte.includes(s)), notif?.texte.slice(0, 200));
+verifier("Notification admin : client, formule, montant, brief, fichiers, numéro", notif && ["Marie Durand", "Pack Test", eur(PRIX.test), "Gourde inox 750 ml", "produit-face.png", c.id].every((s) => notif.texte.includes(s)), notif?.texte.slice(0, 200));
 verifier("Contenu saisi par le client échappé dans l'e-mail HTML", notif && !notif.html.includes("<script>alert(1)</script>") && notif.html.includes("&lt;script&gt;"));
 verifier("Accusé de réception du brief rédigé pour le client", m.some((x) => x.a === "marie@exemple-marque.fr" && x.objet.includes("brief bien reçu")));
 await cap(page, "04-suivi");
@@ -167,9 +190,9 @@ const r = await fetch(`${BASE}/api/commande/${tokenClient}/fichier/${idLivrable}
 const recu = Buffer.from(await r.arrayBuffer());
 verifier("Le client télécharge sa vidéo par son lien privé, fichier intact (3 Mo)", r.status === 200 && recu.equals(video) && r.headers.get("content-disposition").includes("attachment"));
 verifier("Lien de téléchargement inutilisable avec un autre jeton (404)", (await fetch(`${BASE}/api/commande/${"a".repeat(48)}/fichier/${idLivrable}`)).status === 404);
-await page.click("text=Demander une retouche");
+await page.click("text=Demander un tour de retouches");
 await page.fill(".validation textarea", "Merci de raccourcir l'accroche de la première vidéo.");
-await page.click("text=Envoyer la demande");
+await page.click("text=Envoyer ma demande");
 await page.waitForSelector(".jalons li.courant:has-text('En production')");
 verifier("Retouche demandée → retour en production + e-mail admin", commande(idCommande).statut === "en_production" && courriels(idCommande).some((x) => x.objet.includes("Retouche demandée") && x.texte.includes("raccourcir")));
 await admin.goto(`${BASE}/admin/commande/${idCommande}`);
@@ -201,7 +224,7 @@ verifier("Webhook sans signature refusé (400)", (await webhook(faux, "")).statu
 verifier("Webhook avec signature inventée refusé (400)", (await webhook(faux, `t=${Math.floor(Date.now() / 1000)},v1=${"0".repeat(64)}`)).status === 400);
 verifier("Webhook signé avec un autre secret refusé (400)", (await webhook(faux, signer(faux, "whsec_autre_secret"))).status === 400);
 verifier("Webhook bien signé mais daté d'une heure refusé (400, anti-rejeu)", (await webhook(faux, signer(faux, SECRET, Math.floor(Date.now() / 1000) - 3600))).status === 400);
-const corpsModifie = faux.replace('"amount_total":12900', '"amount_total":100');
+const corpsModifie = faux.replace(`"amount_total":${PRIX.campagne}`, '"amount_total":100');
 verifier("Corps modifié après signature refusé (400)", (await webhook(corpsModifie, signer(faux))).status === 400);
 let rep = await (await webhook(faux, signer(faux))).json();
 verifier("Webhook correctement signé mais session non payée chez Stripe : non appliqué", rep.applique === false && /non abouti/.test(rep.motif), JSON.stringify(rep));
@@ -340,7 +363,7 @@ verifier("Tâche quotidienne : introuvable sans secret (404)", (await tache({}))
 verifier("Tâche quotidienne : introuvable avec un mauvais secret (404)", (await tache({ "x-taches-secret": "faux" })).status === 404);
 const rTache = await tache({ "x-taches-secret": process.env.TACHES_SECRET });
 const bilanTache = rTache.status === 200 ? await rTache.json() : null;
-verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de purge et de veille renvoyés", bilanTache?.ok === true && typeof bilanTache.bilan === "object" && typeof bilanTache.veille === "object", String(rTache.status));
+verifier("Tâche quotidienne : exécutée avec le bon secret, bilan de clôture automatique, de purge et de veille renvoyés", bilanTache?.ok === true && Array.isArray(bilanTache.echeances?.cloturees) && typeof bilanTache.bilan === "object" && typeof bilanTache.veille === "object", String(rTache.status));
 verifier("Livrable : demande d'envoi refusée sans session administrateur (401)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status === 401);
 verifier("Livrable : requête venant d'un autre site refusée (403)", (await fetch(`${BASE}/api/admin/commande/${idCommande}/livrable`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookies, Origin: "https://site-malveillant.example" }, body: "{}" })).status === 403);
 {
@@ -397,10 +420,10 @@ if (fauxActif) {
   const recusMail = await mails();
   const notif = recusMail.find((m) => m.objet.includes("Nouvelle commande payée") && m.objet.includes(A.id));
   verifier("E-mail réellement expédié au vendeur dès le paiement (adresse administrateur)", Boolean(notif) && notif.a.includes("admin@example.com"), JSON.stringify(recusMail.map((m) => m.objet)));
-  verifier("E-mail vendeur : numéro, nom du client, e-mail du client, offre, montant payé, accès direct à la commande", notif && [A.id, "Claire Boutique", "claire@exemple-boutique.fr", "Pack Campagne", "129", `${SITE}/admin/commande/${A.id}`].every((t) => notif.texte.includes(t)), notif?.texte.slice(0, 400));
+  verifier("E-mail vendeur : numéro, nom du client, e-mail du client, offre, montant payé, accès direct à la commande", notif && [A.id, "Claire Boutique", "claire@exemple-boutique.fr", "Pack Campagne", eur(PRIX.campagne), `${SITE}/admin/commande/${A.id}`].every((t) => notif.texte.includes(t)), notif?.texte.slice(0, 400));
   verifier("Le client reçoit aussi sa confirmation avec son lien privé", recusMail.some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes(A.id) && m.texte.includes(`/commande/${A.token}`)));
   const push = await attendrePush((x) => x.title === "Nouvelle commande payée" && String(x.message).includes(A.id));
-  verifier("Notification sur le téléphone : titre, numéro, offre, montant et lien direct", push && String(push.message).includes("Pack Campagne") && String(push.message).includes("129") && String(push.click) === `${SITE}/admin/commande/${A.id}` && push.topic === "sa-test-notifications", JSON.stringify(push));
+  verifier("Notification sur le téléphone : titre, numéro, offre, montant et lien direct", push && String(push.message).includes("Pack Campagne") && String(push.message).includes(eur(PRIX.campagne)) && String(push.click) === `${SITE}/admin/commande/${A.id}` && push.topic === "sa-test-notifications", JSON.stringify(push));
   verifier("Notification téléphone : aucune donnée personnelle (ni nom, ni e-mail)", push && !/claire|boutique|@/i.test(JSON.stringify(push)));
   const rejoue = evenement("checkout.session.completed", await session(A.paiement.sessionId)); await webhook(rejoue, signer(rejoue));
   verifier("Webhook rejoué : une seule notification de vente (e-mail et téléphone)", (await mails()).filter((m) => m.objet.includes("Nouvelle commande payée") && m.objet.includes(A.id)).length === 1 && (await fauxJson("/_recus")).filter((x) => x.title === "Nouvelle commande payée" && String(x.message).includes(A.id)).length === 1);
@@ -492,6 +515,22 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
     verifier("Lien de téléchargement dont le jeton est faux ou le fichier d'une autre commande : introuvable (404)", uniques.length > 0 && (await fetch(uniques[0].replace(/^https?:\/\/[^/]+/, BASE).replace(/\/commande\/[0-9a-f]+\//, `/commande/${"c".repeat(48)}/`))).status === 404);
   }
   verifier("Livraison envoyée : « En attente de validation », e-mail du lien privé expédié au client, journal tenu", A4.statut === "attente_validation" && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && m.texte.includes(`/commande/${A.token}`)) && A4.historique.some((h) => /Livraison envoyée/.test(h.evenement)));
+  {
+    // Délai de 14 jours (conditions de vente, article 7) : échéance annoncée au client et au vendeur, et aucune clôture avant l'échéance
+    const [an, mois, jour] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date(A4.derniereLivraisonLe)).split("-").map(Number);
+    const attendu = new Date(Date.UTC(an, mois - 1, jour + 14)).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    const net = (t) => t.replace(/&#x27;|&#39;|&apos;/g, "'").replace(/&nbsp;|\u00a0|\u202f/g, " ");
+    verifier("Livraison : la date de mise à disposition est enregistrée (point de départ des 14 jours)", Boolean(A4.derniereLivraisonLe) && Math.abs(Date.now() - Date.parse(A4.derniereLivraisonLe)) < 600_000);
+    const mailLiv14 = (await mails()).find((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("à valider") && !m.objet.includes("corrigée") && !m.objet.includes("script"));
+    verifier(`E-mail de livraison : l'échéance du délai est indiquée (jusqu'au ${attendu} inclus, heure de Paris)`, net(mailLiv14?.texte || "").includes(`jusqu'au ${attendu} inclus (heure de Paris)`), (mailLiv14?.texte || "").slice(0, 300));
+    const htmlClient = net(await (await fetch(`${BASE}/commande/${A.token}`)).text());
+    verifier("Page du client : « Vous avez jusqu'au … inclus (heure de Paris) » avec la bonne date, et la règle de clôture", htmlClient.includes(`jusqu'au ${attendu} inclus (heure de Paris)`) && /réputée acceptée/.test(htmlClient), attendu);
+    await admin.goto(`${BASE}/admin/commande/${A.id}`);
+    verifier("Administration : échéance affichée sur la commande, avec la clôture automatique annoncée", net(await admin.locator(".etape").textContent()).includes(`jusqu'au ${attendu} inclus (heure de Paris)`) && /clôturée automatiquement/.test(await admin.locator(".etape").textContent()));
+    const rT2 = await tache({ "x-taches-secret": process.env.TACHES_SECRET });
+    const bT2 = rT2.status === 200 ? await rT2.json() : null;
+    verifier("Tâche quotidienne : une livraison toute récente n'est jamais clôturée avant l'échéance", bT2?.ok === true && !bT2.echeances.cloturees.includes(A.id) && commande(A.id).statut === "attente_validation" && !commande(A.id).clotureAutoLe);
+  }
   verifier("Tableau de bord : la commande est dans « Livrées »", (await idsVue("livrees")).includes(A.id) && !(await idsVue("afaire")).includes(A.id));
   const rVideo = await fetch(`${BASE}/api/commande/${A.token}/fichier/${A4.livrables.find((x) => x.nom.endsWith(".mp4")).id}`);
   verifier("Le client télécharge sa vidéo par son lien : fichier intact", rVideo.status === 200 && Buffer.from(await rVideo.arrayBuffer()).equals(videoA));
@@ -515,9 +554,9 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   // — Demande de correction du client
   await fauxJson("/_vider", "POST");
   await page.goto(`${BASE}/commande/${A.token}`);
-  await page.click("text=Demander une retouche");
+  await page.click("text=Demander un tour de retouches");
   await page.fill(".validation textarea", "Merci de mettre le prix en début de vidéo.");
-  await page.click("text=Envoyer la demande");
+  await page.click("text=Envoyer ma demande");
   await page.waitForSelector(".jalons li.courant:has-text('En production')");
   const pushCorrection = await attendrePush((x) => x.title === "Correction demandée" && String(x.message).includes(A.id));
   verifier("Correction demandée : alerte sur le téléphone avec lien direct, sans le texte du client", pushCorrection && String(pushCorrection.click).endsWith(`/admin/commande/${A.id}`) && !/prix|Claire|@/i.test(JSON.stringify(pushCorrection)), JSON.stringify(pushCorrection));
@@ -531,6 +570,35 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   const A5 = commande(A.id);
   verifier("Version corrigée envoyée : retouche marquée traitée, e-mail « version corrigée » expédié", A5.statut === "attente_validation" && A5.retouchesDemandees.every((r) => r.traiteeLe) && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("version corrigée")));
   verifier("Tableau de bord : plus dans « Corrections demandées »", !(await idsVue("corrections")).includes(A.id) && (await idsVue("livrees")).includes(A.id));
+  {
+    // — Tours de retouches (Pack Campagne : 2 tours). Un tour = une demande consolidée ; hors périmètre : refusé, non décompté ; au-delà : refusé.
+    const API = (corps) => fetch(`${BASE}/api/commande/${A.token}/validation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+    const utilises = () => commande(A.id).retouchesDemandees.filter((x) => !x.horsPerimetre).length;
+    await page.goto(`${BASE}/commande/${A.token}`);
+    verifier("Page du client : « Tours de retouches restants : 1 sur 2 » (Pack Campagne, un tour déjà utilisé)", (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("restants : 1 sur 2"));
+    let r = await API({ action: "retouche", message: "Finalement, changez l'angle : présentez le produit pour les enfants." });
+    verifier("2e demande acceptée à l'enregistrement (la commande repasse en production)", r.status === 200 && commande(A.id).statut === "en_production");
+    await admin.goto(`${BASE}/admin/commande/${A.id}`);
+    verifier("Administration : « Tour de retouches 2 sur 2 » et formulaire « Refuser : hors périmètre »", (await admin.locator(".etape").textContent()).includes("Tour de retouches 2 sur 2") && (await admin.locator('button:has-text("Refuser : hors périmètre")').count()) === 1);
+    await admin.fill('textarea[name="explication"]', "Un changement d'angle n'est pas une retouche : il faut une nouvelle commande.");
+    await admin.click('button:has-text("Refuser : hors périmètre")');
+    await admin.waitForURL(/ok=refus&mail=oui/);
+    const A6 = commande(A.id);
+    verifier("Demande hors périmètre : refusée, retour en validation, historique tenu, tour non décompté (1 utilisé sur 2)", A6.statut === "attente_validation" && /nouvelle commande/.test(A6.retouchesDemandees.at(-1).horsPerimetre || "") && utilises() === 1 && A6.historique.some((h) => /refusée \(hors périmètre\)/.test(h.evenement)));
+    verifier("Demande hors périmètre : e-mail au client avec l'explication, « ne vous est pas décompté » et la définition du tour", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("hors périmètre") && m.texte.includes("nouvelle commande") && /ne vous est pas décompté/.test(m.texte) && /seule demande/.test(m.texte)));
+    await page.goto(`${BASE}/commande/${A.token}`);
+    verifier("Page du client : la raison du refus est affichée, il reste 1 tour sur 2", (await page.locator(".avis").allTextContents()).join(" ").includes("ne pouvait pas être traitée comme une retouche") && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("restants : 1 sur 2"));
+    r = await API({ action: "retouche", message: "Raccourcissez les sous-titres de la deuxième vidéo, merci." });
+    verifier("2e tour valable accepté (2 sur 2)", r.status === 200 && utilises() === 2);
+    await admin.goto(`${BASE}/admin/commande/${A.id}`);
+    await admin.click("button:has-text('Envoyer la version corrigée au client')");
+    await admin.waitForURL(/ok=livraison&mail=oui/);
+    r = await API({ action: "retouche", message: "Encore une petite modification, s'il vous plaît." });
+    const rj = await r.json();
+    verifier("Au-delà des 2 tours : refusé (409) avec explication, aucun tour de plus", r.status === 409 && /utilisés/.test(rj.erreur) && /nouvelle commande/.test(rj.erreur) && utilises() === 2);
+    await page.goto(`${BASE}/commande/${A.token}`);
+    verifier("Page du client : plus de bouton de retouche quand les tours sont utilisés", (await page.locator('button:has-text("Demander un tour de retouches")').count()) === 0 && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("ont été utilisés"));
+  }
   const avantRenvoi = (await mails()).length;
   await admin.goto(`${BASE}/admin/commande/${A.id}`);
   await admin.getByRole("button", { name: /Renvoyer l.e-mail de livraison/ }).click();

@@ -14,7 +14,7 @@ Où : **Administration → Images et vidéos** (`/admin/medias`). Aucune compét
 |---|---|---|
 | Ouverture de l'accueil | Couverture ordinateur, couverture téléphone (facultative) | 1920 × 1280 ; 900 × 1600 |
 | **Vidéo de démonstration** | Vidéo + image d'attente (facultative) | MP4 1080 × 1920, ≈ 15 s, ≤ 15 Mo conseillés (40 Mo max) |
-| **Exemples de vidéos du studio** | Jusqu'à 6 vidéos, titre et légende facultatifs | MP4 1080 × 1920, 15 à 30 s |
+| **Exemples de vidéos du studio** | Jusqu'à 6 vidéos, titre et légende facultatifs | MP4 1080 × 1920, 15 secondes maximum (la durée vendue) |
 | Les quatre temps d'une publicité | 4 images verticales | 720 × 1280 |
 | Visuels des formules | 1 (Essai) + 3 (Pack Test) + 6 (Pack Campagne) | 720 × 1280 |
 | Fond du bas de page, vignette de partage | 2 images | 1200 × 800 ; 1200 × 630 |

@@ -4,7 +4,7 @@
 import PDFDocument from "pdfkit";
 import { depot } from "./depot";
 import { env, modePaiement } from "./env";
-import { euros, formuleParId } from "./formules";
+import { DUREE_TEXTE, euros, formuleParId } from "./formules";
 import { store, journal, maintenant, type Commande, type Facture } from "./store";
 
 export type Vendeur = { nom: string; siret: string; adresse: string; email: string };
@@ -101,7 +101,7 @@ export function composerPdf(c: Commande, f: Facture, v: Vendeur): Promise<Buffer
     y += 32;
     const designation = `Réalisation de ${formule.videos} vidéo${formule.videos > 1 ? "s" : ""} publicitaire${formule.videos > 1 ? "s" : ""} verticale${formule.videos > 1 ? "s" : ""} — formule « ${formule.nom} »`;
     doc.font(N).fontSize(10).fillColor(noir).text(designation, cols.des + 8, y, { width: 262 });
-    doc.fontSize(9).fillColor(gris).text(`Script, présentateur généré par IA, voix, sous-titres. Produit : ${b.produit} (${b.marque}).`, cols.des + 8, doc.y + 2, { width: 262 });
+    doc.fontSize(9).fillColor(gris).text(`Script, présentateur généré par IA, voix, sous-titres. Durée : ${DUREE_TEXTE} par vidéo. Produit : ${b.produit} (${b.marque}).`, cols.des + 8, doc.y + 2, { width: 262 });
     const yFinLigne = doc.y;
     doc.font(N).fontSize(10).fillColor(noir)
       .text("1", cols.qte, y, { width: 40, align: "right" })

@@ -5,7 +5,7 @@ import { BandeauMode, Pied } from "./components/Cadre";
 import DemoVideo from "./components/DemoVideo";
 import DemoYoutube from "./components/DemoYoutube";
 import { angles, demonstration, engagements, etapes, faq, raisons, site, temps } from "./config";
-import { delaiTexte, euros, formules } from "@/lib/formules";
+import { delaiTexte, euros, formuleParId, formules } from "@/lib/formules";
 import { chargerMedias } from "@/lib/medias";
 
 // Page servie depuis le cache et renouvelée au plus toutes les 15 minutes (et tout de suite quand le vendeur change un média) :
@@ -119,7 +119,7 @@ export default async function Accueil() {
                 Voir les formules
               </a>
               <Link className="bouton bouton-fantome" href="/commander/essai">
-                Essayer pour 25 €
+                Essayer pour {euros(formuleParId("essai")!.prixCents)}
               </Link>
             </div>
           </div>
@@ -461,7 +461,7 @@ export default async function Accueil() {
               </p>
               <div className="hero-actions">
                 <Link className="bouton" href="/commander/essai">
-                  Commander un essai — 25 €
+                  Commander un essai — {euros(formuleParId("essai")!.prixCents)}
                 </Link>
                 {site.email && (
                   <a className="bouton bouton-fantome" href={`mailto:${site.email}`}>

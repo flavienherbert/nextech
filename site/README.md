@@ -74,7 +74,7 @@ npm run test:csp           # autonome (2 min) : en-têtes en développement et e
 ```bash
 npm run demo:prod          # dans un premier terminal
 npm run test:e2e           # dans un second : parcours complet, fraude, factures, sécurité
-npm run test:unitaires     # concurrence, factures, purge, e-mails
+npm run test:unitaires     # concurrence, factures, purge, e-mails, délai de 14 jours
 ```
 
 Test d'affichage, à lancer aussi contre `npm run demo` (mode développement) :
@@ -116,6 +116,7 @@ Il vérifie que toutes les sections sont réellement visibles sur ordinateur et 
 | `lib/fiche.ts` | Fiche de production d'une commande |
 | `lib/factures.ts` | Factures PDF |
 | `lib/purge.ts` | Suppression des fichiers après 90 jours |
+| `lib/delais.ts`, `lib/echeances.ts` | Délai de 14 jours (calcul en jours civils, heure de Paris) ; clôture automatique des livraisons sans réponse |
 | `lib/mail.ts` | Modèles et envoi des e-mails (Brevo, Resend) |
 | `lib/auth.ts` | Session de l'espace administrateur |
 | `app/api/` | Paiement, webhook, brief, fichiers, validation |

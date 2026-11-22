@@ -55,9 +55,9 @@ Tarifs relevés : Seedance 5 s en 720p = 500 crédits (100/s) ; 4 s en 480p = 18
 7. **Retouche** : un logo de fabricant est apparu sur l'ordinateur du plan 2 ; effacé par retouche locale, il reste une tache sombre lisible comme une ombre.
 8. Sous-titres posés sur le produit dans les plans 2 à 4.
 
-## Verdict comme client à 69 €
+## Verdict comme client à 69 € (prix du Pack Test à l'époque ; 89 € depuis le 22 novembre 2026)
 
-Pas au niveau. Visuellement proche d'une publicité vendable ; le son la disqualifie (deux voix, pas de musique). En l'état, c'est défendable comme Essai à 25 € après correction de la voix, pas comme Pack Test.
+Pas au niveau. Visuellement proche d'une publicité vendable ; le son la disqualifie (deux voix, pas de musique). En l'état, c'est défendable comme Essai (25 € à l'époque, 35 € depuis le 22 novembre 2026) après correction de la voix, pas comme Pack Test.
 
 ## Corrections nécessaires
 

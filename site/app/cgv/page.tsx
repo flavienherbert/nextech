@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { infosLegales, PageLegale } from "../components/Legal";
-import { delaiTexte, euros, formules } from "@/lib/formules";
+import { DELAI_RETOUCHE_JOURS } from "@/lib/delais";
+import { delaiTexte, DUREE_TEXTE, euros, formules, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte } from "@/lib/formules";
 
 // Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
 export const revalidate = 900;
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Conditions générales de vente — 
 export default function CGV() {
   const i = infosLegales();
   return (
-    <PageLegale titre="Conditions générales de vente" maj="13 novembre 2026">
+    <PageLegale titre="Conditions générales de vente" maj="22 novembre 2026">
       <h2>1. Objet</h2>
       <p>
         Les présentes conditions régissent la vente de prestations de réalisation de vidéos publicitaires par
@@ -24,10 +25,13 @@ export default function CGV() {
       <ul>
         {formules.map((f) => (
           <li key={f.id}>
-            <strong>{f.nom} — {euros(f.prixCents)}</strong> : {f.videos} vidéo{f.videos > 1 ? "s" : ""} de {f.duree}, {f.retouches} retouche{f.retouches > 1 ? "s" : ""} par vidéo, {delaiTexte(f).toLowerCase()}.
+            <strong>{f.nom} — {euros(f.prixCents)}</strong> : {f.videos} vidéo{f.videos > 1 ? "s" : ""} de {f.duree}, {toursTexte(f)}, {delaiTexte(f).toLowerCase()}.
           </li>
         ))}
       </ul>
+      <p>
+        <strong>Durée.</strong> Chaque vidéo dure {DUREE_TEXTE}. Une durée supérieure n&apos;est pas proposée à ce jour.
+      </p>
       <p>
         Les prix sont exprimés en euros. TVA non applicable, article 293 B du CGI. Le prix applicable est celui
         affiché au moment de la commande.
@@ -66,11 +70,24 @@ export default function CGV() {
 
       <h2>7. Modifications et retouches</h2>
       <p>
-        Chaque formule inclut le nombre de retouches indiqué à l&apos;article 2. Une retouche est un ajustement de la
-        vidéo livrée à script constant : texte à l&apos;écran, sous-titres, rythme, remplacement d&apos;un plan. Un
-        changement de produit, de script validé ou d&apos;angle constitue une nouvelle commande. Les retouches se
-        demandent depuis le lien privé, dans les 14 jours suivant la mise à disposition. Sans réponse du client
-        dans ce délai, la livraison est réputée acceptée.
+        Chaque formule inclut le nombre de <strong>tours de retouches</strong> indiqué à l&apos;article 2. {TOUR_DEFINITION} Un client
+        dont la formule inclut deux tours peut ainsi demander un premier tour, puis un second tour après réception de la version
+        corrigée ; il ne peut pas demander une retouche séparée pour chaque vidéo.
+      </p>
+      <p>{TOUR_PERIMETRE}</p>
+      <p>
+        {TOUR_HORS_PERIMETRE} Une demande qui sort du périmètre d&apos;une retouche n&apos;est pas exécutée et n&apos;est pas décomptée : le
+        studio en explique la raison au client.
+      </p>
+      <p>
+        Les retouches se demandent depuis le lien privé, dans les {DELAI_RETOUCHE_JOURS} jours suivant la mise à disposition de chaque
+        livraison (première version ou version corrigée). Le délai se compte en jours civils, heure de Paris : le jour de la mise à
+        disposition ne compte pas et le délai expire à la fin du quatorzième jour suivant, à 23 h 59. Une demande reçue après ce
+        délai est refusée.
+      </p>
+      <p>
+        Sans validation ni demande du client dans ce délai, la livraison est réputée acceptée : la commande est clôturée
+        automatiquement, la facture est émise et le client en est informé par e-mail. Les fichiers restent disponibles 90 jours.
       </p>
 
       <h2>8. Annulation, rétractation et remboursement</h2>

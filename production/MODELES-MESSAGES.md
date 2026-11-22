@@ -60,10 +60,22 @@ Les conditions de vente prévoient un recours si le retard dépasse sept jours :
 >
 > Bonjour [prénom],
 >
-> Avez-vous pu regarder vos vidéos ? Vous pouvez les valider, ou demander une retouche, depuis votre espace : [lien]. Elles restent disponibles 90 jours.
+> Avez-vous pu regarder vos vidéos ? Vous pouvez les valider, ou demander un tour de retouches (une seule demande qui regroupe toutes vos remarques), depuis votre espace : [lien]. Elles restent disponibles 90 jours.
 >
 > Si vous avez diffusé une accroche, dites-moi laquelle fonctionne le mieux : cela m'aide à affiner la suite.
 
 ## 6. Proposer le pack supérieur (après validation d'un Essai)
 
-> Content que le rendu vous plaise ! Si vous voulez trouver l'accroche qui marche vraiment, le **Pack Test** (69 €) livre trois vidéos sur trois angles différents : vous les diffusez en parallèle et vous gardez le meilleur. Je reprends votre brief tel quel : [lien de commande].
+> Content que le rendu vous plaise ! Si vous voulez trouver l'accroche qui marche vraiment, le **Pack Test** (89 €) livre trois vidéos sur trois angles différents : vous les diffusez en parallèle et vous gardez le meilleur. Je reprends votre brief tel quel : [lien de commande].
+
+## 7. Demande qui n'est pas une retouche (changement de produit, de brief, d'angle, de script validé ou de durée)
+
+(Depuis la commande : bouton « Refuser : hors périmètre » ; il envoie ce message et ne décompte pas le tour.)
+
+> **Objet : Commande [SA-…] — votre demande de retouche est hors périmètre**
+>
+> Bonjour [prénom],
+>
+> Votre demande ([changer l'angle / présenter un autre produit / passer à 25 secondes : ce format n'est pas proposé pour le moment]) n'est pas une retouche : une retouche ajuste les vidéos livrées à script constant (texte à l'écran, sous-titres, rythme, remplacement d'un plan).
+>
+> **Ce tour ne vous est pas décompté.** Si vous le souhaitez, je peux traiter cette demande dans le cadre d'une nouvelle commande (je reprends votre brief tel quel : [lien]).

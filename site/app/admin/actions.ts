@@ -6,7 +6,7 @@ import { adresseClient } from "@/lib/limiteur";
 import { essaiAutorise, estAdmin, fermerSession, motDePasseValide, noterEssai, ouvrirSession, ralentir, suiteValide } from "@/lib/auth";
 import { emettreFacture } from "@/lib/factures";
 import { alerter, notificationDeTest } from "@/lib/alertes";
-import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, envoyerScript, relancerBrief, type Suite } from "@/lib/commandes";
+import { changerStatut, cloturer, demarrerProduction, envoyerLivraison, envoyerScript, refuserRetouche, relancerBrief, type Suite } from "@/lib/commandes";
 import { courriels, enEchec, verifierSmtp } from "@/lib/mail";
 import { basculerManuel } from "@/lib/lancement";
 import { definirTexte, retirerMedia } from "@/lib/medias";
@@ -164,6 +164,13 @@ export async function lancerProduction(form: FormData) {
   if (!(await estAdmin())) redirect("/admin/connexion");
   const id = String(form.get("id") || "");
   retour(id, await demarrerProduction(id, form.get("scriptValide") === "oui"), "production");
+}
+
+// Refuse la demande de retouche du client parce qu'elle sort du périmètre d'un tour : elle n'est pas exécutée ni décomptée.
+export async function refuserHorsPerimetre(form: FormData) {
+  if (!(await estAdmin())) redirect("/admin/connexion");
+  const id = String(form.get("id") || "");
+  retour(id, await refuserRetouche(id, String(form.get("explication") || "")), "refus");
 }
 
 export async function proposerScript(form: FormData) {

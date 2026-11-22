@@ -3,6 +3,8 @@
 // L'e-mail et les mentions légales viennent des variables d'environnement.
 // Les images et les vidéos (démonstration, exemples, couverture…) se remplacent dans Administration → Médias, sans toucher au code.
 
+import { delaisTexte, DUREE_MAX_SECONDES, fourchettePrix, formules } from "@/lib/formules";
+
 export type Chapitre = { debut: number; titre: string; texte: string };
 export type Plan = { fichier: string; titre: string; texte: string };
 
@@ -52,9 +54,9 @@ export const demonstration = {
 // Pourquoi commander ici : uniquement des faits vérifiables dans les formules et les conditions.
 export const raisons = [
   { chiffre: "0", titre: "Tournage, colis, comédien", texte: "Des photos nettes de votre produit suffisent. Vous n'envoyez rien et vous ne filmez rien." },
-  { chiffre: "48 h", titre: "Pour une première vidéo", texte: "Deux jours pour l'essai, trois pour le Pack Test, cinq pour le Pack Campagne, à compter de votre brief." },
+  { chiffre: "48 h", titre: "Pour une première vidéo", texte: `Délais : ${delaisTexte()}, à compter de votre brief.` },
   { chiffre: "3", titre: "Accroches à comparer", texte: "Le Pack Test livre trois débuts différents : vous diffusez, vous gardez celui qui retient." },
-  { chiffre: "1", titre: "Prix, payé une fois", texte: "De 25 € à 129 € selon la formule. Pas d'abonnement, script et retouches inclus." },
+  { chiffre: "1", titre: "Prix, payé une fois", texte: `${fourchettePrix()} selon la formule. Pas d'abonnement, script et tours de retouches inclus.` },
 ];
 
 export const etapes = [
@@ -109,7 +111,11 @@ export const faq = [
   },
   {
     q: "Que se passe-t-il si le rendu ne me convient pas ?",
-    r: "Chaque formule inclut des retouches, à demander depuis votre espace de commande. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.",
+    r: `Chaque formule inclut des tours de retouches (${formules.map((f) => `${f.tours} pour ${f.nom}`).join(", ")}), à demander depuis votre espace de commande. Un tour est une seule demande qui regroupe toutes vos remarques sur l'ensemble des vidéos. Un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.`,
+  },
+  {
+    q: "Puis-je avoir des vidéos plus longues ?",
+    r: `Pas pour le moment : chaque vidéo dure ${DUREE_MAX_SECONDES} secondes au maximum, le format le plus efficace en publicité courte. Une durée supérieure n'est pas proposée à ce jour.`,
   },
   {
     q: "Y a-t-il un droit de rétractation ?",

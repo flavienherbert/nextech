@@ -13,6 +13,7 @@ import { depot, stockageS3Configure } from "./depot";
 import { assurerSchema, depotPostgres, executerSurBase, postgresConfigure } from "./depot-postgres";
 import { env, modePaiement } from "./env";
 import { composerPdf, vendeur } from "./factures";
+import { formuleParId } from "./formules";
 import { configurationStockage } from "./supabase-config.mjs";
 import { LIVRABLE_MAX_MO } from "./fichiers";
 import nodemailer from "nodemailer";
@@ -240,13 +241,13 @@ async function pdf(): Promise<Section> {
   const lignes = await essayer("Génération d'un PDF", async () => {
     const maintenant = new Date().toISOString();
     const c = {
-      id: "SA-DIAGNOSTIC", token: "x", formule: "essai", montantCents: 2500, devise: "eur", creeLe: maintenant, statut: "payee",
+      id: "SA-DIAGNOSTIC", token: "x", formule: "essai", montantCents: formuleParId("essai")!.prixCents, devise: "eur", creeLe: maintenant, statut: "payee",
       paiement: { etat: "paye", sessionId: "cs_diag", payeLe: maintenant, mode: "test" },
       brief: { nom: "Diagnostic", email: "diagnostic@exemple.fr", telephone: "", marque: "Marque", lien: "https://exemple.fr", produit: "Produit", style: "Direct", cible: "", arguments: "", aEviter: "", complement: "", nomFacture: "Client test", adresseFacture: "1 rue du Test, 75000 Paris", sirenClient: "", recuLe: maintenant },
       fichiersClient: [], livrables: [], retouchesDemandees: [], notes: "", historique: [],
     } as Commande;
     const t0 = Date.now();
-    const buf = await composerPdf(c, { numero: "SPECIMEN-DIAGNOSTIC", date: maintenant, cle: "x", specimen: true, montantCents: 2500 }, vendeur().v);
+    const buf = await composerPdf(c, { numero: "SPECIMEN-DIAGNOSTIC", date: maintenant, cle: "x", specimen: true, montantCents: formuleParId("essai")!.prixCents }, vendeur().v);
     return buf.subarray(0, 5).toString() === "%PDF-" && buf.length > 1500 ? ok("Génération d'un PDF de facture", `${Math.round(buf.length / 1024)} Ko en ${Date.now() - t0} ms`) : ko("Génération d'un PDF de facture", `${buf.length} octets`);
   });
   return { titre: "Factures", lignes };

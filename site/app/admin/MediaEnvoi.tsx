@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { envoyerFichier } from "../components/envoi";
+import { DUREE_MAX_SECONDES } from "@/lib/formules";
 
 type Props = { slot: string; genre: "image" | "video"; ratio: number; largeurMax?: number; maxMo: number; remplace: boolean };
 
@@ -88,7 +89,7 @@ export default function MediaEnvoi({ slot, genre, ratio, largeurMax, maxMo, remp
       if (!d) { setErreur("Ce fichier n'est pas une vidéo lisible par le navigateur (utilisez un MP4 H.264 ou un WebM)."); if (champ.current) champ.current.value = ""; return; }
       const alertes: string[] = [];
       if (Math.abs(d.w / d.h - ratio) / ratio > 0.12) alertes.push(`Cette vidéo est au format ${d.w} × ${d.h}, le format attendu est vertical 9:16 (1080 × 1920). Elle sera recadrée dans le téléphone.`);
-      if (d.duree > 60) alertes.push(`Cette vidéo dure ${Math.round(d.duree)} secondes : au-delà d'une minute, peu de visiteurs la regarderont jusqu'au bout.`);
+      if (d.duree > DUREE_MAX_SECONDES + 1) alertes.push(`Cette vidéo dure ${Math.round(d.duree)} secondes : le site vend des vidéos de ${DUREE_MAX_SECONDES} secondes maximum. Un exemple plus long montrerait un format que vous ne livrez pas.`);
       if (f.size > 15 * 1048576) alertes.push(`Ce fichier pèse ${(f.size / 1048576).toFixed(0)} Mo : la lecture sera lente sur un téléphone en 4G. 15 Mo ou moins est conseillé.`);
       if (alertes.length && !window.confirm(`${alertes.join("\n\n")}\n\nEnvoyer quand même ?`)) {
         if (champ.current) champ.current.value = "";

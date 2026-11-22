@@ -1,6 +1,6 @@
 // Fiche de production : le brief d'une commande remis en forme, prêt à copier dans Higgsfield (ou dans une conversation avec Claude).
 // Texte brut, sans donnée de facturation ni coordonnées du client : seul ce qui sert à fabriquer la vidéo.
-import { delaiTexte, euros, formuleParId } from "./formules";
+import { delaiTexte, DUREE_MAX_SECONDES, euros, formuleParId, toursTexte } from "./formules";
 import type { Commande } from "./store";
 import { echeance } from "./suivi";
 
@@ -17,9 +17,9 @@ export function ficheProduction(c: Commande): string {
   const l = (k: string, v?: string) => `${k} : ${v && v.trim() ? v.trim() : "—"}`;
   return [
     `COMMANDE ${c.id} — ${f.nom} (${euros(f.prixCents)})`,
-    `À livrer : ${f.videos} vidéo${f.videos > 1 ? "s" : ""} MP4 1080×1920 (9:16) de ${f.duree.replace("secondes", "s")} · ${delaiTexte(f)}${e ? ` · échéance ${new Date(e).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}` : ""}`,
+    `À livrer : ${f.videos} vidéo${f.videos > 1 ? "s" : ""} MP4 1080×1920 (9:16), ${DUREE_MAX_SECONDES} s maximum chacune (durée supérieure non proposée) · ${delaiTexte(f)}${e ? ` · échéance ${new Date(e).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}` : ""}`,
     `Accroches : ${ANGLES[f.id]}`,
-    `Retouches incluses : ${f.retouches} par vidéo`,
+    `Retouches incluses : ${toursTexte(f)} pour toute la commande (un tour = une seule demande consolidée sur l'ensemble des vidéos ; changement de produit, de brief, de script validé ou d'angle = nouvelle commande)`,
     "",
     "— BRIEF —",
     l("Marque", b?.marque),

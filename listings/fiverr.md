@@ -1,5 +1,9 @@
 # Fiches Fiverr — prêtes à coller
 
+**Prix propres à Fiverr (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; Fiverr prélève 20 % (chiffre issu de sources tierces, **à vérifier dans votre espace vendeur** : les pages officielles de Fiverr refusent la lecture automatique) et verse en dollars : les prix sont relevés pour garder le même bénéfice, soit **54 / 135 / 255 $**. L'acheteur paie en plus des frais de service (≈ 5,5 % et des frais de petite commande, d'après des blogs). Détail : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
+
+**Règles communes** : 15 secondes maximum par vidéo ; **une révision = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 pour Basic, 2 pour Standard et Premium) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une révision ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
+
 Fiverr est majoritairement anglophone. Publier la fiche en anglais et proposer le français comme langue de la vidéo : peu de vendeurs IA livrent un français naturel, c'est l'angle.
 
 Nom de vendeur : `studioaccroche`. Catégorie : Video & Animation → UGC Videos (ou AI UGC si la sous-catégorie existe à l'inscription).
@@ -20,11 +24,12 @@ I come from sales and marketing. I write ad hooks and turn them into vertical AI
 | | Basic | Standard | Premium |
 |---|---|---|---|
 | Name | Single hook | Hook test | Campaign |
-| Price | $29 | $79 | $149 |
-| Videos | 1 (10–15 s) | 3 (15–20 s), 3 different hooks | 6, 2 presenters, 9:16 + 1:1 |
+| Price | $54 | $135 | $255 |
+| Videos | 1 (max 15 s) | 3 (max 15 s each), 3 different hooks | 6 (max 15 s each), 2 presenters, 9:16 + 1:1 |
 | Script included | Yes | Yes | Yes |
 | Subtitles | Yes | Yes | Yes |
-| Revisions | 1 | 1 per video | 2 per video |
+| Revisions | 1 | 2 | 2 |
+| Revision rule | One revision = one consolidated request covering all videos | idem | idem |
 | Delivery | 2 days | 3 days | 5 days |
 
 **Description**
@@ -58,7 +63,7 @@ Good to know before ordering:
 
 **Title** : I will write 5 French ad hooks and a video ad script for your product
 
-Basic $15 (5 hooks + 1 script, 1 day) · Standard $35 (10 hooks + 3 scripts) · Premium $59 (Standard + 1 AI presenter video).
+Basic $15 (5 hooks + 1 script, 1 day) · Standard $35 (10 hooks + 3 scripts) · Premium $89 (Standard + 1 AI presenter video, max 15 s) — price to review against the video gig above.
 
 ## Requirements asked to the buyer
 

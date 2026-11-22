@@ -1,6 +1,8 @@
 # Étude de rentabilité — Seedance 2.0 via Higgsfield (21 novembre 2026)
 
-Rien n'a été modifié sur le site : les prix affichés restent 25 / 69 / 129 €. Aucune génération lancée, aucun abonnement souscrit, aucun crédit dépensé (les coûts viennent de devis Higgsfield en lecture seule).
+> **Mise à jour du 22 novembre 2026 : les décisions commerciales sont prises** (site direct 35 / 89 / 169 €, tours de retouches 1 / 2 / 2, 15 secondes maximum, vente aussi sur ComeUp et Fiverr). Les grilles Économique et Premium ci-dessous restent des repères ; la grille Recommandée est devenue la grille décidée. Prix des plateformes, commissions vérifiées et temps maximal pour 25 €/h : **`commercial/GRILLES-ET-PLATEFORMES.md`**.
+
+Le site a été mis à jour le 22 novembre 2026 (35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum). Les sections 4 et 5 décrivent l'**ancienne** grille (25 / 69 / 129 €, retouches 1 / 3 / 12) : elles servent de point de comparaison. Aucune génération lancée, aucun abonnement souscrit, aucun crédit dépensé (les coûts viennent de devis Higgsfield en lecture seule).
 
 Modèle reproductible : `python3 commercial/modele-rentabilite.py` (aucune dépendance ; chaque hypothèse est une valeur modifiable en tête du fichier).
 
@@ -123,7 +125,7 @@ Contenu commun : sous-titres animés, mention « Généré par IA », MP4 1080 �
 | Essai | 25 € | **35 €** | 49 € |
 | Pack Test | 69 € | **89 €** | 129 € |
 | Pack Campagne | 129 € | **169 €** | 249 € |
-| Durée par vidéo | jusqu'à 15 s | jusqu'à 15 s | jusqu'à 15 s (20 s en option) |
+| Durée par vidéo | jusqu'à 15 s | jusqu'à 15 s | jusqu'à 15 s (20 s en option : non retenu) |
 | Tours de retouches (Essai / Test / Campagne) | 1 / 2 / 2 | 1 / 2 / 2 | 2 / 3 / 3 |
 | Délais | 2 j / 3 j / 5 j | 2 j / 3 j / 5 j | 24 h / 48 h / 3 j |
 | Contenu en plus | — | Pack Campagne : export 1:1 inclus | 2 variantes d'accroche au choix, meilleure de plusieurs prises, 9:16 + 1:1 partout |
@@ -179,7 +181,7 @@ Ces chiffres supposent la **vente directe** sur le site (Stripe). Sur ComeUp, la
 | Point | Constat (mesuré) | Correction proposée |
 |---|---|---|
 | Retouches | Le site accepte **1 / 3 / 12** retouches (Essai / Test / Campagne) : un tour = une demande, quel que soit le nombre de vidéos concernées. Exposition maximale du Pack Campagne : 12 tours × 6 vidéos × 20 min = **24 h** | Compter en **tours** : 1 / 2 / 2, et vendre un tour supplémentaire (10 à 15 €) |
-| Durée | « 15 à 20 secondes » promis pour Test et Campagne ; un clip Seedance 2.0 s'arrête à 15 s | « Jusqu'à 15 secondes » ; 20 s en option (second clip de 5 s : +12,5 crédits par essai, raccord et voix à vérifier) |
+| Durée | « 15 à 20 secondes » promis pour Test et Campagne ; un clip Seedance 2.0 s'arrête à 15 s | « Jusqu'à 15 secondes » ; 20 s en option (second clip de 5 s : +12,5 crédits par essai, raccord et voix à vérifier) — **option non retenue le 22 novembre 2026 : 15 secondes maximum, aucune vidéo plus longue proposée pour le moment** |
 | Prix écrits en dur | 3 occurrences hors `lib/formules.ts` (`app/page.tsx` ×2, `app/config.ts` ×1) ; les conditions de vente se mettent à jour toutes seules | À modifier en même temps que les prix |
 | Formats | « Formats 9:16 et 1:1 » dans le Pack Campagne | Le 1:1 demande un recadrage ou un export dédié (temps) : le garder inclus seulement au tarif Recommandé ou Premium |
 

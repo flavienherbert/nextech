@@ -17,6 +17,8 @@ const REGLES: { motif: RegExp; statuts: Statut[]; nom: string }[] = [
   { motif: /demande de retouche est bien reçue/i, statuts: ["en_production"], nom: "accusé de réception de la retouche" },
   { motif: /production lancée/i, statuts: ["en_production"], nom: "production lancée" },
   { motif: /votre script à valider/i, statuts: ["payee"], nom: "script à valider" },
+  { motif: /demande de retouche est hors périmètre/i, statuts: ["attente_validation"], nom: "demande hors périmètre" },
+  { motif: /livraison réputée acceptée/i, statuts: ["livree"], nom: "livraison réputée acceptée" },
   { motif: /(version corrigée )?à valider/i, statuts: ["attente_validation"], nom: "livraison à valider" },
   { motif: /vos fichiers sont disponibles/i, statuts: ["livree"], nom: "livraison finale" },
   { motif: /Nouvelle commande payée/i, statuts: ["attente_infos", "payee", "en_production", "attente_validation"], nom: "notification de nouvelle commande" },

@@ -9,12 +9,12 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 ## A. Ce qui est terminé
 
 **Le site**
-- Accueil, formules à 25 / 69 / 129 €, FAQ, pages légales, affichage ordinateur et mobile, bandeau de préproduction tant que les paiements réels sont fermés.
+- Accueil, formules à 35 / 89 / 169 € (décidées le 22 novembre 2026 ; prix ComeUp et Fiverr : `commercial/GRILLES-ET-PLATEFORMES.md`), FAQ, pages légales, affichage ordinateur et mobile, bandeau de préproduction tant que les paiements réels sont fermés.
 - Accueil et pages légales servies depuis un cache (renouvelé toutes les 15 minutes) : plus rapide pour les visiteurs, presque aucun calcul facturé par Netlify.
 - **Images et vidéos remplaçables sans toucher au code** : Administration → *Images et vidéos*. 30 emplacements (couverture, vidéo de démonstration, six exemples, quatre temps, visuels des formules, fond, vignette de partage). Chaque envoi est contrôlé (type réel, signature, poids), les images lourdes sont réduites automatiquement, un retour à l'image d'origine est possible. Guide : `site/MEDIAS.md`.
 
 **Le parcours client, de la commande à la clôture**
-- Commande → paiement Stripe → confirmation signée par le webhook → brief (site internet facultatif) et photos → **script envoyé au client pour accord** (promis par les conditions de vente, désormais outillé : bouton dans la commande, accord exigé avant de démarrer) → production → livraison par liens privés → correction ou validation → facture PDF numérotée → clôture.
+- Commande → paiement Stripe → confirmation signée par le webhook → brief (site internet facultatif) et photos → **script envoyé au client pour accord** (promis par les conditions de vente, désormais outillé : bouton dans la commande, accord exigé avant de démarrer) → production → livraison par liens privés → correction ou validation (14 jours pour répondre, puis clôture automatique et refus des retouches tardives) → facture PDF numérotée → clôture.
 - Onze e-mails automatiques au client et à vous, plus le script (`site/EMAILS.md`). Un e-mail qui ne part pas est conservé, signalé sur le téléphone et renvoyé d'un clic, sans doublon.
 
 **L'administration** (`/admin`)
@@ -37,7 +37,7 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 
 ## C. Les seules actions qui restent pour vous, dans l'ordre
 
-0. **Décider des tarifs et des retouches** à partir de `commercial/RENTABILITE.md` (recommandation : 35 / 89 / 169 €, retouches en tours 1 / 2 / 2, durée jusqu'à 15 s). Rien n'est modifié sur le site tant que vous n'avez pas tranché. L'audit de la vente et de la livraison est dans `site/AUDIT-VENTE-LIVRAISON.md`.
+0. **Tarifs, tours de retouches et durée : décidés le 22 novembre 2026** (35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum par vidéo). Le correctif est prêt et testé ; il n'est appliqué au site qu'après votre validation (`RAPPORT-MODIFICATIONS.md`). L'audit de la vente et de la livraison est dans `site/AUDIT-VENTE-LIVRAISON.md`.
 1. **Décider pour Netlify** (attendre la remise à zéro, acheter des crédits, ou autre) : c'est ce qui permet de publier tout le reste. Une seule publication suffira.
 2. **Remplacer les trois secrets exposés** (mot de passe administrateur, `SESSION_SECRET`, `TACHES_SECRET`) : `site/ROTATION-SECRETS.md`, une dizaine de minutes. Fait avant l'ouverture, pas après.
 3. **Recréer le mot de passe d'application Gmail** et le saisir dans *Administration → Réglages e-mail* (après la publication).

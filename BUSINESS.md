@@ -14,11 +14,13 @@ Des publicités vidéo verticales avec présentateur IA, écrites par un markete
 
 | Formule | Contenu | Prix |
 |---|---|---|
-| Essai | 1 vidéo de 10–15 s, 1 accroche, script inclus, sous-titres, format 9:16, 1 retouche | 25 € |
-| Pack Test | 3 vidéos de 15–20 s : 3 accroches différentes sur le même argumentaire | 69 € |
-| Pack Campagne | 6 vidéos (3 accroches × 2 présentateurs), formats 9:16 et 1:1 | 129 € |
+| Essai | 1 vidéo de 15 s maximum, 1 accroche, script inclus, sous-titres, format 9:16, 1 tour de retouches | 35 € |
+| Pack Test | 3 vidéos de 15 s maximum : 3 accroches différentes sur le même argumentaire, 2 tours de retouches | 89 € |
+| Pack Campagne | 6 vidéos de 15 s maximum (3 accroches × 2 présentateurs), formats 9:16 et 1:1, 2 tours de retouches | 169 € |
 
-Options : livraison 24 h (+15 €), script supplémentaire (+10 €), version anglaise (+15 €).
+*Prix du site direct, décidés le 22 novembre 2026. Prix ComeUp et Fiverr (commissions absorbées) : `commercial/GRILLES-ET-PLATEFORMES.md`. Les tableaux de résultats ci-dessous datent de la première étude, sur les anciens prix : voir `commercial/RENTABILITE.md` et `GRILLES-ET-PLATEFORMES.md`.*
+
+Options : livraison 24 h (+15 €), script supplémentaire (+10 €), version anglaise (+15 €) (les vidéos de plus de 15 s et les tours de retouches supplémentaires ne sont pas proposés pour le moment).
 
 Offre de lancement, 10 premières commandes : une deuxième accroche offerte sur l'Essai.
 
@@ -44,6 +46,8 @@ Ce refus coûte des commandes. Il protège le compte vendeur et le fondateur.
 3. Site vitrine + liens de paiement Stripe (commande directe, frais ~1,5 % + 0,25 €).
 
 ## Économie par commande (estimations)
+
+> **Ancienne grille.** Les tableaux de cette section et de la suivante datent d'avant les décisions du 22 novembre 2026 (25 / 69 / 129 €, retouches 1 / 3 / 12). Prix actuels : 35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum. Chiffres à jour : `commercial/RENTABILITE.md` et `commercial/GRILLES-ET-PLATEFORMES.md`.
 
 Hypothèses : commission plateforme 20 % ; coût de génération 3–8 € par vidéo livrée, essais ratés inclus ; cotisations micro-entreprise ≈ 23 % du chiffre d'affaires (taux exact à confirmer selon la catégorie d'activité déclarée) ; franchise de TVA.
 
@@ -86,7 +90,7 @@ Ces chiffres supposent le format testé : accroche parlée de 4 s, puis plans pr
 
 | Palier | Ventes | Chiffre d'affaires (mix estimé) | Bénéfice net estimé |
 |---|---|---|---|
-| 1 | 1 vente | 25–69 € | 6–32 € |
+| 1 | 1 vente | 35–89 € | voir `commercial/GRILLES-ET-PLATEFORMES.md` |
 | 2 | 3 ventes | ~120 € | ~40 € |
 | 3 | 10 ventes | ~500 € | ~180–220 € |
 | 4 | 20 ventes/mois | ~1 100 €/mois | ~450–550 €/mois |

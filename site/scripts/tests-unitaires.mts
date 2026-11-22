@@ -27,7 +27,7 @@ import { cleDerivee } from "../lib/cles";
 let ko = 0;
 const verifier = (nom: string, ok: unknown, detail = "") => { if (!ok) ko++; console.log(`${ok ? "✓" : "✗"} ${nom}${ok ? "" : "  → " + detail}`); };
 const commandeTest = (surcharge: Partial<Commande> = {}): Commande => ({
-  id: nouveauNumero(), token: nouveauToken(), formule: "essai", montantCents: 2500, devise: "eur", creeLe: maintenant(), statut: "payee",
+  id: nouveauNumero(), token: nouveauToken(), formule: "essai", montantCents: 3500, devise: "eur", creeLe: maintenant(), statut: "payee",
   paiement: { etat: "paye", sessionId: "cs_x", payeLe: maintenant(), mode: "simulation" },
   brief: { nom: "A B", email: "a@exemple.fr", telephone: "", marque: "M", lien: "https://exemple.fr", produit: "P", style: "Direct", cible: "", arguments: "", aEviter: "", complement: "", nomFacture: "A B", adresseFacture: "1 rue X, 75000 Paris", sirenClient: "", recuLe: maintenant() },
   fichiersClient: [], livrables: [], retouchesDemandees: [], notes: "", historique: [], ...surcharge,
@@ -233,6 +233,246 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   if (avant.taches !== undefined) process.env.TACHES_SECRET = avant.taches;
 }
 
+// 7 sexies. Cohérence du catalogue (prix, durée, tours de retouches) et tours de retouches
+{
+  const { formules, DUREE_MAX_SECONDES, DUREE_TEXTE, formuleParId } = await import("../lib/formules");
+  const { toursMax, toursRestants, toursUtilises } = await import("../lib/tours");
+  const { POST } = await import("../app/api/commande/[token]/validation/route");
+  const { refuserRetouche } = await import("../lib/commandes");
+  const fs = await import("node:fs"); const path = await import("node:path");
+  verifier("Catalogue : prix 35 / 89 / 169 € (3 500 / 8 900 / 16 900 centimes)", formules.map((f) => f.prixCents).join() === "3500,8900,16900", formules.map((f) => f.prixCents).join());
+  verifier("Catalogue : 1 / 2 / 2 tours de retouches", formules.map((f) => f.tours).join() === "1,2,2");
+  verifier("Catalogue : 15 secondes maximum pour chaque formule, aucun point ne promet davantage", DUREE_MAX_SECONDES === 15 && formules.every((f) => f.duree === DUREE_TEXTE && f.points[0].includes("15 secondes maximum") && f.points.every((x) => !/20 s|20 secondes|15 à|10 à/.test(x))));
+  verifier("Catalogue : les points affichés reprennent le nombre de vidéos et de tours du catalogue", formules.every((f) => f.points[0].startsWith(`${f.videos} vidéo`) && f.points.at(-1) === `${f.tours} tour${f.tours > 1 ? "s" : ""} de retouches`));
+  // Aucun prix, aucune durée ni nombre de retouches écrit à la main hors du catalogue (app/ et lib/)
+  const sources: string[] = [];
+  const parcourir = (d: string) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const c = path.join(d, e.name); if (e.isDirectory()) parcourir(c); else if (/\.(ts|tsx)$/.test(e.name)) sources.push(c); } };
+  parcourir("app"); parcourir("lib");
+  const interdit = /(?<![\d.,–-])(25|35|69|89|129|169) ?€|(prixCents|montantCents|unit_amount|amount_total) ?[:=] ?\d{4,5}|15 à 20|10 à 15|20 secondes|16–20|retouches? par vidéo/;
+  const fautifs = sources.filter((f) => !/lib[\\/]formules\.ts$/.test(f)).filter((f) => interdit.test(fs.readFileSync(f, "utf8")));
+  verifier("Aucun prix, aucune durée et aucun nombre de retouches écrits à la main hors de lib/formules.ts", fautifs.length === 0, fautifs.join(", "));
+
+  // Tours de retouches par formule : le nombre de demandes acceptées est exactement celui de la formule (et non × le nombre de vidéos)
+  const envoyer = (token: string, corps: object) => POST(new Request("http://x/api", { method: "POST", body: JSON.stringify(corps) }), { params: Promise.resolve({ token }) });
+  const cree = async (formule: "essai" | "test" | "campagne") => {
+    const c = commandeTest({ formule, montantCents: formuleParId(formule)!.prixCents, statut: "en_production", livrables: [{ id: "f".repeat(32), nom: "v.mp4", taille: 10, type: "video/mp4", ajouteLe: maintenant() }] });
+    await store.creerCommande(c); await envoyerLivraison(c.id); return c;
+  };
+  for (const [id, max] of [["essai", 1], ["test", 2], ["campagne", 2]] as const) {
+    const c = await cree(id); let acceptees = 0, dernier = 0;
+    for (let i = 0; i < 6; i++) {
+      const r = await envoyer(c.token, { action: "retouche", message: "Merci de changer le texte du début s'il vous plaît." });
+      if (r.status === 200) { acceptees++; await envoyerLivraison(c.id); } else { dernier = r.status; break; }
+    }
+    const apres = (await store.commande(c.id))!;
+    verifier(`Tours de retouches « ${id} » : ${max} accepté${max > 1 ? "s" : ""}, puis refus (409), jamais « × nombre de vidéos »`, acceptees === max && dernier === 409 && toursMax(apres) === max && toursUtilises(apres) === max && toursRestants(apres) === 0, `${acceptees} acceptées, refus ${dernier}`);
+  }
+  // Hors périmètre : refusé par l'administrateur, non décompté, e-mail au client, retour en validation
+  {
+    const c = await cree("campagne");
+    await envoyer(c.token, { action: "retouche", message: "Changez l'angle : présentez le produit pour les enfants." });
+    const court = await refuserRetouche(c.id, "non");
+    verifier("Hors périmètre : une explication trop courte est refusée, rien ne change", Boolean(court.erreur) && (await store.commande(c.id))!.statut === "en_production");
+    const r = await refuserRetouche(c.id, "Un changement d'angle n'est pas une retouche : il faut une nouvelle commande.");
+    const apres = (await store.commande(c.id))!;
+    verifier("Hors périmètre : refusée, non décomptée (2 tours restants), retour en validation, historique tenu", !r.erreur && apres.statut === "attente_validation" && toursUtilises(apres) === 0 && toursRestants(apres) === 2 && /nouvelle commande/.test(apres.retouchesDemandees[0].horsPerimetre || "") && apres.historique.some((h) => /refusée \(hors périmètre\)/.test(h.evenement)), JSON.stringify(r.erreur));
+    verifier("Hors périmètre : e-mail au client (archivé) avec l'explication et la définition d'un tour", (await store.courriels(c.id)).some((m) => m.objet.includes("hors périmètre") && m.texte.includes("nouvelle commande") && /ne vous est pas décompté/.test(m.texte) && /seule demande/.test(m.texte)));
+    verifier("Hors périmètre : impossible s'il n'y a aucune demande en attente", Boolean((await refuserRetouche(c.id, "Explication suffisamment longue.")).erreur));
+    const encore = await envoyer(c.token, { action: "retouche", message: "Raccourcissez les sous-titres de la deuxième vidéo." });
+    verifier("Après un refus, les 2 tours restent disponibles", encore.status === 200 && toursUtilises((await store.commande(c.id))!) === 1);
+  }
+  // Facture : montant exactement égal au prix du catalogue pour chaque formule, durée maximale indiquée
+  {
+    const { composerPdf } = await import("../lib/factures");
+    void composerPdf;
+    const os = await import("node:os"); const { execFileSync } = await import("node:child_process");
+    let pdftotext = true; try { execFileSync("pdftotext", ["-v"], { stdio: "ignore" }); } catch { pdftotext = false; }
+    // Facture réelle (sans filigrane « spécimen ») : mode réel simulé le temps du test, puis restauré
+    const sauve = { cle: process.env.STRIPE_SECRET_KEY, hote: process.env.STRIPE_API_HOST, ventes: process.env.VENTES_REELLES };
+    process.env.STRIPE_SECRET_KEY = "sk_live_cle_fictive_pour_le_test"; delete process.env.STRIPE_API_HOST; process.env.VENTES_REELLES = "oui";
+    for (const f of formules) {
+      const c = commandeTest({ formule: f.id, montantCents: f.prixCents, statut: "livree" }); await store.creerCommande(c);
+      const r = await emettreFacture(c.id);
+      const facture = (await store.commande(c.id))!.facture;
+      let texte = "";
+      if (pdftotext && facture) { const l = await depot().lire(facture.cle); const t = path.join(os.tmpdir(), `sa-${c.id}.pdf`); fs.writeFileSync(t, l!.corps); texte = execFileSync("pdftotext", ["-layout", t, "-"]).toString().replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " "); fs.rmSync(t); }
+      const prix = `${f.prixCents / 100} €`;
+      verifier(`Facture « ${f.nom} » : montant ${prix} identique au catalogue${pdftotext ? ", présent dans le PDF avec la durée maximale" : " (texte du PDF non vérifié : pdftotext absent)"}`, !r.obstacles && facture?.montantCents === f.prixCents && (!pdftotext || (texte.includes(`${prix}`) && texte.includes("15 secondes maximum") && texte.includes(`${f.videos} vidéo`) && !texte.includes("SPÉCIMEN"))) && facture?.specimen === false, JSON.stringify([r.obstacles, facture?.montantCents, facture?.specimen]));
+    }
+    for (const [k, v] of [["STRIPE_SECRET_KEY", sauve.cle], ["STRIPE_API_HOST", sauve.hote], ["VENTES_REELLES", sauve.ventes]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+}
+
+// 7 septies. Délai de 14 jours : calcul (jours civils, heure de Paris), refus automatique, clôture automatique, e-mail tracé
+{
+  const { DELAI_RETOUCHE_JOURS, echeanceRetouche, delaiExpire, dateEcheanceTexte, miseADisposition, debutDeJourParis } = await import("../lib/delais");
+  const { cloturerExpirees, cloturerExpireesSiNecessaire } = await import("../lib/echeances");
+  const { cloturerParExpiration } = await import("../lib/commandes");
+  const { toursUtilises, toursRestants } = await import("../lib/tours");
+  const { POST } = await import("../app/api/commande/[token]/validation/route");
+  const MS = Date.UTC;
+  const envoyer = (token: string, corps: object) => POST(new Request("http://x/api", { method: "POST", body: JSON.stringify(corps) }), { params: Promise.resolve({ token }) });
+
+  // — Calcul : le jour de la mise à disposition ne compte pas ; échéance = fin du 14e jour suivant, heure de Paris
+  verifier("Délai : 14 jours (constante des conditions de vente)", DELAI_RETOUCHE_JOURS === 14);
+  const cas: [string, string, number][] = [
+    ["Hiver : livraison le 3 novembre à 10 h (Paris)", "2026-11-03T09:00:00Z", MS(2026, 10, 17, 22, 59, 59, 999)],
+    ["Hiver : livraison à 23 h 30 UTC = 0 h 30 le lendemain à Paris → un jour de plus", "2026-11-03T23:30:00Z", MS(2026, 10, 18, 22, 59, 59, 999)],
+    ["Hiver : livraison à 22 h 59 UTC = 23 h 59 à Paris, même jour civil", "2026-11-03T22:59:00Z", MS(2026, 10, 17, 22, 59, 59, 999)],
+    ["Été : livraison le 1er juillet à 12 h (Paris)", "2026-07-01T10:00:00Z", MS(2026, 6, 15, 21, 59, 59, 999)],
+    ["Été : livraison à 22 h 30 UTC = 0 h 30 le lendemain à Paris", "2026-06-30T22:30:00Z", MS(2026, 6, 15, 21, 59, 59, 999)],
+    ["Passage à l'heure d'hiver (25 octobre 2026) pendant le délai", "2026-10-20T10:00:00Z", MS(2026, 10, 3, 22, 59, 59, 999)],
+    ["Passage à l'heure d'été (28 mars 2027) pendant le délai", "2027-03-20T10:00:00Z", MS(2027, 3, 3, 21, 59, 59, 999)],
+    ["Livraison le jour même du changement d'heure d'hiver", "2026-10-25T12:00:00Z", MS(2026, 10, 8, 22, 59, 59, 999)],
+    ["Livraison le jour même du changement d'heure d'été", "2027-03-28T12:00:00Z", MS(2027, 3, 11, 21, 59, 59, 999)],
+    ["Fin d'année : livraison le 25 décembre", "2026-12-25T10:00:00Z", MS(2027, 0, 8, 22, 59, 59, 999)],
+    ["Fin de février : livraison le 20 février 2027", "2027-02-20T10:00:00Z", MS(2027, 2, 6, 22, 59, 59, 999)],
+  ];
+  for (const [nomCas, livraison, attendu] of cas) verifier(`Échéance — ${nomCas}`, echeanceRetouche(livraison) === attendu, `${new Date(echeanceRetouche(livraison)).toISOString()} au lieu de ${new Date(attendu).toISOString()}`);
+  {
+    const l = "2026-11-03T09:00:00Z"; const e = echeanceRetouche(l);
+    verifier("Échéance : encore recevable à la dernière milliseconde, expirée à la suivante", !delaiExpire(l, e) && delaiExpire(l, e + 1) && !delaiExpire(l, e - 3_600_000) && !delaiExpire(l, Date.parse(l)));
+    verifier("Échéance : affichée en français, jour de l'échéance en heure de Paris", dateEcheanceTexte(l) === "17 novembre 2026" && dateEcheanceTexte("2026-11-03T23:30:00Z") === "18 novembre 2026", dateEcheanceTexte(l));
+    verifier("Échéance : minuit de Paris (début de jour) exact en hiver (23 h UTC la veille) et en été (22 h UTC la veille)", debutDeJourParis(2026, 11, 18) === MS(2026, 10, 17, 23) && debutDeJourParis(2026, 7, 16) === MS(2026, 6, 15, 22) && debutDeJourParis(2026, 10, 25) === MS(2026, 9, 24, 22) && debutDeJourParis(2027, 3, 28) === MS(2027, 2, 27, 23));
+  }
+  {
+    // Le résultat ne dépend pas du fuseau du serveur (Netlify tourne en UTC ; un poste de travail peut être ailleurs)
+    const avantTZ = process.env.TZ; const attendus = cas.map(([, l]) => echeanceRetouche(l)); let different = 0, fuseauAppliques = 0;
+    for (const tz of ["UTC", "America/Los_Angeles", "Asia/Tokyo", "Pacific/Auckland", "Europe/Paris"]) {
+      process.env.TZ = tz;
+      if (tz === "America/Los_Angeles" && new Date("2026-01-01T12:00:00Z").getHours() === 4) fuseauAppliques++;
+      if (tz === "Asia/Tokyo" && new Date("2026-01-01T12:00:00Z").getHours() === 21) fuseauAppliques++;
+      cas.forEach(([, l], i) => { if (echeanceRetouche(l) !== attendus[i]) different++; });
+    }
+    if (avantTZ === undefined) delete process.env.TZ; else process.env.TZ = avantTZ;
+    verifier("Échéance : identique quel que soit le fuseau du serveur (UTC, Los Angeles, Tokyo, Auckland, Paris), changements d'heure compris", different === 0 && fuseauAppliques === 2, `${different} écarts, ${fuseauAppliques}/2 fuseaux réellement appliqués`);
+  }
+
+  // — Jours de Paris relatifs à aujourd'hui (les tests suivants ne dépendent pas de la date d'exécution)
+  const parisJour = (decalage: number) => { const d = new Date(Date.now()); const p = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(d).split("-").map(Number); const n = new Date(Date.UTC(p[0], p[1] - 1, p[2] - decalage)); return debutDeJourParis(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate()) + 12 * 3_600_000; }; // midi, heure de Paris, il y a `decalage` jours civils
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const aValider = async (livraisonMs: number, surcharge: Partial<Commande> = {}) => {
+    const c = commandeTest({ statut: "attente_validation", derniereLivraisonLe: iso(livraisonMs), livrables: [{ id: "e".repeat(32), nom: "v.mp4", taille: 10, type: "video/mp4", ajouteLe: iso(livraisonMs) }], historique: [{ date: iso(livraisonMs), evenement: "Livraison envoyée au client." }], ...surcharge });
+    await store.creerCommande(c); return c;
+  };
+  const objetsReputes = async (id: string) => (await store.courriels(id)).filter((m) => /livraison réputée acceptée/.test(m.objet));
+
+  // — Dans le délai : rien n'est refusé ni clôturé (13 et 14 jours : le 14e jour compte encore)
+  {
+    const treize = await aValider(parisJour(13)), quatorze = await aValider(parisJour(14));
+    verifier("Livraison il y a 14 jours civils : le client peut encore agir jusqu'à minuit (heure de Paris)", !delaiExpire(miseADisposition(quatorze)) && !delaiExpire(miseADisposition(treize)));
+    const bilan = await cloturerExpirees();
+    verifier("Clôture automatique : une livraison de 13 ou 14 jours n'est pas clôturée", !bilan.cloturees.includes(treize.id) && !bilan.cloturees.includes(quatorze.id) && (await store.commande(quatorze.id))!.statut === "attente_validation");
+    const refus = await cloturerParExpiration(quatorze.id);
+    verifier("Clôture directe dans le délai : refusée, la commande reste en attente de validation", Boolean(refus.erreur) && (await store.commande(quatorze.id))!.statut === "attente_validation");
+    const r = await envoyer(quatorze.token, { action: "retouche", message: "Merci de changer le texte du début s'il vous plaît." });
+    verifier("Retouche demandée le 14e jour : acceptée, comptée, commande renvoyée en production", r.status === 200 && (await store.commande(quatorze.id))!.statut === "en_production" && toursUtilises((await store.commande(quatorze.id))!) === 1);
+    const v = await envoyer(treize.token, { action: "valider" });
+    verifier("Validation dans le délai : acceptée, commande livrée, non marquée « clôture automatique »", v.status === 200 && (await store.commande(treize.id))!.statut === "livree" && !(await store.commande(treize.id))!.clotureAutoLe);
+  }
+
+  // — Après le délai : refus automatique d'une retouche, clôture, e-mail, aucun tour décompté
+  {
+    const a = await aValider(parisJour(15), { formule: "test", montantCents: 8900 });
+    verifier("Livraison il y a 15 jours civils : délai expiré", delaiExpire(miseADisposition(a)));
+    const r = await envoyer(a.token, { action: "retouche", message: "Pouvez-vous refaire la vidéo avec une autre musique ?" });
+    const corps = (await r.json()) as { erreur?: string };
+    const apres = (await store.commande(a.id))!;
+    verifier("Retouche après 14 jours : refusée automatiquement (409), motif et date d'échéance donnés au client", r.status === 409 && /14 jours/.test(corps.erreur || "") && /nouvelle commande/.test(corps.erreur || "") && (corps.erreur || "").includes(dateEcheanceTexte(miseADisposition(a))), corps.erreur);
+    verifier("Retouche tardive : commande clôturée automatiquement (livrée), date de clôture et de livraison renseignées", apres.statut === "livree" && Boolean(apres.clotureAutoLe) && Boolean(apres.livreeLe) && !apres.valideeLe);
+    verifier("Retouche tardive : la demande est tracée (message conservé, marquée tardive) et n'est PAS décomptée (2 tours intacts)", apres.retouchesDemandees.length === 1 && apres.retouchesDemandees[0].tardive === true && apres.retouchesDemandees[0].message.includes("autre musique") && toursUtilises(apres) === 0 && toursRestants(apres) === 2);
+    verifier("Retouche tardive : historique (clôture automatique et demande refusée)", apres.historique.some((h) => /Livraison réputée acceptée/.test(h.evenement)) && apres.historique.some((h) => /refusée, non décomptée/.test(h.evenement)));
+    const mails = await objetsReputes(a.id);
+    verifier("Retouche tardive : un e-mail au client (archivé) explique la clôture et la demande refusée", mails.length === 1 && mails[0].a === "a@exemple.fr" && /parvenue après l'échéance/.test(mails[0].texte) && /14 jours/.test(mails[0].texte) && /nouvelle commande/.test(mails[0].texte), mails[0]?.texte.slice(0, 200));
+    verifier("Retouche tardive : e-mail archivé (aucun service d'envoi configuré dans ce test), pas en échec", mails[0] ? !enEchec(mails[0]) : false);
+    // Nouvelle tentative après la clôture : refusée, tracée, aucun second e-mail
+    const r2 = await envoyer(a.token, { action: "retouche", message: "Je voudrais quand même une autre version." });
+    const apres2 = (await store.commande(a.id))!;
+    verifier("Seconde tentative après la clôture : refusée (409), tracée dans l'historique, toujours aucun tour décompté", r2.status === 409 && apres2.statut === "livree" && apres2.retouchesDemandees.length === 2 && toursUtilises(apres2) === 0 && apres2.historique.some((h) => /après la clôture/.test(h.evenement)));
+    verifier("Seconde tentative : aucun deuxième e-mail de clôture", (await objetsReputes(a.id)).length === 1);
+    const v = await envoyer(a.token, { action: "valider" });
+    verifier("Validation après la clôture automatique : « aucune livraison à valider » (409), rien ne change", v.status === 409 && (await store.commande(a.id))!.statut === "livree");
+    const idem = await cloturerParExpiration(a.id);
+    verifier("Clôture rejouée : sans effet (pas de doublon)", Boolean(idem.erreur) && (await objetsReputes(a.id)).length === 1);
+  }
+
+  // — Clôture automatique par la tâche quotidienne : sans demande du client, idempotente, concurrente sans doublon
+  {
+    const b = await aValider(parisJour(20)), jeune = await aValider(parisJour(5)), enProd = await aValider(parisJour(40), { statut: "en_production" });
+    const bilan = await cloturerExpirees();
+    const apres = (await store.commande(b.id))!;
+    verifier("Tâche quotidienne : la livraison de 20 jours sans réponse est clôturée, pas la livraison récente ni la commande en production", bilan.cloturees.includes(b.id) && !bilan.cloturees.includes(jeune.id) && !bilan.cloturees.includes(enProd.id) && apres.statut === "livree" && (await store.commande(jeune.id))!.statut === "attente_validation" && (await store.commande(enProd.id))!.statut === "en_production");
+    verifier("Clôture automatique : journal explicite (délai, échéance), aucune retouche enregistrée, e-mail « livraison réputée acceptée » sans mention de refus", apres.historique.some((h) => /aucun retour du client dans le délai de 14 jours \(échéance : [^)]+ 20\d\d\)/.test(h.evenement)) && apres.retouchesDemandees.length === 0 && (await objetsReputes(b.id)).length === 1 && !/parvenue après l'échéance/.test((await objetsReputes(b.id))[0].texte));
+    verifier("Clôture automatique : l'e-mail indique l'échéance et renvoie vers la fiche de la commande", (await objetsReputes(b.id))[0].texte.includes(dateEcheanceTexte(miseADisposition(b))) && (await objetsReputes(b.id))[0].texte.includes(`/commande/${b.token}`));
+    const encore = await cloturerExpirees();
+    verifier("Tâche quotidienne rejouée : aucun doublon (un seul e-mail, pas de nouvelle clôture)", !encore.cloturees.includes(b.id) && (await objetsReputes(b.id)).length === 1);
+    const c = await aValider(parisJour(30));
+    await Promise.all([cloturerParExpiration(c.id), cloturerParExpiration(c.id), cloturerExpirees(), envoyer(c.token, { action: "retouche", message: "Une retouche envoyée trop tard, tant pis." })]);
+    const fin = (await store.commande(c.id))!;
+    verifier("Quatre exécutions simultanées (clôture ×2, tâche quotidienne, retouche tardive) : une seule clôture, un seul e-mail, aucun tour décompté", fin.statut === "livree" && (await objetsReputes(c.id)).length === 1 && toursUtilises(fin) === 0 && fin.historique.filter((h) => /Livraison réputée acceptée/.test(h.evenement)).length === 1, `${(await objetsReputes(c.id)).length} e-mail(s)`);
+    // Horloge simulée : l'échéance exacte, à la milliseconde
+    const d = await aValider(parisJour(20)); const ech = echeanceRetouche(miseADisposition(d));
+    const avant = await cloturerExpirees(ech); const apresMs = await cloturerExpirees(ech + 1);
+    verifier("Horloge simulée : à l'échéance exacte rien n'est clôturé ; une milliseconde plus tard, la commande l'est", !avant.cloturees.includes(d.id) && apresMs.cloturees.includes(d.id) && (await store.commande(d.id))!.statut === "livree");
+  }
+
+  // — Le délai court de chaque livraison réelle ; le renvoi de l'e-mail ne le relance pas ; version corrigée : il repart
+  {
+    const c = commandeTest({ statut: "en_production", livrables: [{ id: "d".repeat(32), nom: "v.mp4", taille: 10, type: "video/mp4", ajouteLe: maintenant() }] }); await store.creerCommande(c);
+    await envoyerLivraison(c.id);
+    const l1 = (await store.commande(c.id))!;
+    verifier("Livraison réelle : la date de mise à disposition est enregistrée", Boolean(l1.derniereLivraisonLe) && Math.abs(Date.now() - Date.parse(l1.derniereLivraisonLe!)) < 120_000);
+    await store.modifier(c.id, (x) => { x.derniereLivraisonLe = iso(parisJour(10)); });
+    await envoyerLivraison(c.id); // renvoi de l'e-mail seul
+    const l2 = (await store.commande(c.id))!;
+    verifier("Renvoi de l'e-mail de livraison : le délai n'est pas relancé", l2.derniereLivraisonLe === iso(parisJour(10)) && l2.historique.some((h) => /E-mail de livraison renvoyé/.test(h.evenement)));
+    const r = await envoyer(c.token, { action: "retouche", message: "Merci de changer le texte du début s'il vous plaît." });
+    const prod = (await store.commande(c.id))!;
+    const bilan = await cloturerExpirees();
+    verifier("Commande en production (retouche acceptée) : jamais clôturée par l'échéance, même si la première livraison est ancienne", r.status === 200 && prod.statut === "en_production" && !bilan.cloturees.includes(c.id));
+    await envoyerLivraison(c.id);
+    const l3 = (await store.commande(c.id))!;
+    verifier("Version corrigée envoyée : un nouveau délai de 14 jours repart de cette livraison", l3.statut === "attente_validation" && Math.abs(Date.now() - Date.parse(l3.derniereLivraisonLe!)) < 120_000 && !delaiExpire(miseADisposition(l3)) && echeanceRetouche(miseADisposition(l3)) - Date.now() > 13 * 86_400_000);
+  }
+  {
+    // Commandes livrées avant l'ajout du champ : la date est retrouvée dans l'historique, à défaut dans la date de paiement
+    const j = Object.fromEntries([2, 25, 30, 40].map((n) => [n, iso(Date.now() - n * 86_400_000)])); // dates figées une fois pour toutes : aucune comparaison à la milliseconde près
+    const ancienne = commandeTest({ statut: "attente_validation", paiement: { etat: "paye", sessionId: "cs_y", payeLe: j[40], mode: "simulation" }, historique: [{ date: j[30], evenement: "Livraison envoyée au client." }, { date: j[25], evenement: "Version corrigée envoyée au client." }, { date: j[2], evenement: "E-mail de livraison renvoyé au client." }] });
+    verifier("Anciennes commandes : date retrouvée dans l'historique (dernière version corrigée, pas le simple renvoi)", miseADisposition(ancienne) === j[25], miseADisposition(ancienne));
+    const sansHistorique = commandeTest({ statut: "attente_validation", paiement: { etat: "paye", sessionId: "cs_z", payeLe: j[40], mode: "simulation" } });
+    verifier("Anciennes commandes sans historique : date de paiement (jamais plus favorable au client que la réalité)", miseADisposition(sansHistorique) === j[40], miseADisposition(sansHistorique));
+  }
+
+  // — E-mail impossible : la clôture a lieu quand même, l'échec est tracé et rattrapable
+  {
+    const sauve = { h: process.env.SMTP_HOST, p: process.env.SMTP_PORT, u: process.env.SMTP_USER, m: process.env.SMTP_PASSWORD, b: process.env.BREVO_API_KEY, r: process.env.RESEND_API_KEY };
+    process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = "1"; process.env.SMTP_USER = "contact@exemple.fr"; process.env.SMTP_PASSWORD = "mot-de-passe-de-test"; delete process.env.BREVO_API_KEY; delete process.env.RESEND_API_KEY;
+    const e = await aValider(parisJour(18));
+    const bilan = await cloturerExpirees();
+    const apres = (await store.commande(e.id))!; const mails = await objetsReputes(e.id);
+    verifier("E-mail impossible (service d'envoi injoignable) : la commande est tout de même clôturée", bilan.cloturees.includes(e.id) && apres.statut === "livree" && bilan.emailsEnEchec >= 1);
+    verifier("E-mail impossible : la tentative est archivée en échec, avec la cause", mails.length === 1 && enEchec(mails[0]) && (mails[0].essais?.length ?? 0) >= 1, JSON.stringify(mails[0]?.essais));
+    verifier("E-mail impossible : l'historique de la commande le dit (« NON ENVOYÉ »), avec où retrouver la tentative", apres.historique.some((h) => /NON ENVOYÉ/.test(h.evenement) && /Administration/.test(h.evenement)));
+    const regle = echecsUtiles(mails, [apres]);
+    verifier("E-mail impossible : rattrapable en un clic (règle « livraison réputée acceptée » reconnue pour une commande livrée)", regle.length === 1 && regle[0].courriel.id === mails[0].id, JSON.stringify(trierEchecs(mails, [apres]).map((x) => x.action + ":" + x.raison)));
+    // Service rétabli : le renvoi fonctionne et ne duplique pas la clôture
+    for (const k of ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "BREVO_API_KEY", "RESEND_API_KEY"]) delete process.env[k];
+    const renvoi = await courriels.renvoyer(mails[0]);
+    verifier("Service rétabli : le renvoi repart à l'identique (archivé sans service configuré), sans toucher à la commande", renvoi.objet === mails[0].objet && (await store.commande(e.id))!.statut === "livree" && (await store.commande(e.id))!.historique.filter((h) => /Livraison réputée acceptée/.test(h.evenement)).length === 1);
+    for (const [k, v] of [["SMTP_HOST", sauve.h], ["SMTP_PORT", sauve.p], ["SMTP_USER", sauve.u], ["SMTP_PASSWORD", sauve.m], ["BREVO_API_KEY", sauve.b], ["RESEND_API_KEY", sauve.r]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+
+  // — Déclenchement libre (ouverture de l'administration) : au plus une fois par heure
+  {
+    await depot().ecrire("systeme/echeances.json", JSON.stringify({ date: new Date(Date.now() - 2 * 3_600_000).toISOString() }));
+    const f = await aValider(parisJour(22));
+    const premier = await cloturerExpireesSiNecessaire();
+    const second = await cloturerExpireesSiNecessaire();
+    verifier("Ouverture de l'administration : la clôture automatique s'exécute (marque ancienne de 2 h), puis n'est pas rejouée dans l'heure", premier !== null && premier.cloturees.includes(f.id) && second === null && (await store.commande(f.id))!.statut === "livree");
+    await depot().supprimer("systeme/echeances.json");
+  }
+}
+
 // 7 ter. Limiteur partagé, lectures groupées, configuration Supabase
 {
   const id = "visiteur-" + Date.now();
@@ -379,7 +619,7 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const n = ntfyRecus.length; const cmd = commandeTest(); await store.creerCommande(cmd);
   let m = await courriels.adminPaiement(cmd);
   verifier("Notification de paiement envoyée par Gmail (SMTP) sans solliciter Brevo, à l'adresse du vendeur", m.resultat === "envoyé" && m.pilote === "smtp" && !m.essais && brevoAppels === 0 && smtpRecus.some((x) => x.a.includes("vendeur@exemple.fr")), JSON.stringify([m.resultat, m.pilote, m.essais, brevoAppels]));
-  verifier("Notification de paiement : numéro de commande, client, e-mail, offre, montant et lien d'administration", [cmd.id, "A B", "a@exemple.fr", "Essai", "25", `/admin/commande/${cmd.id}`].every((t) => m.texte.includes(t)) && m.objet.includes("Nouvelle commande payée"), m.texte.slice(0, 300));
+  verifier("Notification de paiement : numéro de commande, client, e-mail, offre, montant et lien d'administration", [cmd.id, "A B", "a@exemple.fr", "Essai", "35", `/admin/commande/${cmd.id}`].every((t) => m.texte.includes(t)) && m.objet.includes("Nouvelle commande payée"), m.texte.slice(0, 300));
   smtpPanne = true;
   m = await courriels.adminPaiement(commandeTest());
   verifier("Gmail refuse (mot de passe, limite, panne) : Brevo prend le relais, l'e-mail part, aucune alerte inutile", m.resultat === "envoyé" && m.pilote === "brevo" && m.essais?.length === 1 && brevoAppels === 1 && ntfyRecus.length === n, JSON.stringify([m.resultat, m.pilote, m.essais]));
@@ -494,14 +734,16 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const sansBrief = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "w", payeLe: il(3), emailStripe: "relance@exemple.fr", mode: "s" } }); await store.creerCommande(sansBrief);
   const recent = commandeTest({ statut: "attente_infos", brief: undefined, paiement: { etat: "paye", sessionId: "w2", payeLe: il(0), emailStripe: "recent@exemple.fr", mode: "s" } }); await store.creerCommande(recent);
   const ancienne = commandeTest({ paiement: { etat: "paye", sessionId: "w3", payeLe: il(2), mode: "s" } }); await store.creerCommande(ancienne);
+  const clotureeAuto = commandeTest({ statut: "livree", livreeLe: maintenant(), clotureAutoLe: maintenant(), paiement: { etat: "paye", sessionId: "w4", payeLe: il(20), mode: "s" } }); await store.creerCommande(clotureeAuto);
   const b1 = await veille();
+  verifier("Veille : une livraison clôturée automatiquement (14 jours sans réponse) est signalée au vendeur dans le récapitulatif", (await store.courriels()).some((m) => m.a === "vendeur@exemple.fr" && m.objet.includes("Récap") && m.texte.includes("clôturées automatiquement") && m.texte.includes(clotureeAuto.id)));
   verifier("Veille : brief manquant depuis plus de 48 h → relance automatique du client", b1.relances >= 1 && (await store.courriels(sansBrief.id)).some((m) => m.a === "relance@exemple.fr") && (await store.courriels(recent.id)).length === 0);
   verifier("Veille : récapitulatif envoyé à l'administrateur avec les points en attente", b1.points >= 2 && b1.resume === "envoye" && (await store.courriels()).some((m) => m.a === "vendeur@exemple.fr" && m.objet.includes("Récap") && m.texte.includes(ancienne.id) && m.texte.includes(sansBrief.id)), JSON.stringify(b1));
   const nb = (await store.courriels(sansBrief.id)).length; const b2 = await veille();
   verifier("Veille : le client n'est relancé qu'une seule fois", b2.relances === 0 && (await store.courriels(sansBrief.id)).length === nb);
-  for (const c of await store.commandes()) if (c.paiement.etat === "paye") await store.modifier(c.id, (x) => { x.statut = "livree"; x.livreeLe = maintenant(); x.vueLe = maintenant(); });
+  for (const c of await store.commandes()) if (c.paiement.etat === "paye") await store.modifier(c.id, (x) => { x.statut = "livree"; x.livreeLe = maintenant(); x.vueLe = maintenant(); x.clotureAutoLe = undefined; });
   const active = commandeTest({ statut: "attente_infos", brief: undefined, vueLe: maintenant(), paiement: { etat: "paye", sessionId: "act", payeLe: maintenant(), emailStripe: "active@exemple.fr", mode: "s" } }); await store.creerCommande(active);
-  const echec = { id: "ech" + Date.now(), date: maintenant(), a: "vendeur@exemple.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${active.id} — Essai — 25 €`, html: "", texte: "x", commande: active.id, pilote: "smtp", resultat: "échec smtp : test" };
+  const echec = { id: "ech" + Date.now(), date: maintenant(), a: "vendeur@exemple.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${active.id} — Essai — 35 €`, html: "", texte: "x", commande: active.id, pilote: "smtp", resultat: "échec smtp : test" };
   await store.archiverCourriel(echec);
   const avecEchecs = await veille();
   verifier("Veille : un e-mail non envoyé encore utile est signalé (les périmés ne le sont pas)", avecEchecs.points === 1 && avecEchecs.resume === "envoye", JSON.stringify(avecEchecs));
@@ -528,7 +770,7 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   const mail = (o: Partial<import("../lib/store").Courriel>): import("../lib/store").Courriel => ({ id: Math.random().toString(36).slice(2, 10), date: il(1), a: "client@exemple.fr", objet: "x", html: "", texte: "", pilote: "smtp", resultat: "échec smtp : refusé", ...o });
   const attente = commandeTest({ statut: "attente_infos" }), livree = commandeTest({ statut: "livree" }), enValid = commandeTest({ statut: "attente_validation" });
   const cs = [attente, livree, enValid];
-  const e1 = mail({ commande: attente.id, a: "admin@x.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${attente.id} — Essai — 25 €` });
+  const e1 = mail({ commande: attente.id, a: "admin@x.fr", objet: `[Studio Accroche] Nouvelle commande payée — ${attente.id} — Essai — 35 €` });
   const e2 = mail({ commande: livree.id, objet: `Commande ${livree.id} confirmée — il nous manque votre brief` });
   const e3 = mail({ commande: livree.id, objet: `Commande ${livree.id} — vos fichiers sont disponibles` });
   const e4 = mail({ commande: enValid.id, objet: `Commande ${enValid.id} — à valider`, date: il(2) });
@@ -558,9 +800,9 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
   // — Accusé de réception de la retouche envoyé au client
   const c = commandeTest({ statut: "en_production", retouchesDemandees: [{ date: maintenant(), message: "Merci de mettre le prix en début de vidéo." }] }); await store.creerCommande(c);
   const m1 = await courriels.retoucheRecue(c, "Merci de mettre le prix en début de vidéo.", 1);
-  verifier("Retouche : accusé de réception au client, avec sa demande citée et le nombre de retouches restantes", m1.a === "a@exemple.fr" && m1.objet.includes("votre demande de retouche est bien reçue") && m1.texte.includes("prix en début de vidéo") && /Il vous reste 1 retouche incluse/.test(m1.texte) && m1.texte.includes(c.token));
+  verifier("Retouche : accusé de réception au client, avec sa demande citée et le nombre de tours de retouches restants", m1.a === "a@exemple.fr" && m1.objet.includes("votre demande de retouche est bien reçue") && m1.texte.includes("prix en début de vidéo") && /Il vous reste 1 tour de retouches inclus/.test(m1.texte) && /seule demande/.test(m1.texte) && m1.texte.includes(c.token));
   const m0 = await courriels.retoucheRecue(c, "x".repeat(12), 0);
-  verifier("Retouche : plus aucune retouche incluse → le client en est informé", /utilisé toutes les retouches/.test(m0.texte));
+  verifier("Retouche : plus aucun tour inclus → le client en est informé, avec la règle du hors périmètre", /utilisé tous les tours de retouches/.test(m0.texte) && /c'est une nouvelle commande/.test(m0.texte));
   const echec = { ...m1, resultat: "échec smtp : test", date: maintenant() };
   verifier("Tri : l'accusé de retouche en échec est à renvoyer tant que la commande est en production, périmé ensuite", trierEchecs([echec], [c])[0].action === "renvoyer" && trierEchecs([echec], [{ ...c, statut: "attente_validation" }])[0].action === "obsolete");
 }

@@ -304,7 +304,7 @@ Bilan : 25 prospects, dont 15 « vérifié » et 10 « partiel ».
 2. **Le Parais** (https://www.leparais.com) — compte TikTok déjà lié sur le site, plusieurs nouveautés et une collection Noël à lancer, mais aucune vidéo relevée sur la page d'accueil.
 3. **Zeste** (https://zeste.fr) — réouverture des commandes annoncée pour mi-novembre : un moment précis à annoncer, sans vidéo ni TikTok relevés.
 4. **Topla** (https://www.playtopla.com) — lancement du jeu Houblon annoncé en page d'accueil, sans vidéo relevée, juste avant la saison des cadeaux.
-5. **Ptitcul** (https://www.ptitcul.fr) — bénéfice très visuel (isolant, imperméable) montré seulement en photo ; très petite structure, donc offre d'essai à 25 € adaptée.
+5. **Ptitcul** (https://www.ptitcul.fr) — bénéfice très visuel (isolant, imperméable) montré seulement en photo ; très petite structure, donc offre d'essai à 35 € adaptée.
 6. **Moomie** (https://www.moomie.fr) — lange multi-usage présenté uniquement en photo et nouvelle collection annoncée en bandeau.
 7. **Pomlie** (https://pomlie.com/) — compte TikTok lié mais aucune vidéo relevée sur le site, et promotion de -35 % en cours à faire connaître.
 8. **Monzémaré** (https://www.monzemare.com) — nouveauté « bracelets cordons » et message de fêtes en page d'accueil, sans vidéo ni lien social relevés.

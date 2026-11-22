@@ -19,9 +19,9 @@ Pourquoi eux : ils savent qu'il leur faut de la vidéo, n'ont ni le temps ni le 
 ## 2. Arguments, dans l'ordre
 
 1. **Rien à envoyer, rien à filmer** : trois photos du produit suffisent.
-2. **25 € pour essayer** : une vidéo, script inclus, livrée en 48 h. Risque faible.
-3. **Trois accroches pour comparer** (Pack Test, 69 €) : on teste trois débuts au lieu de parier sur un seul.
-4. **Script validé avant production**, retouche incluse, remboursement si le produit ne peut pas être reproduit fidèlement.
+2. **35 € pour essayer** : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Risque faible.
+3. **Trois accroches pour comparer** (Pack Test, 89 €) : on teste trois débuts au lieu de parier sur un seul.
+4. **Script validé avant production**, un tour de retouches inclus (une seule demande qui regroupe toutes vos remarques), remboursement si le produit ne peut pas être reproduit fidèlement.
 5. **Transparence** : présentateur généré par IA, vidéo signalée comme telle, pas de faux témoignage.
 
 À ne jamais promettre : des ventes, un taux de clic, un résultat publicitaire. Nous n'avons aucune mesure.
@@ -30,7 +30,7 @@ Pourquoi eux : ils savent qu'il leur faut de la vidéo, n'ont ni le temps ni le 
 
 **En une phrase** : « Studio Accroche crée des publicités vidéo verticales de 15 secondes pour les boutiques en ligne, avec un présentateur généré par IA, à partir de simples photos du produit. »
 
-**En trente secondes** : « Vous m'envoyez le lien de votre produit et trois photos. J'écris l'accroche et le script, vous les validez, et vous recevez sous 48 heures une vidéo verticale prête pour TikTok, Reels ou Meta Ads, avec voix française et sous-titres. Pas de tournage, pas de colis, pas d'abonnement : 25 € l'essai, 69 € pour trois vidéos avec trois accroches différentes. »
+**En trente secondes** : « Vous m'envoyez le lien de votre produit et trois photos. J'écris l'accroche et le script, vous les validez, et vous recevez sous 48 heures une vidéo verticale prête pour TikTok, Reels ou Meta Ads, avec voix française et sous-titres. Pas de tournage, pas de colis, pas d'abonnement : 35 € l'essai, 89 € pour trois vidéos avec trois accroches différentes. »
 
 ## 4. Message de prospection
 

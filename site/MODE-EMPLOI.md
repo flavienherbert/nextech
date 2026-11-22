@@ -74,9 +74,9 @@ Les conditions de vente promettent au client qu'**aucune vidéo n'est produite a
 
 1. Sur la commande, colonne de droite, **Livrables** : **Ajouter** vos vidéos (mp4, mov, webm) et PDF. Jusqu'à 50 Mo par fichier. Le client reçoit par e-mail un lien privé par fichier, plus le lien de son espace. **Il regarde ses vidéos directement dans sa page** (lecteur intégré, téléphone compris), puis les télécharge pour les garder.
 2. Panneau **Prochaine étape** : **Envoyer la livraison au client**.
-3. Le client reçoit un e-mail avec son lien privé. Il télécharge, puis **valide** ou **demande une retouche**.
+3. Le client reçoit un e-mail avec son lien privé. Il télécharge, puis **valide** ou **demande un tour de retouches** : **une seule demande qui regroupe toutes ses remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs). Si la demande change le produit, le brief, le script validé, le présentateur, l'angle ou la durée, **ce n'est pas une retouche** : bouton « Refuser : hors périmètre » (explication envoyée au client, tour non décompté), puis proposez une nouvelle commande.
 4. Validation → la commande passe en **Terminées** et la facture est émise. Retouche → vous êtes prévenu, la commande apparaît dans **Corrections demandées** ; vous corrigez, vous remplacez le fichier (« Retirer » puis ajoutez le nouveau), puis **Envoyer la version corrigée**.
-5. Le client n'a pas répondu ? **Clôturer** considère la livraison comme validée.
+5. Le client n'a pas répondu ? **Rien à faire** : le client dispose de **14 jours** (jusqu'à minuit, heure de Paris, le 14e jour qui suit la livraison ; la date est écrite sur sa page, dans l'e-mail et sur la commande). Passé ce délai, la tâche quotidienne **clôture la commande automatiquement** (livraison réputée acceptée, facture émise, e-mail au client) et toute demande de retouche reçue ensuite est **refusée automatiquement** (elle n'est pas décomptée ; le client est invité à passer une nouvelle commande). Si cet e-mail ne part pas, la commande est clôturée quand même : la tentative apparaît dans **E-mails** (bouton « Renvoyer ») et l'historique de la commande porte « NON ENVOYÉ ». Un renvoi de l'e-mail de livraison ne relance pas le délai ; l'envoi d'une **version corrigée** le relance. Vous pouvez aussi cliquer **Clôturer** avant l'échéance si le client vous a validé la livraison hors du site.
 
 Les fichiers du client et les livrables sont supprimés **90 jours** après la livraison ; dites-le au client (il le lit dans l'e-mail de livraison).
 
@@ -103,7 +103,7 @@ Anti-avalanche : une même alerte n'est pas répétée plus d'une fois dans sa f
 
 1. Ouvrir **Commandes**. Lire la case **À faire maintenant**.
 2. Traiter dans l'ordre : corrections, nouvelles commandes, démarrages, retards.
-3. Si un bandeau rouge parle d'e-mails non envoyés : **E-mails** → **Renvoyer**.
+3. Si un bandeau rouge parle d'e-mails non envoyés : **E-mails** → **Renvoyer**. Le récapitulatif du matin signale les commandes **clôturées automatiquement** (14 jours sans réponse) : rien à faire, sauf renvoyer l'e-mail s'il n'est pas parti.
 4. Une fois par semaine : **Diagnostic** → tout doit être vert ; **Envoyer une notification de test**.
 
 Vous n'avez **jamais** à ouvrir le site pour savoir si une commande est arrivée : le téléphone et l'e-mail vous le disent.
