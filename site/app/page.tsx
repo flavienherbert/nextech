@@ -3,9 +3,9 @@ import Link from "next/link";
 import Reveal from "./components/Reveal";
 import { BandeauMode, Pied } from "./components/Cadre";
 import DemoVideo from "./components/DemoVideo";
-import DemoYoutube from "./components/DemoYoutube";
-import { angles, demonstration, engagements, etapes, faq, raisons, site, temps } from "./config";
-import { delaiTexte, euros, formuleParId, formules } from "@/lib/formules";
+import HeroTelephone from "./components/HeroTelephone";
+import { angles, demonstration, engagements, etapes, faq, images, raisons, SHOW_EXAMPLE_VIDEO, site, temps } from "./config";
+import { delaiCourt, delaiTexte, DUREE_TEXTE, enLettres, euros, FORMULE_ESSAI, formules } from "@/lib/formules";
 import { chargerMedias } from "@/lib/medias";
 
 // Page servie depuis le cache et renouvelée au plus toutes les 15 minutes (et tout de suite quand le vendeur change un média) :
@@ -16,36 +16,28 @@ const titre = `${site.marque} — Publicités vidéo avec présentateur IA`;
 export async function generateMetadata(): Promise<Metadata> {
   const m = await chargerMedias();
   return {
-    openGraph: { title: titre, description: site.sousTitre, locale: "fr_FR", type: "website", images: [m.url("partage") ?? "/media/photos/couverture-partage.jpg"] },
+    openGraph: { title: titre, description: site.description, locale: "fr_FR", type: "website", siteName: site.marque, images: [{ url: m.url("partage") ?? images.partage, width: 1200, height: 630, alt: titre }] },
+    twitter: { card: "summary_large_image", title: titre, description: site.description, images: [m.url("partage") ?? images.partage] },
   };
 }
 
-const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", "Format 9:16", "Livré en 48 h"];
-// Une pile de photographies propre à chaque formule : une, trois, puis six, toutes différentes.
-const piles: Record<string, string[]> = {
-  essai: ["essai-1"],
-  test: ["test-1", "test-2", "test-3"],
-  campagne: ["campagne-1", "campagne-2", "campagne-3", "campagne-4", "campagne-5", "campagne-6"],
-};
+const defilant = ["Accroche", "Script", "Présentateur IA", "Voix française", "Sous-titres", `Format ${FORMULE_ESSAI.formats[0]}`, delaiTexte(FORMULE_ESSAI)];
+// Une pile d'images propre à chaque formule (chemins dans app/config.ts, « images.formules ») : une, trois, puis six, toutes différentes.
+const piles: Record<string, string[]> = Object.fromEntries(
+  Object.entries(images.formules).map(([id, chemins]) => [id, chemins.map((_, k) => `${id}-${k + 1}`)]),
+);
 
 const NB_EXEMPLES = 6;
 
 export default async function Accueil() {
   const m = await chargerMedias();
 
-  // Ce que montre le cadre de démonstration : la vidéo du studio (envoyée dans Administration → Médias, ou déclarée
-  // dans app/config.ts) en priorité, sinon un exemple externe autorisé par écrit, sinon un emplacement réservé.
+  // Vidéo d'exemple : la section n'existe QUE si SHOW_EXAMPLE_VIDEO vaut true (app/config.ts). Sinon, aucun texte de remplacement.
+  // La vidéo envoyée dans Administration → Images et vidéos est prioritaire sur le fichier public/videos/exemple.mp4.
   const videoDemo = m.envoye("demo-video") ? m.url("demo-video")! : demonstration.video;
   const afficheDemo = m.envoye("demo-affiche") ? m.url("demo-affiche")! : demonstration.poster;
-  const demo: "studio" | "externe" | "vide" = videoDemo
-    ? "studio"
-    : demonstration.externe.autorisee && demonstration.externe.youtubeId
-      ? "externe"
-      : "vide";
+  const demoVisible = SHOW_EXAMPLE_VIDEO && Boolean(videoDemo);
 
-  // Couverture : si seule la version ordinateur est personnalisée, elle sert aussi sur téléphone (jamais un mélange avec l'image d'origine).
-  const couvertureBureau = m.envoye("couverture") ? m.url("couverture")! : null;
-  const couvertureMobile = m.envoye("couverture-mobile") ? m.url("couverture-mobile")! : couvertureBureau;
   // Exemples de vidéos livrées : la section n'existe que si au moins une vidéo a été envoyée.
   const exemples = Array.from({ length: NB_EXEMPLES }, (_, i) => i + 1)
     .filter((n) => m.envoye(`exemple-${n}`))
@@ -60,7 +52,7 @@ export default async function Accueil() {
             Studio <em>Accroche</em>
           </a>
           <nav className="navigation" aria-label="Navigation principale">
-            <a href="#demonstration">Démonstration</a>
+            {demoVisible && <a href="#demonstration">Exemple</a>}
             {exemples.length > 0 && <a href="#exemples">Exemples</a>}
             <a href="#anatomie">La méthode</a>
             <a href="#formules">Formules</a>
@@ -75,60 +67,42 @@ export default async function Accueil() {
       <main id="haut">
         {/* ——— Ouverture ——— */}
         <section className="hero">
-          <div className="hero-media hero-photo" aria-hidden="true">
-            {/* eslint-disable @next/next/no-img-element */}
-            <picture>
-              <source media="(max-width: 819px)" srcSet={couvertureMobile ?? m.url("couverture-mobile")!} />
-              {couvertureBureau ? (
-                <img src={couvertureBureau} alt="" fetchPriority="high" />
-              ) : (
-                <img
-                  src="/media/photos/couverture-1920.webp"
-                  srcSet="/media/photos/couverture-1280.webp 1280w, /media/photos/couverture-1920.webp 1920w"
-                  sizes="100vw"
-                  alt=""
-                  fetchPriority="high"
-                />
-              )}
-            </picture>
-          </div>
-          <div className="hero-voile" aria-hidden="true" />
+          <div className="hero-fond" aria-hidden="true" />
           <div className="grain" aria-hidden="true" />
-          <div className="bande-cine bande-haut" aria-hidden="true" />
-          <div className="bande-cine bande-bas" aria-hidden="true" />
-
-          <div className="conteneur hero-contenu">
-            <p className="surtitre monte" style={{ animationDelay: "0.5s" }}>
-              Studio de publicité vidéo
-            </p>
-            <h1>
-              <span className="ligne">
-                <span style={{ animationDelay: "0.65s" }}>Trois secondes</span>
-              </span>
-              <span className="ligne">
-                <span style={{ animationDelay: "0.8s" }}>
-                  pour arrêter <em>un pouce.</em>
+          <div className="conteneur hero-grille">
+            <div className="hero-contenu">
+              <p className="surtitre monte" style={{ animationDelay: "0.2s" }}>
+                Studio de publicité vidéo
+              </p>
+              <h1>
+                <span className="ligne">
+                  <span style={{ animationDelay: "0.3s" }}>Des pubs vidéo</span>
                 </span>
-              </span>
-            </h1>
-            <p className="chapeau monte" style={{ animationDelay: "1.05s" }}>
-              {site.sousTitre}
-            </p>
-            <div className="hero-actions monte" style={{ animationDelay: "1.2s" }}>
-              <a className="bouton" href="#formules">
-                Voir les formules
-              </a>
-              <Link className="bouton bouton-fantome" href="/commander/essai">
-                Essayer pour {euros(formuleParId("essai")!.prixCents)}
-              </Link>
+                <span className="ligne">
+                  <span style={{ animationDelay: "0.42s" }}>
+                    avec <em>présentateur IA</em>
+                  </span>
+                </span>
+                <span className="ligne">
+                  <span style={{ animationDelay: "0.54s" }}>pour votre boutique.</span>
+                </span>
+              </h1>
+              <p className="hero-accroche monte" style={{ animationDelay: "0.75s" }}>
+                {site.accroche}
+              </p>
+              <p className="chapeau monte" style={{ animationDelay: "0.9s" }}>
+                {site.sousTitre}
+              </p>
+              <div className="hero-actions monte" style={{ animationDelay: "1.05s" }}>
+                <a className="bouton" href="#formules">
+                  Voir les formules
+                </a>
+                <Link className="bouton bouton-fantome" href={`/commander/${FORMULE_ESSAI.adresse}`}>
+                  Essayer pour {euros(FORMULE_ESSAI.prixCents)}
+                </Link>
+              </div>
             </div>
-          </div>
-
-          <div className="conteneur hero-pied">
-            <span>Photographie d&apos;illustration</span>
-            <a href="#demonstration" className="defiler">
-              Défiler
-            </a>
+            <HeroTelephone />
           </div>
         </section>
 
@@ -140,80 +114,48 @@ export default async function Accueil() {
           </div>
         </div>
 
-        {/* ——— Démonstration : le résultat livré ——— */}
-        <section className="section section-demo" id="demonstration">
-          <div className="conteneur demo-grille">
-            <Reveal className="tete-section demo-tete">
-                <p className="surtitre">{demo === "externe" ? "Le format" : "Le résultat"}</p>
-                {demo === "externe" ? (
-                  <h2>
-                    Une publicité générée par IA, <em>en exemple.</em>
-                  </h2>
-                ) : (
-                  <h2>
-                    Voici ce que vous <em>recevez.</em>
-                  </h2>
-                )}
+        {/* ——— Vidéo d'exemple (visible seulement si SHOW_EXAMPLE_VIDEO vaut true) ——— */}
+        {demoVisible && (
+          <section className="section section-demo" id="demonstration">
+            <div className="conteneur demo-grille">
+              <Reveal className="tete-section demo-tete">
+                <p className="surtitre">Le résultat</p>
+                <h2>
+                  Voici ce que vous <em>recevez.</em>
+                </h2>
                 <p className="intro">
-                  Une publicité verticale de {demonstration.duree} : un présentateur généré par
-                  intelligence artificielle présente votre produit, face caméra, comme dans une
-                  vidéo tournée au téléphone.
-                  {demo === "externe" &&
-                    " L'exemple ci-contre a été créé par un autre studio : il illustre le format, pas notre travail."}
+                  Une publicité verticale, {DUREE_TEXTE} : un présentateur généré par intelligence artificielle présente votre
+                  produit, face caméra, comme dans une vidéo tournée au téléphone.
                 </p>
-            </Reveal>
-            <Reveal className="demo-colonne">
-              <figure className="demo-figure">
-                <div className={`demo-cadre${demo === "studio" ? "" : " demo-vide"}`}>
-                  {demo === "studio" && <DemoVideo video={videoDemo} poster={afficheDemo} />}
-                  {demo === "externe" && (
-                    <DemoYoutube id={demonstration.externe.youtubeId} chaine={demonstration.externe.chaine} />
-                  )}
-                  {demo === "vide" && (
-                    <div className="demo-reserve">
-                      <span className="demo-reserve-titre">Vidéo de démonstration</span>
-                      <span>en cours de production</span>
-                      <span className="demo-reserve-format">{demonstration.duree} · format 9:16</span>
-                    </div>
-                  )}
-                  <span className={`etiquette ${demo === "externe" ? "etiquette-externe" : "etiquette-realisation"}`}>
-                    {demo === "studio" ? "Exemple de vidéo livrée" : demo === "externe" ? "Exemple externe" : "Emplacement réservé"}
-                  </span>
-                </div>
-                <figcaption>
-                  {demo === "studio" &&
-                    "Vidéo réalisée par Studio Accroche. Présentateur généré par intelligence artificielle, produit et marque fictifs."}
-                  {demo === "externe" && (
-                    <>
-                      Exemple externe de publicité générée par IA — non réalisée par Studio Accroche. Vidéo de{" "}
-                      <a href={demonstration.externe.lien} target="_blank" rel="noopener noreferrer">
-                        {demonstration.externe.chaine}
-                      </a>
-                      , diffusée par le lecteur YouTube.
-                    </>
-                  )}
-                  {demo === "vide" && "La démonstration sera affichée ici. Aucune vidéo d'exemple n'est encore publiée."}
-                </figcaption>
-              </figure>
-            </Reveal>
-
-            <div className="demo-detail">
-              <ul className="demo-contenu">
-                {demonstration.contenu.map((c, i) => (
-                  <Reveal as="li" key={c.titre} delay={i * 80}>
-                    <h3>{c.titre}</h3>
-                    <p>{c.texte}</p>
-                  </Reveal>
-                ))}
-              </ul>
-              <Reveal>
-                <a className="bouton" href="#formules">
-                  Voir les formules
-                </a>
               </Reveal>
+              <Reveal className="demo-colonne">
+                <figure className="demo-figure">
+                  <div className="demo-cadre">
+                    <DemoVideo video={videoDemo} poster={afficheDemo || undefined} soustitres={demonstration.soustitres || undefined} />
+                    <span className="etiquette etiquette-realisation">Exemple</span>
+                  </div>
+                  <figcaption>{demonstration.legende}</figcaption>
+                </figure>
+              </Reveal>
+
+              <div className="demo-detail">
+                <ul className="demo-contenu">
+                  {demonstration.contenu.map((c, i) => (
+                    <Reveal as="li" key={c.titre} delay={i * 80}>
+                      <h3>{c.titre}</h3>
+                      <p>{c.texte}</p>
+                    </Reveal>
+                  ))}
+                </ul>
+                <Reveal>
+                  <a className="bouton" href="#formules">
+                    Voir les formules
+                  </a>
+                </Reveal>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ——— Exemples de vidéos livrées (visible dès qu'une vidéo est envoyée dans Administration → Médias) ——— */}
         {exemples.length > 0 && (
@@ -256,30 +198,24 @@ export default async function Accueil() {
             <Reveal className="tete-section">
               <p className="surtitre">Anatomie d&apos;une publicité</p>
               <h2>
-                Quinze secondes, <em>quatre temps.</em>
+                Une publicité, <em>{enLettres(temps.length)} temps.</em>
               </h2>
               <p className="intro">
-                Chaque vidéo que nous livrons suit la même construction, plan par plan.
+                Chaque vidéo que nous livrons ({DUREE_TEXTE}) suit la même construction, plan par plan.
               </p>
             </Reveal>
             <div className="temps">
               {temps.map((t, i) => (
                 <Reveal as="article" key={t.numero} delay={i * 110} className="temps-carte">
                   <div className="temps-cadre">
-                    <img src={m.url(`temps-${i + 1}`) ?? ""} alt="" loading="lazy" />
+                    <img src={m.url(`temps-${i + 1}`) ?? ""} alt="" width={720} height={1280} loading="lazy" decoding="async" />
                     <span className="plan-numero">{t.numero}</span>
-                    <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
                   <h3>{t.titre}</h3>
                   <p>{t.texte}</p>
                 </Reveal>
               ))}
             </div>
-            <p className="mention">
-              Ces photographies illustrent la construction d&apos;une publicité : ce ne sont pas
-              des extraits de nos vidéos. Les vidéos livrées sont réalisées avec un présentateur
-              généré par intelligence artificielle.
-            </p>
           </div>
         </section>
 
@@ -302,8 +238,8 @@ export default async function Accueil() {
             </div>
             <Reveal delay={150}>
               <p className="intro centre-bloc">
-                Même produit, même argumentaire, trois débuts. Vous les diffusez en parallèle et
-                vous gardez celui qui retient.
+                Exemple fictif : même produit, même argumentaire, {enLettres(angles.length)} débuts. Vous les diffusez en
+                parallèle et vous gardez celui qui retient.
               </p>
             </Reveal>
           </div>
@@ -365,20 +301,19 @@ export default async function Accueil() {
             </Reveal>
             <div className="formules">
               {formules.map((f, i) => (
-                <Reveal as="article" key={f.id} delay={i * 110} className={`formule${f.misEnAvant ? " formule-avant" : ""}`}>
+                <Reveal as="article" key={f.id} delay={i * 110} className={`formule${f.badge ? " formule-avant" : ""}`}>
                   <div className={`pile pile-${f.videos}`} aria-hidden="true">
                     {(piles[f.id] ?? []).map((v, k) => (
-                      <img key={k} src={m.url(v) ?? ""} alt="" loading="lazy" />
+                      <img key={k} src={m.url(v) ?? ""} alt="" width={360} height={640} loading="lazy" decoding="async" />
                     ))}
-                    <span className="etiquette etiquette-illustration">Illustration</span>
                   </div>
-                  {f.misEnAvant && <span className="badge">Le plus utile pour tester</span>}
+                  {f.badge && <span className="badge">{f.badge}</span>}
                   <h3>{f.nom}</h3>
                   <p className="resume">{f.resume}</p>
                   <p className="prix">{euros(f.prixCents)}</p>
                   <dl className="faits">
                     <div>
-                      <dt>Vidéos livrées</dt>
+                      <dt>Vidéos</dt>
                       <dd>{f.videos}</dd>
                     </div>
                     <div>
@@ -387,7 +322,7 @@ export default async function Accueil() {
                     </div>
                     <div>
                       <dt>Délai</dt>
-                      <dd>{delaiTexte(f).replace("Livré en ", "")}</dd>
+                      <dd>{delaiCourt(f)}</dd>
                     </div>
                   </dl>
                   <p className="recoit">Vous recevez</p>
@@ -396,7 +331,7 @@ export default async function Accueil() {
                       <li key={p}>{p}</li>
                     ))}
                   </ul>
-                  <Link className={`bouton bouton-large${f.misEnAvant ? "" : " bouton-fantome"}`} href={`/commander/${f.id}`}>
+                  <Link className={`bouton bouton-large${f.badge ? "" : " bouton-fantome"}`} href={`/commander/${f.adresse}`}>
                     Commander — {euros(f.prixCents)}
                   </Link>
                 </Reveal>
@@ -404,9 +339,8 @@ export default async function Accueil() {
             </div>
             <p className="mention">
               Chaque vidéo est livrée en fichier MP4, avec les droits d&apos;exploitation
-              publicitaire. Le délai court à partir de la réception de votre brief. Les visuels
-              des formules sont des photographies d&apos;illustration. TVA non applicable, article
-              293 B du CGI.
+              publicitaire. Le délai court à partir de la réception de votre brief. TVA non
+              applicable, article 293 B du CGI.
             </p>
           </div>
         </section>
@@ -439,7 +373,7 @@ export default async function Accueil() {
               <h2>Avant de commander</h2>
             </Reveal>
             {faq.map((item) => (
-              <details key={item.q}>
+              <details key={item.q} name="faq">
                 <summary>{item.q}</summary>
                 <p>{item.r}</p>
               </details>
@@ -457,23 +391,21 @@ export default async function Accueil() {
                 Votre produit, <em>dans ce cadre.</em>
               </h2>
               <p className="chapeau">
-                Commencez par un essai : une vidéo, un script, 48 heures.
+                Commencez par un essai : {FORMULE_ESSAI.points[0]}, script inclus, {delaiTexte(FORMULE_ESSAI).toLowerCase()}.
               </p>
               <div className="hero-actions">
-                <Link className="bouton" href="/commander/essai">
-                  Commander un essai — {euros(formuleParId("essai")!.prixCents)}
+                <Link className="bouton" href={`/commander/${FORMULE_ESSAI.adresse}`}>
+                  Commander l&apos;{FORMULE_ESSAI.nom.toLowerCase()} — {euros(FORMULE_ESSAI.prixCents)}
                 </Link>
-                {site.email && (
-                  <a className="bouton bouton-fantome" href={`mailto:${site.email}`}>
-                    Poser une question
-                  </a>
-                )}
+                <a className="bouton bouton-fantome" href={`mailto:${site.email}`}>
+                  Poser une question
+                </a>
               </div>
             </Reveal>
           </div>
         </section>
       </main>
-      <Pied />
+      <Pied illustrations />
     </>
   );
 }

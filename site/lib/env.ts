@@ -1,9 +1,18 @@
 // Lecture centralisée de la configuration serveur. Aucun secret dans le code.
+import { site } from "@/app/config";
+
 // Vrai si le stockage ou la base de données sont hébergés chez Supabase (sert à la politique de confidentialité).
 export const stockageSupabase = () =>
   /supabase\.(co|com)/i.test(`${process.env.S3_ENDPOINT || ""} ${process.env.DATABASE_URL || ""}`);
 
 export const env = {
+  // Environnement du site (variable SITE_ENV) :
+  //   « production » → le site est ouvert aux moteurs de recherche ;
+  //   « preprod »    → bandeau « préproduction » affiché, indexation bloquée ;
+  //   absente        → indexation bloquée par sécurité (jamais de référencement par oubli), sans bandeau.
+  siteEnv: () => (process.env.SITE_ENV || "").trim().toLowerCase(),
+  enProduction: () => env.siteEnv() === "production",
+  enPreproduction: () => env.siteEnv() === "preprod",
   baseUrl: () => (process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, ""),
   dataDir: () => process.env.DATA_DIR || "./data",
   stripeKey: () => process.env.STRIPE_SECRET_KEY || "",
@@ -19,7 +28,7 @@ export const env = {
     nom: process.env.NEXT_PUBLIC_LEGAL_NAME || "",
     siret: process.env.NEXT_PUBLIC_LEGAL_SIRET || "",
     adresse: process.env.NEXT_PUBLIC_LEGAL_ADDRESS || "",
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "",
+    email: site.email, // adresse de contact : app/config.ts, un seul endroit
     mediateur: process.env.NEXT_PUBLIC_LEGAL_MEDIATEUR || "",
   }),
 };

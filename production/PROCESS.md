@@ -2,7 +2,7 @@
 
 > Procédure détaillée avec Higgsfield, coûts et formats : [`HIGGSFIELD.md`](HIGGSFIELD.md). Modèles de messages aux clients : [`MODELES-MESSAGES.md`](MODELES-MESSAGES.md).
 
-Objectif : 45 minutes pour un Essai, 1 h 15 pour un Pack Test.
+Objectif : 45 minutes pour un Essai, 1 h 15 pour un Pack Accroches.
 
 ## 1. Brief client (6 questions)
 
@@ -26,7 +26,7 @@ Structure d'une vidéo de **15 secondes maximum** (toutes formules ; une durée 
 | 8–12 s | Bénéfice concret, une preuve vérifiable | 10 mots |
 | 12–15 s | Appel à l'action | 6 à 8 mots |
 
-Trois angles d'accroche pour un Pack Test :
+Trois angles d'accroche pour un Pack Accroches :
 - **Problème** : « Arrête de [geste pénible]. »
 - **Résultat** : « Depuis que j'utilise ça, [changement mesurable]. » — formulé comme une présentation, jamais comme un avis client fictif. Préférer « Avec ça, tu… » à « J'ai testé pendant 3 semaines… ».
 - **Curiosité** : « Ce truc à [prix] remplace [habitude]. »
@@ -42,7 +42,7 @@ Outil retenu : **Higgsfield** (Seedance 2.0, mode fast, 720p, 9:16). Procédure 
 Méthode :
 1. Générer l'image de départ : présentateur tenant ou montrant le produit, à partir des photos du client.
 2. Animer par segments de 5 à 8 secondes, un segment par ligne du script.
-3. Pour un Pack Test : ne régénérer que le segment d'accroche, réutiliser le corps.
+3. Pour un Pack Accroches : ne régénérer que le segment d'accroche, réutiliser le corps.
 4. Assembler, ajouter les sous-titres, exporter en 1080×1920.
 
 Le pipeline `archive/fruit-studio` (assemblage FFmpeg, sous-titres incrustés, plafond de dépense global) est réutilisable pour l'étape 4.

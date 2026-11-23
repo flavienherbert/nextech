@@ -50,6 +50,8 @@ const env = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "demonstration",
   SESSION_SECRET: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
+  // La démonstration locale est une préproduction : bandeau affiché, indexation bloquée (SITE_ENV="" pour tester l'absence de variable).
+  SITE_ENV: process.env.SITE_ENV ?? "preprod",
 };
 if (prod) {
   console.log("\n  Compilation en cours (environ une minute)…");

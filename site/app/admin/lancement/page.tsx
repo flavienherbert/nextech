@@ -25,7 +25,7 @@ export default async function PageLancement() {
         <h1 className="titre-page">Liste de lancement</h1>
         <p className={`avis ${pret ? "avis-ok" : r.bloquants ? "avis-erreur" : ""}`} role="status">
           {pret
-            ? "Tout est prêt. Le lancement est votre décision : ouvrez les paiements réels (VENTES_REELLES=oui) puis le référencement (INDEXATION=oui) dans Netlify."
+            ? "Tout est prêt. Le lancement est votre décision : ouvrez les paiements réels (VENTES_REELLES=oui) puis le référencement (SITE_ENV=production) dans Netlify."
             : `${r.bloquants} point${r.bloquants > 1 ? "s" : ""} automatique${r.bloquants > 1 ? "s" : ""} à régler avant d'ouvrir · ${restants} vérification${restants > 1 ? "s" : ""} à confirmer vous-même · ${r.conseils} conseil${r.conseils > 1 ? "s" : ""}.`}
         </p>
         <p className="aide">Cette page se met à jour toute seule d&apos;après la configuration réelle du site. Elle ne contacte aucun service extérieur et ne modifie rien. Pour un contrôle en profondeur (base de données, stockage, e-mails réellement envoyés) : <Link href="/admin/diagnostic">Diagnostic</Link>.</p>

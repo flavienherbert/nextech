@@ -7,7 +7,7 @@ import { store, maintenant, nomStatut, type Commande, type Courriel } from "./st
 import nodemailer from "nodemailer";
 import { alerter } from "./alertes";
 import { chargerReglages, motDePasseSmtpStocke } from "./reglages";
-import { DUREE_TEXTE, formuleParId, euros, delaiTexte, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte } from "./formules";
+import { DUREE_TEXTE, formuleParId, euros, delaiTexte, photosTexte, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte } from "./formules";
 import { toursRestants } from "./tours";
 import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, miseADisposition } from "./delais";
 
@@ -275,7 +275,7 @@ export const courriels = {
   // Relance automatique d'un client qui a payé sans envoyer son brief.
   relanceBrief: (c: Commande) =>
     envoyer(destinataire(c), `Commande ${c.id} — il nous manque encore votre brief`,
-      gabarit("Nous attendons votre brief", `<p>Votre paiement est bien enregistré, mais nous n'avons pas encore reçu les informations sur votre produit. Sans elles, nous ne pouvons pas commencer, et le délai de livraison ne démarre qu'à leur réception.</p><p>Cela prend cinq minutes : votre produit, trois photos, quelques arguments (un site internet n'est pas nécessaire).</p>`, { texte: "Remplir mon brief", url: lienClient(c) }), c.id),
+      gabarit("Nous attendons votre brief", `<p>Votre paiement est bien enregistré, mais nous n'avons pas encore reçu les informations sur votre produit. Sans elles, nous ne pouvons pas commencer, et le délai de livraison ne démarre qu'à leur réception.</p><p>Cela prend quelques minutes : votre produit, ${photosTexte}, quelques arguments (un site internet n'est pas nécessaire).</p>`, { texte: "Remplir mon brief", url: lienClient(c) }), c.id),
 
   adminBrief: (c: Commande) =>
     envoyer(env.adminEmail(), `[Studio Accroche] Brief reçu — ${c.id} — ${c.brief?.marque || ""}`,

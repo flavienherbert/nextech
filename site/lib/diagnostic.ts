@@ -58,7 +58,7 @@ function configuration(): Section {
   l.push(process.env.PREPROD_PASSWORD ? ok("Protection par mot de passe de tout le site", "PREPROD_PASSWORD défini") : mode === "reel" ? info("Protection par mot de passe de tout le site", "absente : normal une fois le site ouvert au public") : avert("Protection par mot de passe de tout le site", "PREPROD_PASSWORD absent : le site est accessible à tous"));
   l.push(mode === "test" ? ok("Paiement", "mode test Stripe") : mode === "reel" ? avert("Paiement", "MODE RÉEL actif") : mode === "simulation" ? avert("Paiement", "simulateur local : ne doit pas servir en ligne") : info("Paiement", `fermé : ${raison}`));
   l.push(env.adminEmail() ? ok("ADMIN_EMAIL (notifications de commande)") : avert("ADMIN_EMAIL (notifications de commande)", "absent : l'administrateur n'est pas prévenu des commandes"));
-  l.push(env.legal().email ? ok("Adresse de contact publique") : avert("Adresse de contact publique", "NEXT_PUBLIC_CONTACT_EMAIL absent"));
+  l.push(ok("Adresse de contact publique", `${env.legal().email} (app/config.ts)`));
   const manquantsLegaux = vendeur().manquants;
   l.push(manquantsLegaux.length ? info("Mentions légales du vendeur", `incomplètes : ${manquantsLegaux.join(", ")} (nécessaires avant les ventes réelles)`) : ok("Mentions légales du vendeur"));
   l.push(postgresConfigure() ? ok("DATABASE_URL défini") : (surNetlify() ? ko : info)("DATABASE_URL défini", "absent : les commandes ne seraient pas conservées"));

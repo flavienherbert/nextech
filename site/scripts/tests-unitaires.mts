@@ -144,39 +144,39 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
     return { ...(await confirmer(r.jeton, slot, "media")), jeton: r.jeton };
   };
   const m0 = await chargerMedias();
-  verifier("Médias : sans envoi, l'image d'origine est utilisée et la vidéo de démonstration est vide", m0.url("couverture") === "/media/photos/couverture-1920.webp" && m0.url("demo-video") === null && !m0.envoye("couverture"));
+  verifier("Médias : sans envoi, l'image d'origine est utilisée et la vidéo de démonstration est vide", m0.url("cloture") === "/media/photos/cloture.webp" && m0.url("demo-video") === null && !m0.envoye("cloture"));
   const demandes = await Promise.all([
     reserver("inconnu", "media", { nom: "a.webp", type: "image/webp", taille: 100 }),
-    reserver("couverture", "media", { nom: "a.mp4", type: "video/mp4", taille: 100 }),
+    reserver("cloture", "media", { nom: "a.mp4", type: "video/mp4", taille: 100 }),
     reserver("demo-video", "media", { nom: "a.webp", type: "image/webp", taille: 100 }),
-    reserver("couverture", "media", { nom: "a.svg", type: "image/svg+xml", taille: 100 }),
-    reserver("couverture", "media", { nom: "a.png", type: "image/webp", taille: 100 }),
-    reserver("couverture", "media", { nom: "a.webp", type: "image/webp", taille: 9 * 1048576 }),
+    reserver("cloture", "media", { nom: "a.svg", type: "image/svg+xml", taille: 100 }),
+    reserver("cloture", "media", { nom: "a.png", type: "image/webp", taille: 100 }),
+    reserver("cloture", "media", { nom: "a.webp", type: "image/webp", taille: 9 * 1048576 }),
     reserver("demo-video", "media", { nom: "a.mp4", type: "video/mp4", taille: 41 * 1048576 }),
     reserver("partage", "media", { nom: "a.jpg", type: "image/jpeg", taille: 6 * 1048576 }),
-    reserver("couverture", "media", { nom: "a.heic", type: "image/heic", taille: 100 }),
+    reserver("cloture", "media", { nom: "a.heic", type: "image/heic", taille: 100 }),
   ]);
   const statuts = demandes.map((d) => ("erreur" in d ? d.statut : 0)).join(",");
   verifier("Médias : emplacement inconnu, mauvais genre, SVG, extension trompeuse, HEIC, fichier trop lourd pour l'emplacement → tous refusés", statuts === "404,415,415,415,415,413,413,413,415", statuts);
-  let mauvais = await envoyer("couverture", Buffer.from("ceci est du texte, pas une image"), "image/webp", "a.webp");
+  let mauvais = await envoyer("cloture", Buffer.from("ceci est du texte, pas une image"), "image/webp", "a.webp");
   verifier("Médias : un contenu qui n'est pas une image est refusé et supprimé du stockage", "erreur" in mauvais && mauvais.statut === 415 && (await depot().inventaire("medias")).length === 0, JSON.stringify(mauvais));
-  const bon = await envoyer("couverture", WEBP, "image/webp", "mon visuel.webp");
+  const bon = await envoyer("cloture", WEBP, "image/webp", "mon visuel.webp");
   verifier("Médias : une image valide est acceptée, son identifiant porte l'extension", "fichier" in bon && /^[0-9a-f]{32}\.webp$/.test(bon.fichier.id), JSON.stringify(bon));
   if ("fichier" in bon) {
     verifier("Médias : le jeton d'un emplacement ne sert pas pour un autre", "erreur" in (await confirmer(bon.jeton!, "partage", "media")));
-    await definirMedia("couverture", bon.fichier);
+    await definirMedia("cloture", bon.fichier);
     const m1 = await chargerMedias();
-    verifier("Médias : le registre renvoie l'adresse versionnée du fichier envoyé", m1.url("couverture") === `/m/couverture?v=${bon.fichier.id}` && m1.envoye("couverture")?.nom === "mon visuel.webp", String(m1.url("couverture")));
-    const second = await envoyer("couverture", WEBP, "image/webp", "autre.webp");
+    verifier("Médias : le registre renvoie l'adresse versionnée du fichier envoyé", m1.url("cloture") === `/m/cloture?v=${bon.fichier.id}` && m1.envoye("cloture")?.nom === "mon visuel.webp", String(m1.url("cloture")));
+    const second = await envoyer("cloture", WEBP, "image/webp", "autre.webp");
     if ("fichier" in second) {
-      await definirMedia("couverture", second.fichier);
-      verifier("Médias : un remplacement change l'adresse, l'ancien fichier reste quelques heures (pages en cache)", (await chargerMedias()).url("couverture") === `/m/couverture?v=${second.fichier.id}` && (await depot().taille(cleMedia(bon.fichier.id))) !== null);
+      await definirMedia("cloture", second.fichier);
+      verifier("Médias : un remplacement change l'adresse, l'ancien fichier reste quelques heures (pages en cache)", (await chargerMedias()).url("cloture") === `/m/cloture?v=${second.fichier.id}` && (await depot().taille(cleMedia(bon.fichier.id))) !== null);
       await purger(true);
       verifier("Médias : un fichier remplacé depuis moins de 24 h n'est pas encore supprimé", (await depot().taille(cleMedia(bon.fichier.id))) !== null);
       const bilan = await purger(true, Date.now() + 2 * 86_400_000);
       verifier("Médias : après 24 h, l'ancien fichier est supprimé, le fichier actuel est conservé", (await depot().taille(cleMedia(bon.fichier.id))) === null && (await depot().taille(cleMedia(second.fichier.id))) !== null && (bilan?.medias ?? 0) >= 1, JSON.stringify(bilan));
-      await retirerMedia("couverture");
-      verifier("Médias : retirer un média rend l'image d'origine", (await chargerMedias()).url("couverture") === "/media/photos/couverture-1920.webp");
+      await retirerMedia("cloture");
+      verifier("Médias : retirer un média rend l'image d'origine", (await chargerMedias()).url("cloture") === "/media/photos/cloture.webp");
       await purger(true, Date.now() + 4 * 86_400_000);
       verifier("Médias : le fichier retiré est nettoyé à son tour", (await depot().taille(cleMedia(second.fichier.id))) === null);
     } else verifier("Médias : second envoi", false, JSON.stringify(second));
@@ -191,7 +191,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Médias : 8 enregistrements simultanés, aucun perdu", ids.every((slot) => m2.envoye(slot)), ids.filter((slot) => !m2.envoye(slot)).join(","));
   await Promise.all(ids.map((slot) => retirerMedia(slot)));
   verifier("Médias : titre et légende d'un exemple, nettoyés et limités en longueur", (await definirTexte("exemple-1", "Titre\u0007  avec\n sauts", "x".repeat(300))) && (await chargerMedias()).texte("exemple-1").titre === "Titre avec sauts" && (await chargerMedias()).texte("exemple-1").legende.length === 160);
-  verifier("Médias : le texte n'est accepté que pour les vidéos d'exemple", !(await definirTexte("couverture", "t", "l")) && !(await definirTexte("exemple-1-affiche", "t", "l")) && !(await definirTexte("inconnu", "t", "l")));
+  verifier("Médias : le texte n'est accepté que pour les vidéos d'exemple", !(await definirTexte("cloture", "t", "l")) && !(await definirTexte("exemple-1-affiche", "t", "l")) && !(await definirTexte("inconnu", "t", "l")));
   await definirTexte("exemple-1", "", "");
   verifier("Médias : un texte vide efface le texte", (await chargerMedias()).texte("exemple-1").titre === "");
   // Registre abîmé ou falsifié : seuls les emplacements connus sont lus
@@ -235,22 +235,60 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
 
 // 7 sexies. Cohérence du catalogue (prix, durée, tours de retouches) et tours de retouches
 {
-  const { formules, DUREE_MAX_SECONDES, DUREE_TEXTE, formuleParId } = await import("../lib/formules");
+  const { formules, DUREE_MAX_SECONDES, DUREE_TEXTE, formuleParId, formuleParCle, videosTexte, formatsTexte, delaiCourt, delaisTexte } = await import("../lib/formules");
   const { toursMax, toursRestants, toursUtilises } = await import("../lib/tours");
   const { POST } = await import("../app/api/commande/[token]/validation/route");
   const { refuserRetouche } = await import("../lib/commandes");
   const fs = await import("node:fs"); const path = await import("node:path");
   verifier("Catalogue : prix 35 / 89 / 169 € (3 500 / 8 900 / 16 900 centimes)", formules.map((f) => f.prixCents).join() === "3500,8900,16900", formules.map((f) => f.prixCents).join());
   verifier("Catalogue : 1 / 2 / 2 tours de retouches", formules.map((f) => f.tours).join() === "1,2,2");
-  verifier("Catalogue : 15 secondes maximum pour chaque formule, aucun point ne promet davantage", DUREE_MAX_SECONDES === 15 && formules.every((f) => f.duree === DUREE_TEXTE && f.points[0].includes("15 secondes maximum") && f.points.every((x) => !/20 s|20 secondes|15 à|10 à/.test(x))));
-  verifier("Catalogue : les points affichés reprennent le nombre de vidéos et de tours du catalogue", formules.every((f) => f.points[0].startsWith(`${f.videos} vidéo`) && f.points.at(-1) === `${f.tours} tour${f.tours > 1 ? "s" : ""} de retouches`));
-  // Aucun prix, aucune durée ni nombre de retouches écrit à la main hors du catalogue (app/ et lib/)
+  verifier("Catalogue : « jusqu'à 15 secondes » pour chaque formule, aucun point ne promet davantage ni une fourchette", DUREE_MAX_SECONDES === 15 && DUREE_TEXTE === "jusqu'à 15 secondes" && formules.every((f) => f.duree === DUREE_TEXTE && f.points[0].includes("jusqu'à 15 secondes") && f.points.every((x) => !/20 s|20 secondes|15 à|10 à|15 secondes maximum/.test(x))));
+  verifier("Catalogue : les points affichés reprennent le nombre de vidéos, d'accroches, de formats et de tours du catalogue", formules.every((f) => f.points[0] === videosTexte(f.videos) && f.points[2].includes(formatsTexte(f.formats)) && f.points.at(-1) === `${f.tours} tour${f.tours > 1 ? "s" : ""} de retouches`));
+  verifier("Catalogue : « Pack Accroches » (identifiant interne « test » inchangé), « Recommandé » sur lui seul, aucun badge ailleurs", formules.map((f) => f.nom).join() === "Essai,Pack Accroches,Pack Campagne" && formules.find((f) => f.badge)?.id === "test" && formules.filter((f) => f.badge).length === 1 && formules.find((f) => f.badge)?.badge === "Recommandé" && formules[1].resume === "Trois accroches pour trouver celle qui vend.");
+  verifier("Catalogue : adresses publiques (essai, accroches, campagne) ; l'ancienne adresse « test » mène toujours au Pack Accroches", formules.map((f) => f.adresse).join() === "essai,accroches,campagne" && formuleParCle("accroches")?.id === "test" && formuleParCle("test")?.id === "test" && formuleParCle("inconnue") === undefined);
+  verifier("Catalogue : délais 48 h / 3 jours / 5 jours, formats 9:16 (puis 1:1 pour la campagne), 1 / 3 / 6 vidéos", formules.map((f) => delaiCourt(f)).join() === "48 h,3 jours,5 jours" && formules.map((f) => f.formats.join("+")).join() === "9:16,9:16,9:16+1:1" && formules.map((f) => f.videos).join() === "1,3,6" && delaisTexte() === "Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours");
+  // Aucun prix, aucune durée, aucun délai, aucun format et aucun nombre de retouches écrit à la main hors du catalogue
   const sources: string[] = [];
   const parcourir = (d: string) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const c = path.join(d, e.name); if (e.isDirectory()) parcourir(c); else if (/\.(ts|tsx)$/.test(e.name)) sources.push(c); } };
   parcourir("app"); parcourir("lib");
+  const sansCommentaires = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   const interdit = /(?<![\d.,–-])(25|35|69|89|129|169) ?€|(prixCents|montantCents|unit_amount|amount_total) ?[:=] ?\d{4,5}|15 à 20|10 à 15|20 secondes|16–20|retouches? par vidéo/;
   const fautifs = sources.filter((f) => !/lib[\\/]formules\.ts$/.test(f)).filter((f) => interdit.test(fs.readFileSync(f, "utf8")));
   verifier("Aucun prix, aucune durée et aucun nombre de retouches écrits à la main hors de lib/formules.ts", fautifs.length === 0, fautifs.join(", "));
+  // Textes visibles par les clients (hors administration et API) : ni délai, ni durée, ni format, ni ancien nom de formule écrits à la main
+  const interditClient = /\b(48|72) ?(h|heures)\b|\b[2-9] jours\b|[Qq]uinze secondes|\b15 ?(s|secondes)\b|Pack Test|Le plus utile|\b9:16\b|\b1:1\b|\b[Tt]rois photos\b/;
+  const fautifsClient = sources.filter((f) => !/lib[\\/]formules\.ts$/.test(f) && !/app[\\/](admin|api)[\\/]/.test(f) && !/lib[\\/](veille|emplacements|auth|lancement|diagnostic|rattrapage|delais|echeances|suivi)\.ts$/.test(f) && !/app[\\/]components[\\/]HeroTelephone/.test(f)).filter((f) => interditClient.test(sansCommentaires(fs.readFileSync(f, "utf8"))));
+  verifier("Aucun délai, aucune durée, aucun format ni ancien nom de formule écrits à la main dans les pages, les e-mails et les factures", fautifsClient.length === 0, fautifsClient.join(", "));
+  // Configuration du site : contact, images, réglages, bandeau, indexation
+  const config = await import("../app/config");
+  const { env } = await import("../lib/env");
+  verifier("Configuration : adresse de contact unique (app/config.ts), lue par les mentions légales, la facture et les e-mails", config.site.email === "contactstudioaccroche@gmail.com" && env.legal().email === config.site.email);
+  verifier("Configuration : vidéo d'exemple masquée par défaut (SHOW_EXAMPLE_VIDEO absent) et active seulement si la valeur est true / oui / 1", config.SHOW_EXAMPLE_VIDEO === false && config.demonstration.video === "/videos/exemple.mp4" && config.demonstration.poster === "/videos/exemple-apercu.jpg");
+  {
+    const chemins = [...config.images.temps, ...Object.values(config.images.formules).flat(), config.images.cloture, config.images.partage];
+    const manquants = chemins.filter((c) => !fs.existsSync(path.join("public", c)));
+    verifier(`Configuration : les ${chemins.length} chemins d'images regroupés dans app/config.ts existent`, manquants.length === 0 && config.images.temps.length === 4 && config.images.formules.test.length === 3 && config.images.formules.campagne.length === 6, manquants.join(", "));
+    const og = fs.readFileSync(path.join("public", config.images.partage));
+    let largeur = 0, hauteur = 0;
+    for (let i = 2; i < og.length - 9;) { if (og[i] !== 0xff) { i++; continue; } const m = og[i + 1]; if (m >= 0xc0 && m <= 0xc3) { hauteur = og.readUInt16BE(i + 5); largeur = og.readUInt16BE(i + 7); break; } i += 2 + og.readUInt16BE(i + 2); }
+    verifier("Image de partage : JPEG de 1200 × 630 px", og[0] === 0xff && og[1] === 0xd8 && largeur === 1200 && hauteur === 630, `${largeur}×${hauteur}`);
+    verifier("Icônes : favicon.ico, icon.svg et apple-icon.png présents", ["favicon.ico", "icon.svg", "apple-icon.png"].every((f) => fs.statSync(path.join("app", f)).size > 100));
+  }
+  {
+    const sauve = { site: process.env.SITE_ENV, url: process.env.SITE_URL };
+    const robots = (await import("../app/robots")).default, sitemap = (await import("../app/sitemap")).default;
+    process.env.SITE_URL = "https://exemple.fr";
+    const regles = (r: ReturnType<typeof robots>) => JSON.stringify(r.rules);
+    delete process.env.SITE_ENV;
+    verifier("Indexation : variable SITE_ENV absente → tout est bloqué (jamais d'indexation par oubli), sans bandeau", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && !robots().sitemap && sitemap().length === 0 && !env.enProduction() && !env.enPreproduction());
+    process.env.SITE_ENV = "preprod";
+    verifier("Indexation : préproduction (SITE_ENV=preprod) → tout est bloqué, bandeau de préproduction actif", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && sitemap().length === 0 && env.enPreproduction() && !env.enProduction());
+    process.env.SITE_ENV = " Production ";
+    const r = robots();
+    verifier("Indexation : production (SITE_ENV=production) → pages publiques autorisées, administration, commandes et API exclues, plan du site publié sur l'adresse du site", env.enProduction() && !env.enPreproduction() && regles(r).includes('"allow":"/"') && ["/admin", "/commande/", "/commander/", "/api/"].every((d) => regles(r).includes(d)) && r.sitemap === "https://exemple.fr/sitemap.xml" && sitemap().map((x) => x.url).join() === "https://exemple.fr/,https://exemple.fr/mentions-legales,https://exemple.fr/cgv,https://exemple.fr/confidentialite", regles(r));
+    if (sauve.site === undefined) delete process.env.SITE_ENV; else process.env.SITE_ENV = sauve.site;
+    if (sauve.url === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = sauve.url;
+  }
 
   // Tours de retouches par formule : le nombre de demandes acceptées est exactement celui de la formule (et non × le nombre de vidéos)
   const envoyer = (token: string, corps: object) => POST(new Request("http://x/api", { method: "POST", body: JSON.stringify(corps) }), { params: Promise.resolve({ token }) });
@@ -297,7 +335,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
       let texte = "";
       if (pdftotext && facture) { const l = await depot().lire(facture.cle); const t = path.join(os.tmpdir(), `sa-${c.id}.pdf`); fs.writeFileSync(t, l!.corps); texte = execFileSync("pdftotext", ["-layout", t, "-"]).toString().replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " "); fs.rmSync(t); }
       const prix = `${f.prixCents / 100} €`;
-      verifier(`Facture « ${f.nom} » : montant ${prix} identique au catalogue${pdftotext ? ", présent dans le PDF avec la durée maximale" : " (texte du PDF non vérifié : pdftotext absent)"}`, !r.obstacles && facture?.montantCents === f.prixCents && (!pdftotext || (texte.includes(`${prix}`) && texte.includes("15 secondes maximum") && texte.includes(`${f.videos} vidéo`) && !texte.includes("SPÉCIMEN"))) && facture?.specimen === false, JSON.stringify([r.obstacles, facture?.montantCents, facture?.specimen]));
+      verifier(`Facture « ${f.nom} » : montant ${prix} identique au catalogue${pdftotext ? ", présent dans le PDF avec la durée maximale" : " (texte du PDF non vérifié : pdftotext absent)"}`, !r.obstacles && facture?.montantCents === f.prixCents && (!pdftotext || (texte.includes(`${prix}`) && texte.includes("jusqu'à 15 secondes") && texte.includes(`${f.videos} vidéo`) && !texte.includes("SPÉCIMEN"))) && facture?.specimen === false, JSON.stringify([r.obstacles, facture?.montantCents, facture?.specimen]));
     }
     for (const [k, v] of [["STRIPE_SECRET_KEY", sauve.cle], ["STRIPE_API_HOST", sauve.hote], ["VENTES_REELLES", sauve.ventes]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
   }
@@ -580,7 +618,7 @@ const nouveau = (cle: string) => `${cle}-${Date.now()}-${Math.random().toString(
 
 {
   // — Alertes sur le téléphone
-  let a = await alerter({ cle: nouveau("t"), titre: "Nouvelle commande payée", message: "SA-1 · Pack Test · 69,00 €", lien: "https://studio.exemple/admin/commande/SA-1", email: false });
+  let a = await alerter({ cle: nouveau("t"), titre: "Nouvelle commande payée", message: "SA-1 · Pack Accroches · 89,00 €", lien: "https://studio.exemple/admin/commande/SA-1", email: false });
   verifier("Alerte téléphone : envoyée au bon sujet, avec titre, message et lien direct", a.push === "envoye" && ntfyRecus.length === 1 && ntfyRecus[0].topic === "sujet-de-test" && ntfyRecus[0].title === "Nouvelle commande payée" && ntfyRecus[0].click === "https://studio.exemple/admin/commande/SA-1", JSON.stringify(ntfyRecus));
   const cle = nouveau("dedup"); await alerter({ cle, titre: "x", message: "y", email: false }); a = await alerter({ cle, titre: "x", message: "y", email: false });
   verifier("Alerte : une même alerte n'est pas répétée dans sa fenêtre (anti-avalanche)", a.ignoree === true && ntfyRecus.length === 2, String(ntfyRecus.length));

@@ -27,13 +27,24 @@ Parcours à suivre :
 
 Pour repartir de zéro : supprimer le dossier `site/data`.
 
-## Remplacer la vidéo de démonstration, les exemples et les images
+## Réglages du site, vidéo d'exemple et images
 
-Tout se fait dans **Administration → Images et vidéos** (`/admin/medias`), sans toucher au code ni redéployer : voir `MEDIAS.md`. Tant qu'aucune vidéo du studio n'est envoyée, l'accueil affiche l'exemple externe provisoire (clairement indiqué) ou un emplacement réservé.
+**Où changer quoi** (un seul endroit pour chaque chose) :
 
-Solution de repli (sans l'administration) : déposer `demonstration.mp4` et `demonstration.jpg` dans `public/media/demo/` et renseigner `video` et `poster` dans `app/config.ts`. La vidéo envoyée dans l'administration est toujours prioritaire.
+| Quoi | Où |
+|---|---|
+| Offre : noms, prix, nombre de vidéos, durée, délais, retouches, formats | `lib/formules.ts` (source unique : tout le site, les e-mails et les factures la lisent) |
+| Adresse de contact, textes, chemins des images, vidéo d'exemple | `app/config.ts` |
+| Identité de l'entreprise (nom, SIRET, adresse) | variables `NEXT_PUBLIC_LEGAL_*` dans Netlify |
+| Adresse du site | variable `SITE_URL` dans Netlify (à changer le jour où le nom de domaine est acheté) |
+| Préproduction ou production | variable `SITE_ENV` : `preprod` (bandeau, indexation bloquée) ou `production` (indexation ouverte) ; absente = indexation bloquée |
+| Vidéo d'exemple de l'accueil | variable `SHOW_EXAMPLE_VIDEO` (`true` pour afficher la section) |
 
-N'y placer qu'une vidéo réellement produite par le studio : c'est le seul endroit du site présenté comme une réalisation. Les photographies d'origine portent l'étiquette « Illustration ».
+**Vidéo d'exemple.** Déposer votre MP4 vertical dans `public/videos/exemple.mp4` (et l'aperçu dans `public/videos/exemple-apercu.jpg`), puis ajouter `SHOW_EXAMPLE_VIDEO=true` dans Netlify et redéployer. Tant que ce réglage n'est pas `true`, la section est entièrement masquée. La vidéo se lit au clic, sans le son au départ : ses sous-titres doivent être incrustés dans l'image. Une vidéo envoyée dans **Administration → Images et vidéos** est prioritaire sur ce fichier : voir `MEDIAS.md`.
+
+**Images d'illustration.** Leurs chemins sont regroupés dans `app/config.ts` (`images`) ; elles se remplacent aussi depuis l'administration, sans redéployer.
+
+**Visuels de marque** (image de partage 1200 × 630, favicon, icône d'application) : `node scripts/visuels.mjs`.
 
 ## Si la page s'affiche mal (sections vides, erreur « unsafe-eval » dans la console)
 
@@ -68,6 +79,7 @@ npm run restauration -- sauvegardes/<dossier>   # restaure dans une base vide
 
 ```bash
 npm run test:csp           # autonome (2 min) : en-têtes en développement et en version compilée, rendu réel, arrêt des processus
+npm run test:environnements # autonome (1 min) : sans variable / préproduction / production (indexation, bandeau, vidéo d'exemple, mentions légales)
 ```
 
 

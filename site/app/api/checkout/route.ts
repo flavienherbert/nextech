@@ -16,7 +16,7 @@ const tropRapide = async (ip: string) => (await enregistrer("commande", ip, 15 *
 export async function POST(req: Request) {
   const form = await req.formData();
   const f = formuleParId(String(form.get("formule") || ""));
-  const retour = (q: string) => NextResponse.redirect(`${env.baseUrl()}/commander/${f?.id || "essai"}?${q}`, 303);
+  const retour = (q: string) => NextResponse.redirect(`${env.baseUrl()}/commander/${f?.adresse || "essai"}?${q}`, 303);
   if (!f) return NextResponse.redirect(`${env.baseUrl()}/#formules`, 303);
   if (form.get("cgv") !== "oui" || form.get("ia") !== "oui") return retour("erreur=conditions");
   if (modePaiement().mode === "ferme") return retour("erreur=ferme");

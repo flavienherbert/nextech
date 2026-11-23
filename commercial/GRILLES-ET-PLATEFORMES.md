@@ -4,7 +4,7 @@ Modèle reproductible : `python3 commercial/modele-rentabilite.py decision`. Hyp
 
 ## 1. Décisions
 
-| | Essai | Pack Test | Pack Campagne |
+| | Essai | Pack Accroches | Pack Campagne |
 |---|---|---|---|
 | **Prix du site direct** (inchangé par les commissions externes) | **35 €** | **89 €** | **169 €** |
 | Vidéos | 1 | 3 | 6 |
@@ -33,7 +33,7 @@ Modèle reproductible : `python3 commercial/modele-rentabilite.py decision`. Hyp
 
 Principe : **le prix du site ne change pas**. Sur une plateforme, le prix est relevé pour que le bénéfice par commande soit le même que sur le site (scénario central, cotisations calculées sur le prix payé par l'acheteur, par prudence).
 
-| | Essai | Pack Test | Pack Campagne |
+| | Essai | Pack Accroches | Pack Campagne |
 |---|---|---|---|
 | **Site direct** | 35 € | 89 € | 169 € |
 | **ComeUp, offre gratuite** (20 %) | **47 €** | **119 €** | **229 €** |
@@ -42,7 +42,7 @@ Principe : **le prix du site ne change pas**. Sur une plateforme, le prix est re
 
 Prix de parité calculés (avant arrondi) : ComeUp gratuit 46,1 / 117,8 / 224,1 € ; ComeUp Plus 35,0 / 87,5 / 165,2 € ; Fiverr 47,8 / 122,3 / 232,7 € (soit 52 / 133 / 253 $ à 0,92 €/$). Les prix retenus sont arrondis au-dessus (ComeUp gratuit : +2 %, Fiverr : +4 %) pour absorber l'incertitude sur les frais de retrait et de conversion.
 
-**Sur ComeUp : offre gratuite, prix 47 / 119 / 229 €, sans coût fixe. Décision du 22 novembre 2026 : ComeUp Plus attend les premières ventes.** Pour mémoire, à prix égal l'offre Plus ferait gagner 8,4 € (Essai), 22,8 € (Pack Test) ou 44,8 € (Pack Campagne) par commande, soit un abonnement rentable dès 2 Essais ou 1 Pack Test par mois sur la plateforme ; la grille serait alors 36 / 90 / 170 €. À réévaluer après les premières ventes.
+**Sur ComeUp : offre gratuite, prix 47 / 119 / 229 €, sans coût fixe. Décision du 22 novembre 2026 : ComeUp Plus attend les premières ventes.** Pour mémoire, à prix égal l'offre Plus ferait gagner 8,4 € (Essai), 22,8 € (Pack Accroches) ou 44,8 € (Pack Campagne) par commande, soit un abonnement rentable dès 2 Essais ou 1 Pack Accroches par mois sur la plateforme ; la grille serait alors 36 / 90 / 170 €. À réévaluer après les premières ventes.
 
 **Ce que paie l'acheteur** : Fiverr ajoute 5,5 % et des frais de petite commande (≈ 60 $ pour un Essai à 54 $, d'après les blogs) ; ComeUp ajoute des frais bancaires. Un acheteur compare ce total aux autres vendeurs, pas le prix du site : c'est le risque de conversion de cette grille.
 
@@ -50,7 +50,7 @@ Prix de parité calculés (avant arrondi) : ComeUp gratuit 46,1 / 117,8 / 224,1 
 
 ### Services « à partir de » et options
 
-- **ComeUp** : un service « Essai » à 47 €, et des options « Pack Test » (+72 €) et « Pack Campagne » (+182 €) pour atteindre 119 € et 229 € ; ou trois services séparés.
+- **ComeUp** : un service « Essai » à 47 €, et des options « Pack Accroches » (+72 €) et « Pack Campagne » (+182 €) pour atteindre 119 € et 229 € ; ou trois services séparés.
 - **Fiverr** : un gig à trois packages Basic 54 $ / Standard 135 $ / Premium 255 $, avec 1 / 2 / 2 révisions.
 - Dans chaque fiche : « 15 secondes maximum par vidéo » et la définition d'un tour de retouches (pas d'option de durée supérieure).
 - Les commandes de plateforme se livrent **dans la plateforme** (fichiers, messagerie, révisions). Ne redirigez pas les acheteurs vers le site : c'est interdit par la plupart des plateformes (à vérifier dans leurs conditions).
@@ -62,12 +62,12 @@ Prix de parité calculés (avant arrondi) : ComeUp gratuit 46,1 / 117,8 / 224,1 
 | Formule | Prix | Bénéfice central (optimiste – prudent) | Temps central (optimiste – prudent) | €/h central (optimiste – prudent) |
 |---|---|---|---|---|
 | Essai | 35 € | 19,5 € (24,0 – 15,3) | 1,6 h (0,9 – 2,9) | 12,3 (27,1 – 5,3) |
-| Pack Test | 89 € | 47,6 € (60,6 – 33,7) | 3,5 h (1,9 – 7,6) | 13,4 (31,8 – 4,5) |
+| Pack Accroches | 89 € | 47,6 € (60,6 – 33,7) | 3,5 h (1,9 – 7,6) | 13,4 (31,8 – 4,5) |
 | Pack Campagne | 169 € | 89,1 € (114,6 – 61,4) | 5,7 h (2,9 – 12,9) | 15,7 (39,2 – 4,8) |
 
 ### Plateformes, aux prix retenus (€/h : central ; optimiste – prudent)
 
-| | Essai | Pack Test | Pack Campagne |
+| | Essai | Pack Accroches | Pack Campagne |
 |---|---|---|---|
 | ComeUp gratuit (47 / 119 / 229 €) | 12,6 (28,0 – 5,6) | 13,6 (32,6 – 4,6) | 16,2 (40,6 – 5,1) |
 | ComeUp Plus (36 / 90 / 170 €) | 12,8 (27,7 – 5,6) | 14,0 (32,5 – 4,8) | 16,3 (40,1 – 5,1) |
@@ -82,19 +82,19 @@ Temps total par commande (brief, script, échanges, génération, montage, contr
 | Formule | Temps maximal avant abonnement | Temps maximal après abonnement (12 commandes/mois) | Temps estimé : optimiste / central / prudent |
 |---|---|---|---|
 | Essai | **0 h 47** | **0 h 35** | 0,9 h / 1,6 h / 2,9 h |
-| Pack Test | **1 h 55** | **1 h 20** | 1,9 h / 3,5 h / 7,6 h |
+| Pack Accroches | **1 h 55** | **1 h 20** | 1,9 h / 3,5 h / 7,6 h |
 | Pack Campagne | **3 h 34** | **2 h 25** | 2,9 h / 5,7 h / 12,9 h |
 
 Mois complet, abonnement Higgsfield compris :
 
 | Mois | Scénario | Bénéfice du mois | Temps réel | €/h | Temps admissible pour 25 €/h |
 |---|---|---|---|---|---|
-| 4 commandes (2 Essai + 2 Pack Test) | optimiste | 124 € | 5,6 h | 22,2 | 5,0 h |
+| 4 commandes (2 Essai + 2 Pack Accroches) | optimiste | 124 € | 5,6 h | 22,2 | 5,0 h |
 | | central | 80 € | 10,3 h | 7,8 | 3,2 h |
-| 12 commandes (5 Essai + 5 Pack Test + 2 Pack Campagne) | optimiste | 534 € | 19,8 h | **26,9** | 21,3 h |
+| 12 commandes (5 Essai + 5 Pack Accroches + 2 Pack Campagne) | optimiste | 534 € | 19,8 h | **26,9** | 21,3 h |
 | | central | 360 € | 37,0 h | 9,7 | 14,4 h |
 
-**Lecture honnête.** 25 €/h n'est atteint, avec ces prix, que dans le scénario optimiste (rodé, peu d'essais ratés) **et** à partir d'environ 12 commandes par mois (l'abonnement est alors dilué). Dans le scénario central, il faut diviser le temps par commande par **1,6 à 2,7** selon la formule et le volume : un Essai en 35 à 47 minutes, un Pack Test en 1 h 20 à 1 h 55, un Pack Campagne en 2 h 25 à 3 h 35. Ce n'est pas impossible (c'est l'ordre de grandeur de l'estimation de 50 à 60 minutes du rapport d'essai pour un Essai réussi du premier coup), mais **aucune commande réelle ne l'a encore prouvé** : mesurez les cinq premières.
+**Lecture honnête.** 25 €/h n'est atteint, avec ces prix, que dans le scénario optimiste (rodé, peu d'essais ratés) **et** à partir d'environ 12 commandes par mois (l'abonnement est alors dilué). Dans le scénario central, il faut diviser le temps par commande par **1,6 à 2,7** selon la formule et le volume : un Essai en 35 à 47 minutes, un Pack Accroches en 1 h 20 à 1 h 55, un Pack Campagne en 2 h 25 à 3 h 35. Ce n'est pas impossible (c'est l'ordre de grandeur de l'estimation de 50 à 60 minutes du rapport d'essai pour un Essai réussi du premier coup), mais **aucune commande réelle ne l'a encore prouvé** : mesurez les cinq premières.
 
 L'Essai est le produit le plus tendu : 35 € pour moins de 47 minutes, abonnement non compris. Le brief, le script et les échanges (15 à 30 minutes) laissent 15 à 30 minutes pour générer, monter et contrôler.
 

@@ -20,7 +20,7 @@ Pourquoi eux : ils savent qu'il leur faut de la vidéo, n'ont ni le temps ni le 
 
 1. **Rien à envoyer, rien à filmer** : trois photos du produit suffisent.
 2. **35 € pour essayer** : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Risque faible.
-3. **Trois accroches pour comparer** (Pack Test, 89 €) : on teste trois débuts au lieu de parier sur un seul.
+3. **Trois accroches pour comparer** (Pack Accroches, 89 €) : on teste trois débuts au lieu de parier sur un seul.
 4. **Script validé avant production**, un tour de retouches inclus (une seule demande qui regroupe toutes vos remarques), remboursement si le produit ne peut pas être reproduit fidèlement.
 5. **Transparence** : présentateur généré par IA, vidéo signalée comme telle, pas de faux témoignage.
 

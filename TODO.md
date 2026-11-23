@@ -13,7 +13,7 @@ L'état et l'ordre sont dans `LANCEMENT.md` (sections B et C). La page `/admin/l
 7. Activer le compte Stripe, ajouter la clé réelle et le webhook réel dans Netlify.
 8. Renseigner SIRET, adresse, médiateur si vente aux particuliers ; faire relire les conditions de vente.
 9. Poser la question de la date de facturation à un comptable.
-10. Feu vert : `VENTES_REELLES=oui`, puis `INDEXATION=oui`.
+10. Feu vert : `VENTES_REELLES=oui`, puis `SITE_ENV=production`.
 
 ## Possible sur demande (code)
 

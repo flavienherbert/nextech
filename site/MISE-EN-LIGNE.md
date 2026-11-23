@@ -155,7 +155,8 @@ Limite connue : sans nom de domaine authentifié, les e-mails peuvent arriver en
 | `ADMIN_PASSWORD` | un autre mot de passe, long (accès à l'administration) |
 | `SESSION_SECRET` | 64 caractères aléatoires |
 | `ADMIN_EMAIL` | l'adresse du studio |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | l'adresse du studio |
+| `SITE_ENV` | `preprod` tant que le site est une préproduction (bandeau affiché, indexation bloquée) ; `production` le jour de l'ouverture (bandeau retiré, indexation ouverte) |
+| `SHOW_EXAMPLE_VIDEO` | laisser vide ; `true` quand votre vidéo est déposée dans `site/public/videos/exemple.mp4` (voir `MEDIAS.md`) |
 | `S3_BUCKET` | `studio-accroche-preprod` |
 | `S3_ENDPOINT` et `S3_PUBLIC_ORIGIN` | l'adresse R2 de l'étape 1 |
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | les deux clés R2 |

@@ -9,7 +9,7 @@ import { chargerMedias } from "./medias";
 import { pushConfigure } from "./alertes";
 import { echecsUtiles } from "./rattrapage";
 import { store } from "./store";
-import { demonstration } from "@/app/config";
+import { SHOW_EXAMPLE_VIDEO } from "@/app/config";
 
 export type EtatControle = "ok" | "bloquant" | "conseil" | "info";
 export type Controle = { id: string; nom: string; etat: EtatControle; detail: string; ou?: string; lien?: string };
@@ -62,13 +62,13 @@ export async function controlerLancement(): Promise<{ groupes: Groupe[]; bloquan
   // — Contenu
   const perso = EMPLACEMENTS.filter((e) => m.envoye(e.id)).length;
   const nbExemples = EMPLACEMENTS.filter((e) => e.id.startsWith("exemple-") && e.genre === "video" && m.envoye(e.id)).length;
-  const demoPerso = Boolean(m.envoye("demo-video") || demonstration.video);
+  const demoPerso = Boolean(m.envoye("demo-video"));
   groupes.push({
     titre: "Contenu du site",
     controles: [
-      demoPerso
-        ? c("demo", "Vidéo de démonstration du studio", "ok", "Votre vidéo est affichée dans le téléphone de la page d'accueil.")
-        : c("demo", "Vidéo de démonstration du studio", "conseil", demonstration.externe.autorisee ? "La page affiche pour l'instant un exemple d'un autre studio (YouTube), clairement indiqué comme externe. Remplacez-le par votre propre vidéo : c'est ce qui convainc un visiteur." : "Aucune vidéo : un emplacement réservé est affiché.", "Administration → Images et vidéos → Vidéo de démonstration", "/admin/medias#demo-video"),
+      SHOW_EXAMPLE_VIDEO
+        ? c("demo", "Vidéo d'exemple du studio", "ok", demoPerso ? "Votre vidéo (envoyée dans l'administration) est affichée sur la page d'accueil." : "SHOW_EXAMPLE_VIDEO vaut true : la section affiche le fichier public/videos/exemple.mp4. Vérifiez qu'il est bien déposé.")
+        : c("demo", "Vidéo d'exemple du studio", "conseil", "La section « vidéo d'exemple » est masquée (SHOW_EXAMPLE_VIDEO n'est pas à true). Déposez votre vidéo dans public/videos/exemple.mp4 (ou envoyez-la dans l'administration), puis passez SHOW_EXAMPLE_VIDEO à true : c'est l'élément qui convainc le plus.", `${NETLIFY} → SHOW_EXAMPLE_VIDEO`),
       nbExemples > 0
         ? c("exemples", "Vidéos d'exemple", "ok", `${nbExemples} vidéo${nbExemples > 1 ? "s" : ""} d'exemple publiée${nbExemples > 1 ? "s" : ""}.`)
         : c("exemples", "Vidéos d'exemple", "conseil", "Aucune. La section « Exemples » n'apparaît pas. Trois exemples (un par angle d'accroche) rassurent un acheteur.", "Administration → Images et vidéos → Exemples", "/admin/medias#exemple-1"),
@@ -86,7 +86,7 @@ export async function controlerLancement(): Promise<{ groupes: Groupe[]; bloquan
     titre: "Informations légales",
     controles: [
       manquants.length
-        ? c("legal", "Mentions légales complètes", "bloquant", `Manque : ${manquants.join(", ")}. Le paiement réel reste fermé tant que ce n'est pas renseigné.`, `${NETLIFY} → NEXT_PUBLIC_LEGAL_NAME, NEXT_PUBLIC_LEGAL_SIRET, NEXT_PUBLIC_LEGAL_ADDRESS, NEXT_PUBLIC_CONTACT_EMAIL`)
+        ? c("legal", "Mentions légales complètes", "bloquant", `Manque : ${manquants.join(", ")}. Le paiement réel reste fermé tant que ce n'est pas renseigné.`, `${NETLIFY} → NEXT_PUBLIC_LEGAL_NAME, NEXT_PUBLIC_LEGAL_SIRET, NEXT_PUBLIC_LEGAL_ADDRESS`)
         : c("legal", "Mentions légales complètes", "ok", `${l.nom}, SIRET ${l.siret}.`),
       l.mediateur
         ? c("mediateur", "Médiateur de la consommation", "ok", l.mediateur)
@@ -137,9 +137,9 @@ export async function controlerLancement(): Promise<{ groupes: Groupe[]; bloquan
       env.sessionSecret().length >= 32 ? c("session", "Clé de session", "ok", "Longueur suffisante.") : c("session", "Clé de session", "bloquant", "SESSION_SECRET manque ou fait moins de 32 caractères.", `${NETLIFY} → SESSION_SECRET`),
       faible ? c("mdp", "Mot de passe administrateur", "bloquant", "Trop court (14 caractères minimum) ou trop courant. Le site étant public, l'administration est sa porte d'entrée.", `${NETLIFY} → ADMIN_PASSWORD`) : c("mdp", "Mot de passe administrateur", "ok", "Longueur suffisante (le mot de passe n'est jamais affiché)."),
       (process.env.TACHES_SECRET || "").length >= 16 ? c("taches", "Clé des tâches quotidiennes", "ok", "Renseignée.") : c("taches", "Clé des tâches quotidiennes", "bloquant", "TACHES_SECRET manque : le récapitulatif et le nettoyage quotidiens ne seraient pas protégés.", `${NETLIFY} → TACHES_SECRET`),
-      process.env.INDEXATION === "oui"
-        ? c("indexation", "Référencement par les moteurs de recherche", "ok", "Ouvert (INDEXATION=oui).")
-        : c("indexation", "Référencement par les moteurs de recherche", "info", "Fermé : le site est invisible de Google. C'est voulu avant le lancement. Le jour de l'ouverture : INDEXATION=oui.", `${NETLIFY} → INDEXATION`),
+      env.enProduction()
+        ? c("indexation", "Référencement par les moteurs de recherche", "ok", "Ouvert (SITE_ENV=production).")
+        : c("indexation", "Référencement par les moteurs de recherche", "info", "Fermé : le site est invisible de Google. C'est voulu avant le lancement. Le jour de l'ouverture : SITE_ENV=production.", `${NETLIFY} → SITE_ENV`),
     ],
   });
 

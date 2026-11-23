@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { infosLegales, PageLegale } from "../components/Legal";
 import { DELAI_RETOUCHE_JOURS } from "@/lib/delais";
-import { delaiTexte, DUREE_TEXTE, euros, formules, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte } from "@/lib/formules";
+import { delaiTexte, DUREE_TEXTE, euros, formules, TOUR_DEFINITION, TOUR_HORS_PERIMETRE, TOUR_PERIMETRE, toursTexte, videosTexte } from "@/lib/formules";
 
 // Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
 export const revalidate = 900;
@@ -25,7 +25,7 @@ export default function CGV() {
       <ul>
         {formules.map((f) => (
           <li key={f.id}>
-            <strong>{f.nom} — {euros(f.prixCents)}</strong> : {f.videos} vidéo{f.videos > 1 ? "s" : ""} de {f.duree}, {toursTexte(f)}, {delaiTexte(f).toLowerCase()}.
+            <strong>{f.nom} — {euros(f.prixCents)}</strong> : {videosTexte(f.videos)}, {toursTexte(f)}, {delaiTexte(f).toLowerCase()}.
           </li>
         ))}
       </ul>

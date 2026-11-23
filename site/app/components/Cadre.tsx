@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { site } from "../config";
-import { modePaiement } from "@/lib/env";
+import { env, modePaiement } from "@/lib/env";
 
-// Bandeau visible tant que le site n'encaisse pas de paiements réels.
+// Bandeau de préproduction : affiché UNIQUEMENT si la variable d'environnement SITE_ENV vaut « preprod » (jamais en production).
 export function BandeauMode() {
+  if (!env.enPreproduction()) return null;
   const { mode } = modePaiement();
   if (mode === "reel") return null;
   const texte =
@@ -30,7 +31,7 @@ export function EnteteSimple() {
   );
 }
 
-export function Pied() {
+export function Pied({ illustrations = false }: { illustrations?: boolean }) {
   return (
     <footer className="pied">
       <div className="conteneur pied-ligne">
@@ -38,12 +39,17 @@ export function Pied() {
           © {new Date().getFullYear()} {site.marque} · Vidéos générées par intelligence artificielle
         </span>
         <nav className="pied-liens" aria-label="Informations légales">
-          {site.email && <a href={`mailto:${site.email}`}>Contact : {site.email}</a>}
+          <a href={`mailto:${site.email}`}>Contact : {site.email}</a>
           <Link href="/mentions-legales">Mentions légales</Link>
           <Link href="/cgv">Conditions de vente</Link>
           <Link href="/confidentialite">Confidentialité</Link>
         </nav>
       </div>
+      {illustrations && (
+        <div className="conteneur">
+          <p className="pied-note">Photographies d&apos;illustration.</p>
+        </div>
+      )}
     </footer>
   );
 }

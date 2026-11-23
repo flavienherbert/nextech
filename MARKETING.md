@@ -10,7 +10,7 @@ Aller là où l'acheteur cherche déjà. Ordre de priorité : fiches marketplace
 2. Il voit la fiche : miniature, 3 exemples vidéo, prix d'appel à 35 € (47 € sur ComeUp, 54 $ sur Fiverr : commissions absorbées).
 3. Il commande et remplit le brief (lien produit, 3 photos, cible, promesse, ton).
 4. Livraison sous 48 h, un tour de retouches inclus.
-5. Message de livraison : demande d'avis + proposition du Pack Test à −10 % pour la commande suivante.
+5. Message de livraison : demande d'avis + proposition du Pack Accroches à −10 % pour la commande suivante.
 
 ## Canal 1 — ComeUp et Fiverr (priorité absolue)
 
@@ -76,7 +76,7 @@ Produits des exemples : utiliser des produits fictifs sans marque, ou des produi
 |---|---|
 | « Ça se voit que c'est de l'IA » | Les exemples sont en ligne, jugez avant de payer. Un tour de retouches inclus. |
 | « Je peux le faire moi-même » | Oui, en comptant l'abonnement à l'outil et les heures de réglage. Ici : 35 €, 48 h, script inclus. |
-| « Un vrai créateur convertit mieux » | Possible. Avec le Pack Test (89 €), vous testez 3 angles avant de payer un créateur pour l'angle gagnant. |
+| « Un vrai créateur convertit mieux » | Possible. Avec le Pack Accroches (89 €), vous testez 3 angles avant de payer un créateur pour l'angle gagnant. |
 | « Est-ce légal ? » | Oui si la vidéo est signalée comme générée par IA et ne simule pas un avis client. C'est ce que nous livrons. |
 
 ## Publicité payante

@@ -23,10 +23,6 @@ def sortir(ident, nom, taille, fx=0.5, fy=0.5, q=78, fmt="webp", lum=1.0):
 
 V, P = (720, 1280), (360, 640)
 # Couverture
-sortir("ZSSuEANDxM0", "couverture-1920", (1920, 1280), q=74)
-sortir("ZSSuEANDxM0", "couverture-1280", (1280, 853), q=72)
-sortir("ZSSuEANDxM0", "couverture-mobile", (900, 1600), fx=0.86, q=72)
-sortir("ZSSuEANDxM0", "couverture-partage", (1200, 630), fy=0.45, q=80, fmt="jpg")
 # Clôture (affichée floutée : petite taille suffisante)
 sortir("nue6Esmpk3M", "cloture", (1200, 800), fy=0.6, q=60)
 # Anatomie d'une publicité

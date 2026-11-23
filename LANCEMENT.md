@@ -42,11 +42,11 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 2. **Remplacer les trois secrets exposés** (mot de passe administrateur, `SESSION_SECRET`, `TACHES_SECRET`) : `site/ROTATION-SECRETS.md`, une dizaine de minutes. Fait avant l'ouverture, pas après.
 3. **Recréer le mot de passe d'application Gmail** et le saisir dans *Administration → Réglages e-mail* (après la publication).
 4. **Prendre votre abonnement Higgsfield** (lire les droits d'usage commercial) et suivre `production/HIGGSFIELD.md` § 1 : une commande à blanc complète avant la première vraie.
-5. **Remplacer les images et vidéos de démonstration** par vos créations : *Administration → Images et vidéos*. Priorité : la vidéo de démonstration (aujourd'hui, un exemple d'un autre studio, indiqué comme tel) puis trois exemples.
+5. **Ajouter votre vidéo d'exemple** : déposez-la dans `site/public/videos/exemple.mp4` (avec `exemple-apercu.jpg`), puis `SHOW_EXAMPLE_VIDEO=true` dans Netlify. Tant que ce n'est pas fait, la section est masquée (plus d'exemple d'un autre studio). Vous pouvez aussi remplacer les images et ajouter trois exemples dans *Administration → Images et vidéos*.
 6. **Passer un test complet de commande** : `site/TEST-CLIENT.md` (carte de test Stripe).
 7. **Compte Stripe réel** : activation (identité, IBAN), clé réelle et webhook réel dans Netlify.
 8. **Informations légales** : SIRET, adresse, médiateur si vous vendez à des particuliers, relecture des conditions de vente (`site/MISE-EN-LIGNE.md`).
-9. **Donner le feu vert** : `VENTES_REELLES=oui`, puis `INDEXATION=oui`. Votre page *Administration → Lancement* dit, case par case, ce qui reste.
+9. **Donner le feu vert** : `VENTES_REELLES=oui`, puis `SITE_ENV=production` (ouvre l'indexation et retire le bandeau de préproduction). Votre page *Administration → Lancement* dit, case par case, ce qui reste.
 
 Tant que ces points ne sont pas faits, le site refuse d'encaisser de vrais paiements : c'est voulu.
 

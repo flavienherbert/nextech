@@ -54,22 +54,48 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
   // Cohérence des textes commerciaux de l'accueil et des conditions de vente avec le catalogue
   const norm = (t) => t.replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " ");
   const accueil = norm(await page.locator("body").innerText());
-  verifier("Accueil : « 15 secondes maximum » dans chaque formule, jamais « 15 à 20 » ni « 10 à 15 », aucun ancien prix", (accueil.match(/15 secondes maximum/g) || []).length >= 3 && !/15 à 20|10 à 15|20 secondes/.test(accueil) && !/(^|[^\d])(25|69|129) €/.test(accueil), accueil.match(/.{20}(15 à 20|10 à 15|(25|69|129) €).{20}/)?.[0]);
-  verifier("Accueil : fourchette de prix et délais lus dans le catalogue", accueil.includes("De 35 € à 169 € selon la formule") && accueil.includes("Essai 48 h, Pack Test 3 jours, Pack Campagne 5 jours"));
+  verifier("Accueil : « jusqu'à 15 secondes » dans chaque formule, jamais « 15 à 20 » ni « 10 à 15 », aucun ancien prix", (accueil.match(/jusqu'à 15 secondes/g) || []).length >= 3 && !/15 secondes maximum|15 à 20|10 à 15|20 secondes/.test(accueil) && !/(^|[^\d])(25|69|129) €/.test(accueil), accueil.match(/.{20}(15 à 20|10 à 15|(25|69|129) €).{20}/)?.[0]);
+  verifier("Accueil : fourchette de prix et délais lus dans le catalogue", accueil.includes("De 35 € à 169 € selon la formule") && accueil.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours"));
   verifier("Accueil : 1 / 2 / 2 tours de retouches dans les trois formules", (await page.locator(".formule").allInnerTexts()).map((t) => t.match(/(\d) tours? de retouches/)?.[1]).join("/") === "1/2/2");
+  // Refonte du 23 novembre 2026 : ouverture, formules, illustrations, vidéo d'exemple, bandeau, FAQ, métadonnées
+  const h1 = norm(await page.locator("h1").innerText());
+  verifier("Ouverture : titre « Des pubs vidéo avec présentateur IA pour votre boutique. », accroche « Trois secondes pour arrêter un pouce. » conservée", h1 === "Des pubs vidéo avec présentateur IA pour votre boutique." && accueil.includes("Trois secondes pour arrêter un pouce."), h1);
+  verifier("Ouverture : bouton principal vers les formules, bouton secondaire vers l'Essai", (await page.locator(".hero-actions a").first().getAttribute("href")) === "#formules" && (await page.locator(".hero-actions a").nth(1).getAttribute("href")) === "/commander/essai");
+  verifier("Ouverture : plus de photographie de tournage, une maquette de téléphone à la place", (await page.locator(".hero img, .hero video, .hero picture").count()) === 0 && (await page.locator(".hero .maquette").count()) === 1);
+  verifier("Formules : un seul badge « Recommandé », sur le Pack Accroches ; « Pack Test » et « Le plus utile pour tester » n'existent plus", (await page.locator(".formule .badge").allTextContents()).join() === "Recommandé" && (await page.locator(".formule.formule-avant h3").innerText()) === "Pack Accroches" && !/Pack Test|Le plus utile pour tester/.test(accueil) && accueil.includes("Trois accroches pour trouver celle qui vend."));
+  verifier("Illustrations : plus de badge « Illustration », ni de paragraphe répétant que ce ne sont pas nos vidéos, une seule mention discrète en bas de page", (await page.locator(".etiquette-illustration").count()) === 0 && (accueil.match(/illustration/gi) || []).length === 1 && (await page.locator(".pied .pied-note").innerText()) === "Photographies d'illustration." && !/ce ne sont pas\s+des extraits/.test(accueil), String((accueil.match(/illustration/gi) || []).length));
+  verifier("Vidéo d'exemple : section absente tant que SHOW_EXAMPLE_VIDEO n'est pas activé, sans texte de remplacement, ni lecteur YouTube, ni « Exemple externe »", (await page.locator("#demonstration").count()) === 0 && (await page.locator("iframe").count()) === 0 && (await page.locator('.navigation a[href="#demonstration"]').count()) === 0 && !/Exemple externe|autre studio|YouTube|Emplacement réservé|en cours de production|Slow Machine/.test(accueil));
+  verifier("Bandeau de préproduction affiché (SITE_ENV=preprod dans cet environnement de test)", (await page.locator(".bandeau-mode").count()) === 1);
+  {
+    const questions = await page.locator("#questions details summary").allTextContents();
+    const attendues = ["Quels produits acceptez-vous ?", "Combien de photos faut-il envoyer ?", "En combien de temps je reçois mes vidéos ?", "Et si le rendu ne me plaît pas ?", "Puis-je utiliser les vidéos en publicité payante ?", "Pourquoi la mention « générée par IA » ?"];
+    verifier("FAQ : accordéon de 10 questions sans doublon, avec produits, photos, délais, retouches, publicité payante et mention IA", questions.length === 10 && new Set(questions).size === 10 && attendues.every((q) => questions.includes(q)) && (await page.locator("#questions details[name=faq]").count()) === 10, questions.join(" | "));
+    const reponses = norm(await page.locator("#questions").evaluate((e) => [...e.querySelectorAll("details")].map((d) => d.textContent).join(" ")));
+    verifier("FAQ : réponses alignées sur le catalogue (délais, retouches, durée, photos, droits publicitaires)", reponses.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours") && reponses.includes("1 pour Essai, 2 pour Pack Accroches, 2 pour Pack Campagne") && reponses.includes("jusqu'à 15 secondes") && reponses.includes("3 à 5 photos nettes") && reponses.includes("droits d'exploitation publicitaire"));
+  }
+  {
+    const html = await (await fetch(BASE)).text();
+    const balise = (re) => html.match(re)?.[1];
+    verifier("Référencement : titre et description en français, image de partage absolue (adresse du site), favicon et icône d'application", /Studio Accroche — Publicités vidéo avec présentateur IA/.test(balise(/<title>([^<]*)<\/title>/) || "") && /présentateur généré par IA/.test(balise(/<meta name="description" content="([^"]*)"/) || "") && (balise(/<meta property="og:image" content="([^"]*)"/) || "") === `${BASE}/media/og-studio-accroche.jpg` && /rel="icon"[^>]*href="\/favicon\.ico/.test(html) && /rel="icon"[^>]*href="\/icon\.svg/.test(html) && /rel="apple-touch-icon"/.test(html), html.match(/<meta property="og:image"[^>]*>/)?.[0]);
+    const og = await fetch(`${BASE}/media/og-studio-accroche.jpg`);
+    verifier("Image de partage servie (JPEG)", og.status === 200 && /image\/jpeg/.test(og.headers.get("content-type") || "") && (await og.arrayBuffer()).byteLength > 20000);
+    const ml = norm(await (await fetch(`${BASE}/mentions-legales`)).text().then((h) => h.replace(/<[^>]+>/g, " ").replace(/&#x27;|&#39;|&apos;/g, "'").replace(/&amp;/g, "&")));
+    verifier("Mentions légales : éditeur, micro-entreprise, SIRET, e-mail de contact, hébergeur Netlify avec son adresse, TVA non applicable (article 293 B)", ["micro-entreprise", "SIRET : 00000000000000", "contactstudioaccroche@gmail.com", "Netlify, Inc.", "101 2nd Street, San Francisco", "TVA non applicable, article 293 B du CGI"].every((t) => ml.includes(t)), ml.slice(0, 300));
+    verifier("Pied de page : adresse de contact lue dans la configuration (app/config.ts)", accueil.includes("Contact : contactstudioaccroche@gmail.com") && html.includes("mailto:contactstudioaccroche@gmail.com"));
+  }
   const cg = await ctx.newPage();
   await cg.goto(`${BASE}/cgv`);
   const cgv = norm(await cg.locator("body").innerText());
-  verifier("Conditions de vente : prix, durée de 15 secondes maximum et tours de retouches identiques au catalogue", [`Essai — 35 €`, `Pack Test — 89 €`, `Pack Campagne — 169 €`, "1 vidéo de 15 secondes maximum, 1 tour de retouches", "3 vidéos de 15 secondes maximum, 2 tours de retouches", "6 vidéos de 15 secondes maximum, 2 tours de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
+  verifier("Conditions de vente : prix, durée (jusqu'à 15 secondes) et tours de retouches identiques au catalogue", [`Essai — 35 €`, `Pack Accroches — 89 €`, `Pack Campagne — 169 €`, "1 vidéo, jusqu'à 15 secondes, 1 tour de retouches", "3 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches", "6 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
   verifier("Conditions de vente : définition d'un tour (demande consolidée), hors périmètre = nouvelle commande, durée supérieure non proposée", /Un tour de retouches est une seule demande, qui regroupe toutes vos remarques sur l'ensemble des vidéos livrées/.test(cgv) && /changement de produit, de brief, de script validé, de présentateur, d'angle ou de durée n'est pas une retouche/.test(cgv) && /Une durée supérieure n'est pas proposée à ce jour/.test(cgv));
   await cg.close();
 }
-await page.locator('.formule a[href="/commander/test"]').click();
-await page.waitForURL("**/commander/test");
-verifier(`Clic sur « Pack Test » → page de commande à ${eur(PRIX.test)} €`, (await page.locator(".total strong").textContent()).includes(eur(PRIX.test)));
+await page.locator('.formule a[href="/commander/accroches"]').click();
+await page.waitForURL("**/commander/accroches");
+verifier(`Clic sur « Pack Accroches » → page de commande à ${eur(PRIX.test)} €`, (await page.locator(".total strong").textContent()).includes(eur(PRIX.test)));
 await cap(page, "02-commander");
 await page.locator('button[type="submit"]').click();
-verifier("Paiement refusé tant que les deux cases ne sont pas cochées", page.url().includes("/commander/test"));
+verifier("Paiement refusé tant que les deux cases ne sont pas cochées", page.url().includes("/commander/accroches"));
 await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
 const avant = new Set(commandes().map((c) => c.id));
 await page.locator('button[type="submit"]').click();
@@ -92,7 +118,7 @@ c = commande(c.id);
 verifier("Commande marquée payée par le webhook", c.paiement.etat === "paye" && c.statut === "attente_infos" && c.paiement.emailStripe === "marie@exemple-marque.fr");
 let m = courriels(c.id);
 verifier("E-mail de confirmation rédigé pour le client", m.some((x) => x.a === "marie@exemple-marque.fr" && x.objet.includes(c.id) && x.texte.includes("/commande/" + c.token)));
-verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Nouvelle commande payée") && x.objet.includes(eur(PRIX.test)) && x.texte.includes("Pack Test")));
+verifier("Notification de paiement rédigée pour l'administrateur", m.some((x) => x.objet.includes("Nouvelle commande payée") && x.objet.includes(eur(PRIX.test)) && x.texte.includes("Pack Accroches")));
 await cap(page, "03-brief");
 
 // Brief : validation des champs, dépôt de fichiers
@@ -127,7 +153,7 @@ c = commande(c.id);
 verifier("Brief enregistré, commande « Payée — brief reçu »", c.statut === "payee" && c.brief.marque === "Exemple Marque" && c.fichiersClient.length === 2);
 m = courriels(c.id);
 const notif = m.find((x) => x.objet.includes("Brief reçu"));
-verifier("Notification admin : client, formule, montant, brief, fichiers, numéro", notif && ["Marie Durand", "Pack Test", eur(PRIX.test), "Gourde inox 750 ml", "produit-face.png", c.id].every((s) => notif.texte.includes(s)), notif?.texte.slice(0, 200));
+verifier("Notification admin : client, formule, montant, brief, fichiers, numéro", notif && ["Marie Durand", "Pack Accroches", eur(PRIX.test), "Gourde inox 750 ml", "produit-face.png", c.id].every((s) => notif.texte.includes(s)), notif?.texte.slice(0, 200));
 verifier("Contenu saisi par le client échappé dans l'e-mail HTML", notif && !notif.html.includes("<script>alert(1)</script>") && notif.html.includes("&lt;script&gt;"));
 verifier("Accusé de réception du brief rédigé pour le client", m.some((x) => x.a === "marie@exemple-marque.fr" && x.objet.includes("brief bien reçu")));
 await cap(page, "04-suivi");
@@ -739,7 +765,7 @@ verifier("Commande sans cases cochées refusée côté serveur", (await fetch(`$
 verifier("Formule inconnue → retour à l'accueil", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "gratuit", cgv: "oui", ia: "oui" }), redirect: "manual" })).headers.get("location").endsWith("/#formules"));
 verifier("Jeton de commande inconnu → 404", (await fetch(`${BASE}/commande/${"b".repeat(48)}`)).status === 404);
 const liens = new Set();
-for (const p of ["/", "/commander/essai", "/commander/test", "/commander/campagne", "/cgv", "/confidentialite", "/mentions-legales"]) {
+for (const p of ["/", "/commander/essai", "/commander/accroches", "/commander/test", "/commander/campagne", "/cgv", "/confidentialite", "/mentions-legales"]) {
   const rr = await fetch(BASE + p); verifier(`Page ${p} répond 200`, rr.status === 200, String(rr.status));
   for (const h of (await rr.text()).matchAll(/href="(\/[^"#?]*)/g)) if (!h[1].startsWith("/_next") && !h[1].startsWith("/media")) liens.add(h[1]);
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BandeauMode, EnteteSimple, Pied } from "../../components/Cadre";
-import { delaiTexte, euros, formuleParId, formules } from "@/lib/formules";
+import { delaiTexte, euros, formuleParCle, formules } from "@/lib/formules";
 import { modePaiement } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function Commander({
   params: Promise<{ formule: string }>;
   searchParams: Promise<{ erreur?: string; annule?: string }>;
 }) {
-  const f = formuleParId((await params).formule);
+  const f = formuleParCle((await params).formule);
   if (!f) notFound();
   const q = await searchParams;
   const { mode } = modePaiement();
@@ -51,7 +51,7 @@ export default async function Commander({
               </li>
               <li>
                 <strong>Brief</strong>
-                <span>Juste après le paiement : votre produit, photos, arguments (un site internet n'est pas nécessaire). Cinq minutes.</span>
+                <span>Juste après le paiement : votre produit, photos, arguments (un site internet n'est pas nécessaire). Quelques minutes.</span>
               </li>
               <li>
                 <strong>Script, puis vidéos</strong>
@@ -64,7 +64,7 @@ export default async function Commander({
               {formules.filter((x) => x.id !== f.id).map((x, i) => (
                 <span key={x.id}>
                   {i > 0 && " · "}
-                  <Link href={`/commander/${x.id}`}>
+                  <Link href={`/commander/${x.adresse}`}>
                     {x.nom} ({euros(x.prixCents)})
                   </Link>
                 </span>

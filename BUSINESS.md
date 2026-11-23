@@ -15,7 +15,7 @@ Des publicités vidéo verticales avec présentateur IA, écrites par un markete
 | Formule | Contenu | Prix |
 |---|---|---|
 | Essai | 1 vidéo de 15 s maximum, 1 accroche, script inclus, sous-titres, format 9:16, 1 tour de retouches | 35 € |
-| Pack Test | 3 vidéos de 15 s maximum : 3 accroches différentes sur le même argumentaire, 2 tours de retouches | 89 € |
+| Pack Accroches | 3 vidéos de 15 s maximum : 3 accroches différentes sur le même argumentaire, 2 tours de retouches | 89 € |
 | Pack Campagne | 6 vidéos de 15 s maximum (3 accroches × 2 présentateurs), formats 9:16 et 1:1, 2 tours de retouches | 169 € |
 
 *Prix du site direct, décidés le 22 novembre 2026. Prix ComeUp et Fiverr (commissions absorbées) : `commercial/GRILLES-ET-PLATEFORMES.md`. Les tableaux de résultats ci-dessous datent de la première étude, sur les anciens prix : voir `commercial/RENTABILITE.md` et `GRILLES-ET-PLATEFORMES.md`.*
@@ -51,7 +51,7 @@ Ce refus coûte des commandes. Il protège le compte vendeur et le fondateur.
 
 Hypothèses : commission plateforme 20 % ; coût de génération 3–8 € par vidéo livrée, essais ratés inclus ; cotisations micro-entreprise ≈ 23 % du chiffre d'affaires (taux exact à confirmer selon la catégorie d'activité déclarée) ; franchise de TVA.
 
-| | Essai 25 € | Pack Test 69 € | Pack Campagne 129 € |
+| | Essai 25 € | Pack Accroches 69 € | Pack Campagne 129 € |
 |---|---|---|---|
 | Chiffre d'affaires | 25,00 € | 69,00 € | 129,00 € |
 | Commission plateforme (20 %) | −5,00 € | −13,80 € | −25,80 € |
@@ -62,13 +62,13 @@ Hypothèses : commission plateforme 20 % ; coût de génération 3–8 € par v
 
 Lecture : l'Essai sert à obtenir le premier avis, pas à gagner de l'argent. La marge est dans les packs.
 
-En vente directe (Stripe), le Pack Test rapporte environ 37 à 45 € nets au lieu de 24 à 32 €.
+En vente directe (Stripe), le Pack Accroches rapporte environ 37 à 45 € nets au lieu de 24 à 32 €.
 
 ## Rentabilité mesurée après l'essai n°1 (12/11/2026)
 
 Base : tarifs Alexya relevés (clip parlé 720p = 100 crédits/s, image = 25 crédits), 1 crédit ≈ 0,0044 € au tarif Starter, 50 % d'essais ratés en plus, commission 20 %, cotisations 25,6 % (hypothèse haute). Le prix des recharges sans abonnement reste à relever.
 
-| | Essai 25 € | Pack Test 69 € | Pack Campagne 129 € |
+| | Essai 25 € | Pack Accroches 69 € | Pack Campagne 129 € |
 |---|---|---|---|
 | Crédits (720p, essais ratés inclus) | ~750 | ~1 950 | ~3 800 |
 | Génération | ~3,30 € | ~8,60 € | ~16,70 € |

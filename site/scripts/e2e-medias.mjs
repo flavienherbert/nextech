@@ -16,8 +16,8 @@ const verifier = (nom, ok, detail = "") => { resultats.push({ nom, ok: Boolean(o
 
 // Fichiers de test (le dossier de travail est jeté à la fin)
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sa-medias-"));
-const jpg = path.resolve("public/media/demo/demonstration.jpg");
-const mp4 = path.resolve("public/media/demo/demonstration.mp4");
+const jpg = path.resolve("scripts/fixtures/demonstration.jpg");
+const mp4 = path.resolve("scripts/fixtures/demonstration.mp4");
 const horizontale = path.join(tmp, "horizontale.png");
 const lourde = path.join(tmp, "lourde.png");
 const ffmpeg = (...a) => execFileSync("ffmpeg", ["-v", "error", "-y", ...a]);
@@ -77,7 +77,7 @@ verifier("Route publique : emplacement inconnu, version absente, chemin détourn
 await envoyer("demo-video", mp4);
 const apres2 = await accueil();
 const vv = /\/m\/demo-video\?v=([0-9a-f]{32}\.mp4)/.exec(apres2.html)?.[1];
-verifier("Vidéo envoyée : la page d'accueil l'affiche à la place de l'exemple externe", Boolean(vv) && apres2.html.includes("Exemple de vidéo livrée") && !apres2.html.includes("Exemple externe"), String(vv));
+verifier("Vidéo envoyée (SHOW_EXAMPLE_VIDEO=true) : la section « vidéo d'exemple » affiche la vidéo envoyée, sans lecteur YouTube ni « Exemple externe »", Boolean(vv) && apres2.html.includes('id="demonstration"') && apres2.html.includes("Exemple réalisé par Studio Accroche") && !apres2.html.includes("Exemple externe") && !apres2.html.includes("youtube"), String(vv));
 const lire = async (plage) => { const r = await fetch(`${BASE}/m/demo-video?v=${vv}`, { headers: plage ? { Range: plage } : {} }); const b = Buffer.from(await r.arrayBuffer()); return { r, b }; };
 const plein = await lire();
 verifier("Vidéo : lecture complète, taille exacte, plages acceptées", plein.r.status === 200 && plein.b.length === tailleMp4 && plein.r.headers.get("accept-ranges") === "bytes", `${plein.r.status} ${plein.b.length}/${tailleMp4}`);
@@ -96,10 +96,16 @@ await visiteur.waitForSelector("#demonstration video");
 await visiteur.waitForFunction(() => { const v = document.querySelector("#demonstration video"); return v && v.readyState >= 1 && v.videoWidth > 0; }, null, { timeout: 20000 });
 const dims = await visiteur.evaluate(() => { const v = document.querySelector("#demonstration video"); return [v.videoWidth, v.videoHeight, v.duration]; });
 verifier("Navigateur : la vidéo de démonstration se charge (métadonnées lues, aucune erreur de politique de sécurité)", dims[0] > 0 && erreurs.filter((e) => /Content Security|Refused|blocked/i.test(e)).length === 0, `${dims} ${erreurs.join(" | ")}`);
+const avantClic = await visiteur.evaluate(() => { const v = document.querySelector("#demonstration video"); return { muet: v.muted, auto: v.autoplay, pause: v.paused, controles: v.controls }; });
+verifier("Navigateur : la vidéo n'est pas lancée seule et reste muette avant le clic (lecture au clic, muet par défaut)", avantClic.muet && !avantClic.auto && avantClic.pause && !avantClic.controles, JSON.stringify(avantClic));
 await visiteur.locator("#demonstration .demo-lecture").click();
 await visiteur.waitForFunction(() => { const v = document.querySelector("#demonstration video"); return v && !v.paused && v.currentTime > 0.2; }, null, { timeout: 20000 }).catch(() => {});
 const lecture = await visiteur.evaluate(() => { const v = document.querySelector("#demonstration video"); return { pause: v.paused, t: v.currentTime }; });
 verifier("Navigateur : la lecture démarre au clic", !lecture.pause && lecture.t > 0, JSON.stringify(lecture));
+const muetApres = await visiteur.evaluate(() => document.querySelector("#demonstration video").muted);
+await visiteur.locator("#demonstration .demo-son").click();
+const sonActive = await visiteur.evaluate(() => !document.querySelector("#demonstration video").muted);
+verifier("Navigateur : lecture muette au départ, le bouton « Activer le son » rend le son", muetApres && sonActive && (await visiteur.locator("#demonstration .demo-son").innerText()) === "Couper le son", `${muetApres} ${sonActive}`);
 await visiteur.evaluate(() => document.querySelector("#demonstration").scrollIntoView());
 await cap(visiteur, "accueil-mobile-demo");
 
@@ -129,13 +135,13 @@ await envoyer("temps-2", horizontale);
 verifier("Avertissement accepté : l'image est publiée", /\/m\/temps-2\?v=/.test((await accueil()).html));
 
 const tailleLourde = fs.statSync(lourde).size;
-await envoyer("couverture", lourde);
+await envoyer("cloture", lourde);
 const apres4 = (await accueil()).html;
-const vc = /\/m\/couverture\?v=([0-9a-f]{32}\.[a-z]+)/.exec(apres4)?.[1];
-const cov = vc ? await fetch(`${BASE}/m/couverture?v=${vc}`) : null;
+const vc = /\/m\/cloture\?v=([0-9a-f]{32}\.[a-z]+)/.exec(apres4)?.[1];
+const cov = vc ? await fetch(`${BASE}/m/cloture?v=${vc}`) : null;
 const poidsCov = cov ? Buffer.from(await cov.arrayBuffer()).length : 0;
 verifier(`Image très lourde (${(tailleLourde / 1048576).toFixed(1)} Mo) : réduite automatiquement avant l'envoi (${(poidsCov / 1048576).toFixed(2)} Mo publiés)`, vc && poidsCov > 0 && poidsCov < tailleLourde * 0.8 && /\.(webp|jpg)$/.test(vc), `${vc} ${poidsCov}`);
-verifier("Couverture personnalisée : servie sur ordinateur et sur téléphone", new RegExp(`<source[^>]*srcSet="/m/couverture\\?v=${vc}"`, "i").test(apres4) && apres4.includes(`src="/m/couverture?v=${vc}"`), "source ou img absents");
+verifier("Fond de la dernière section personnalisé : servi par la page d'accueil", apres4.includes(`/m/cloture?v=${vc}`), "adresse absente");
 const visiteur2 = await (await nav.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
 await visiteur2.goto(`${BASE}/`);
 await visiteur2.waitForLoadState("networkidle");
@@ -165,13 +171,13 @@ verifier("Requête venue d'un autre site refusée", csrf.status === 401 || csrf.
 
 // — Retour à l'origine
 await admin.goto(`${BASE}/admin/medias`);
-for (const slot of ["temps-1", "temps-2", "couverture", "demo-video", "exemple-1"]) {
+for (const slot of ["temps-1", "temps-2", "cloture", "demo-video", "exemple-1"]) {
   await admin.click(`#${slot} .media-retrait button`);
   await admin.waitForSelector(`#${slot} .media-retrait`, { state: "detached", timeout: 15000 });
 }
 const fin = await accueil();
-verifier("Tout remis à l'origine : plus aucun média envoyé sur la page d'accueil, plus d'Exemples", !fin.html.includes("/m/") && !fin.html.includes('id="exemples"') && fin.html.includes("/media/photos/temps-01-accroche.webp") && fin.html.includes("Exemple externe"));
-verifier("Les images d'origine fournies répondent toujours", (await fetch(`${BASE}/media/photos/couverture-1920.webp`)).status === 200);
+verifier("Tout remis à l'origine : plus aucun média envoyé sur la page d'accueil, plus d'Exemples", !fin.html.includes("/m/") && !fin.html.includes('id="exemples"') && fin.html.includes("/media/photos/temps-01-accroche.webp") && fin.html.includes("/videos/exemple.mp4") && !fin.html.includes("Exemple externe"));
+verifier("Les images d'origine fournies répondent toujours", (await fetch(`${BASE}/media/photos/cloture.webp`)).status === 200);
 
 await nav.close();
 fs.rmSync(tmp, { recursive: true, force: true });

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { infosLegales, PageLegale } from "../components/Legal";
-import { demonstration } from "../config";
 import { stockageSupabase } from "@/lib/env";
 
 // Page servie depuis le cache, renouvelée au plus toutes les 15 minutes (aucun calcul facturé à chaque visite).
@@ -70,15 +69,6 @@ export default function Confidentialite() {
         d&apos;administration et ne concerne pas les visiteurs. La page de paiement est hébergée par Stripe, qui
         applique sa propre politique.
       </p>
-
-      {!demonstration.video && demonstration.externe.autorisee && (
-        <p>
-          La page d&apos;accueil propose un exemple vidéo hébergé par YouTube (Google). Il n&apos;est chargé
-          que si vous cliquez sur le bouton de lecture, en mode « sans cookie » : avant ce clic,
-          aucune donnée n&apos;est transmise à YouTube. Après le clic, YouTube reçoit votre adresse IP et
-          applique sa propre politique de confidentialité.
-        </p>
-      )}
 
       <h2>Sécurité</h2>
       <p>

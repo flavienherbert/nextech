@@ -1,14 +1,17 @@
 // Fiche de production : le brief d'une commande remis en forme, prêt à copier dans Higgsfield (ou dans une conversation avec Claude).
 // Texte brut, sans donnée de facturation ni coordonnées du client : seul ce qui sert à fabriquer la vidéo.
-import { delaiTexte, DUREE_MAX_SECONDES, euros, formuleParId, toursTexte } from "./formules";
+import { delaiTexte, DUREE_MAX_SECONDES, euros, formatsTexte, formuleParId, toursTexte } from "./formules";
 import type { Commande } from "./store";
 import { echeance } from "./suivi";
 
-const ANGLES: Record<string, string> = {
-  essai: "1 accroche (angle « problème » conseillé)",
-  test: "3 accroches, une par angle : A problème · B résultat · C curiosité",
-  campagne: "3 accroches (A problème · B résultat · C curiosité) × 2 présentateurs différents = 6 vidéos ; exports 9:16 et 1:1",
-};
+// Les accroches à écrire, déduites du catalogue (nombre d'accroches, de présentateurs et de vidéos : lib/formules.ts).
+const ANGLES = ["A problème", "B résultat", "C curiosité"];
+const accrochesTexte = (f: NonNullable<ReturnType<typeof formuleParId>>): string =>
+  f.accroches === 1
+    ? "1 accroche (angle « problème » conseillé)"
+    : `${f.accroches} accroches${f.presentateurs > 1 ? "" : ", une par angle"} : ${ANGLES.slice(0, f.accroches).join(" · ")}${
+        f.presentateurs > 1 ? ` × ${f.presentateurs} présentateurs différents = ${f.videos} vidéos ; exports ${f.formats.join(" et ")}` : ""
+      }`;
 
 export function ficheProduction(c: Commande): string {
   const f = formuleParId(c.formule)!;
@@ -17,8 +20,8 @@ export function ficheProduction(c: Commande): string {
   const l = (k: string, v?: string) => `${k} : ${v && v.trim() ? v.trim() : "—"}`;
   return [
     `COMMANDE ${c.id} — ${f.nom} (${euros(f.prixCents)})`,
-    `À livrer : ${f.videos} vidéo${f.videos > 1 ? "s" : ""} MP4 1080×1920 (9:16), ${DUREE_MAX_SECONDES} s maximum chacune (durée supérieure non proposée) · ${delaiTexte(f)}${e ? ` · échéance ${new Date(e).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}` : ""}`,
-    `Accroches : ${ANGLES[f.id]}`,
+    `À livrer : ${f.videos} vidéo${f.videos > 1 ? "s" : ""} MP4 1080×1920 (${formatsTexte(f.formats)}), ${DUREE_MAX_SECONDES} s maximum chacune (durée supérieure non proposée) · ${delaiTexte(f)}${e ? ` · échéance ${new Date(e).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}` : ""}`,
+    `Accroches : ${accrochesTexte(f)}`,
     `Retouches incluses : ${toursTexte(f)} pour toute la commande (un tour = une seule demande consolidée sur l'ensemble des vidéos ; changement de produit, de brief, de script validé ou d'angle = nouvelle commande)`,
     "",
     "— BRIEF —",

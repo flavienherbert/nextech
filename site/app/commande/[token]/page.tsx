@@ -51,7 +51,7 @@ export default async function PageCommande({ params }: { params: Promise<{ token
               <h1 className="titre-page">Paiement <em>non abouti</em></h1>
               <p className="chapeau">Aucune somme n&apos;a été débitée pour cette commande.</p>
               <p className="actions">
-                <Link className="bouton" href={`/commander/${f.id}`}>
+                <Link className="bouton" href={`/commander/${f.adresse}`}>
                   Reprendre la commande
                 </Link>
               </p>

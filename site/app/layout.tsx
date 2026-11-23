@@ -3,20 +3,29 @@ import "@fontsource-variable/inter";
 import "@fontsource/instrument-serif/400.css";
 import "@fontsource/instrument-serif/400-italic.css";
 import "./globals.css";
-import { site } from "./config";
+import { images, site } from "./config";
+import { env } from "@/lib/env";
 
 const titre = `${site.marque} — Publicités vidéo avec présentateur IA`;
 
+// L'adresse du site vient de la variable SITE_URL : c'est la seule chose à changer le jour où le nom de domaine est acheté.
 export const metadata: Metadata = {
+  metadataBase: new URL(env.baseUrl()),
   title: titre,
-  description: site.sousTitre,
+  description: site.description,
+  applicationName: site.marque,
+  alternates: { canonical: "/" },
+  // Les moteurs de recherche ne référencent le site qu'en production (SITE_ENV=production) ; l'en-tête X-Robots-Tag et robots.txt vont dans le même sens.
+  robots: env.enProduction() ? { index: true, follow: true } : { index: false, follow: false },
   openGraph: {
     title: titre,
-    description: site.sousTitre,
+    description: site.description,
     locale: "fr_FR",
     type: "website",
-    images: ["/media/photos/couverture-partage.jpg"],
+    siteName: site.marque,
+    images: [{ url: images.partage, width: 1200, height: 630, alt: titre }],
   },
+  twitter: { card: "summary_large_image", title: titre, description: site.description, images: [images.partage] },
 };
 
 export const viewport: Viewport = {

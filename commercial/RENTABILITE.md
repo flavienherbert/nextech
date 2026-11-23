@@ -8,8 +8,8 @@ Modèle reproductible : `python3 commercial/modele-rentabilite.py` (aucune dépe
 
 ## En bref
 
-1. **Aux prix actuels, avec des hypothèses centrales, le bénéfice net est faible : 12 € (Essai), 33 € (Pack Test), 59 € (Pack Campagne) par commande**, avant abonnement Higgsfield et avant impôt sur le revenu, pour 1,6 h / 3,6 h / 6,1 h de travail. Soit **7 à 10 € de l'heure**. Dans le scénario optimiste (rodé, peu d'essais ratés) : 18 à 28 €/h. Dans le scénario prudent : 1,5 à 3 €/h.
-2. **Ce qui pèse le plus, c'est votre temps, pas les crédits ni Stripe.** Pour le Pack Test : le temps de travail fait varier le résultat de 15 à 6 €/h ; les essais ratés de 11 à 7 €/h ; les cotisations (21,2 % ou 25,6 %), la TVA sur l'abonnement et Stripe de moins de 1 €/h chacun.
+1. **Aux prix actuels, avec des hypothèses centrales, le bénéfice net est faible : 12 € (Essai), 33 € (Pack Accroches), 59 € (Pack Campagne) par commande**, avant abonnement Higgsfield et avant impôt sur le revenu, pour 1,6 h / 3,6 h / 6,1 h de travail. Soit **7 à 10 € de l'heure**. Dans le scénario optimiste (rodé, peu d'essais ratés) : 18 à 28 €/h. Dans le scénario prudent : 1,5 à 3 €/h.
+2. **Ce qui pèse le plus, c'est votre temps, pas les crédits ni Stripe.** Pour le Pack Accroches : le temps de travail fait varier le résultat de 15 à 6 €/h ; les essais ratés de 11 à 7 €/h ; les cotisations (21,2 % ou 25,6 %), la TVA sur l'abonnement et Stripe de moins de 1 €/h chacun.
 3. **Les retouches sont aujourd'hui trop larges** : le site accepte 1 / 3 / **12** tours de retouches (Essai / Test / Campagne). Un client peut en faire jusqu'à 12 sur un Pack Campagne : 24 heures de travail gratuit dans le pire cas. À plafonner en « tours » : 1 / 2 / 2.
 4. **Les formules « 15 à 20 s » ne sont pas faisables avec un seul clip Seedance 2.0** (maximum 15 s). À 20 s, il faut un second clip ou Seedance 2.5 (140 crédits, soit 3,7 fois le prix d'un clip de 15 s). À ramener à « jusqu'à 15 s ».
 5. **L'abonnement Higgsfield est un coût fixe** (Plus ≈ 49 $/mois, soit ≈ 54 € TTC si la TVA est facturée, hypothèse) et **les crédits non utilisés sont perdus** à chaque renouvellement. À 4 commandes par mois, il ampute le bénéfice de moitié.
@@ -89,7 +89,7 @@ Une commande = crédits de génération + frais annexes + temps. Hypothèses par
 | Minutes par vidéo retouchée | 10 | **20** | 40 |
 | Retouches qui exigent une régénération | 10 % | **25 %** | 50 % |
 
-Règles : une vidéo = un clip de 15 s en mode fast 720p (37,5 crédits) × essais ; 5 à 8 crédits annexes par commande (images, voix) ; les vidéos suivantes d'un même pack demandent 50 % de préparation et 80 % de montage en moins ; Pack Test et Pack Campagne = 3 scripts. Le coût d'un crédit est celui du plan Plus rempli ; l'abonnement est compté à part, par mois.
+Règles : une vidéo = un clip de 15 s en mode fast 720p (37,5 crédits) × essais ; 5 à 8 crédits annexes par commande (images, voix) ; les vidéos suivantes d'un même pack demandent 50 % de préparation et 80 % de montage en moins ; Pack Accroches et Pack Campagne = 3 scripts. Le coût d'un crédit est celui du plan Plus rempli ; l'abonnement est compté à part, par mois.
 
 ## 4. Tarifs actuels (25 / 69 / 129 €), retouches 1 / 3 / 12
 
@@ -98,12 +98,12 @@ Bénéfice net par commande, avant abonnement et avant impôt sur le revenu :
 | Formule | Prix | Bénéfice : central (optimiste – prudent) | Temps : central (optimiste – prudent) | €/h : central (optimiste – prudent) |
 |---|---|---|---|---|
 | Essai | 25 € | **12,3 €** (16,3 – 8,2) | 1,6 h (0,9 – 2,9) | **7,7** (18,4 – 2,8) |
-| Pack Test | 69 € | **33,1 €** (45,1 – 18,5) | 3,6 h (1,9 – 8,0) | **9,2** (23,6 – 2,3) |
+| Pack Accroches | 69 € | **33,1 €** (45,1 – 18,5) | 3,6 h (1,9 – 8,0) | **9,2** (23,6 – 2,3) |
 | Pack Campagne | 129 € | **59,2 €** (83,6 – 24,4) | 6,1 h (3,0 – 16,6) | **9,6** (28,2 – 1,5) |
 
-Décomposition du Pack Test, scénario central : 69,00 € − 1,70 € Stripe − 17,66 € cotisations − 16,57 € crédits (306 crédits) = **33,1 €**, pour 3,6 h. Les crédits ne pèsent que 24 % du prix, les cotisations 26 %.
+Décomposition du Pack Accroches, scénario central : 69,00 € − 1,70 € Stripe − 17,66 € cotisations − 16,57 € crédits (306 crédits) = **33,1 €**, pour 3,6 h. Les crédits ne pèsent que 24 % du prix, les cotisations 26 %.
 
-## 5. Ce qui pèse le plus (Pack Test à 69 €, scénario central, un paramètre à la fois)
+## 5. Ce qui pèse le plus (Pack Accroches à 69 €, scénario central, un paramètre à la fois)
 
 | Paramètre | Plage | Bénéfice | €/h |
 |---|---|---|---|
@@ -123,7 +123,7 @@ Contenu commun : sous-titres animés, mention « Généré par IA », MP4 1080 �
 | | **Économique** | **Recommandée** | **Premium** |
 |---|---|---|---|
 | Essai | 25 € | **35 €** | 49 € |
-| Pack Test | 69 € | **89 €** | 129 € |
+| Pack Accroches | 69 € | **89 €** | 129 € |
 | Pack Campagne | 129 € | **169 €** | 249 € |
 | Durée par vidéo | jusqu'à 15 s | jusqu'à 15 s | jusqu'à 15 s (20 s en option : non retenu) |
 | Tours de retouches (Essai / Test / Campagne) | 1 / 2 / 2 | 1 / 2 / 2 | 2 / 3 / 3 |
@@ -136,22 +136,22 @@ Contenu commun : sous-titres animés, mention « Généré par IA », MP4 1080 �
 | Grille | Formule | Prix | Bénéfice : central (optimiste – prudent) | Temps : central (optimiste – prudent) | €/h : central (optimiste – prudent) |
 |---|---|---|---|---|---|
 | **Économique** | Essai | 25 € | 12,3 € (16,3 – 8,2) | 1,6 h (0,9 – 2,9) | 7,7 (18,4 – 2,8) |
-| | Pack Test | 69 € | 33,2 € (45,1 – 19,4) | 3,5 h (1,9 – 7,6) | 9,4 (23,7 – 2,6) |
+| | Pack Accroches | 69 € | 33,2 € (45,1 – 19,4) | 3,5 h (1,9 – 7,6) | 9,4 (23,7 – 2,6) |
 | | Pack Campagne | 129 € | 60,2 € (83,7 – 32,8) | 5,7 h (2,9 – 12,9) | 10,6 (28,6 – 2,5) |
 | **Recommandée** | Essai | 35 € | 19,5 € (24,0 – 15,3) | 1,6 h (0,9 – 2,9) | 12,3 (27,1 – 5,3) |
-| | Pack Test | 89 € | 47,6 € (60,6 – 33,7) | 3,5 h (1,9 – 7,6) | 13,4 (31,8 – 4,5) |
+| | Pack Accroches | 89 € | 47,6 € (60,6 – 33,7) | 3,5 h (1,9 – 7,6) | 13,4 (31,8 – 4,5) |
 | | Pack Campagne | 169 € | 89,1 € (114,6 – 61,4) | 5,7 h (2,9 – 12,9) | 15,7 (39,2 – 4,8) |
 | **Premium** | Essai | 49 € | 28,5 € (34,0 – 23,7) | 1,8 h (1,1 – 3,4) | 15,5 (31,1 – 7,0) |
-| | Pack Test | 129 € | 73,4 € (89,0 – 58,4) | 4,1 h (2,3 – 8,5) | 18,0 (38,0 – 6,9) |
+| | Pack Accroches | 129 € | 73,4 € (89,0 – 58,4) | 4,1 h (2,3 – 8,5) | 18,0 (38,0 – 6,9) |
 | | Pack Campagne | 249 € | 140,7 € (171,3 – 110,8) | 6,7 h (3,8 – 14,8) | 20,9 (45,1 – 7,5) |
 
 Le passage de l'Économique à la Recommandée ne change **ni le temps ni les crédits** : le surplus (+7,2 / +14,4 / +28,9 € par commande) est du bénéfice net.
 
-Prix qui donneraient 15, 20 et 25 €/h au scénario central (retouches 1 / 3 / 12, autres formules inchangées) : Essai 41 / 52 / 63 € ; Pack Test 98 / 123 / 148 € ; Pack Campagne 174 / 217 / 259 €. **Aucune grille raisonnable n'atteint 20 €/h dans le scénario central** : il faut aussi baisser le temps par commande, ce qui est le scénario optimiste (rodé).
+Prix qui donneraient 15, 20 et 25 €/h au scénario central (retouches 1 / 3 / 12, autres formules inchangées) : Essai 41 / 52 / 63 € ; Pack Accroches 98 / 123 / 148 € ; Pack Campagne 174 / 217 / 259 €. **Aucune grille raisonnable n'atteint 20 €/h dans le scénario central** : il faut aussi baisser le temps par commande, ce qui est le scénario optimiste (rodé).
 
 ### 6.2 Un mois type, abonnement compris
 
-Mois de démarrage : 4 commandes (2 Essai + 2 Pack Test). Mois de croissance : 12 commandes (5 Essai + 5 Pack Test + 2 Pack Campagne). Abonnement choisi selon les crédits nécessaires (un seul compte, une seule offre ; au-delà de 3 000 crédits : Ultra + recharges au prix du crédit Ultra, **hypothèse**).
+Mois de démarrage : 4 commandes (2 Essai + 2 Pack Accroches). Mois de croissance : 12 commandes (5 Essai + 5 Pack Accroches + 2 Pack Campagne). Abonnement choisi selon les crédits nécessaires (un seul compte, une seule offre ; au-delà de 3 000 crédits : Ultra + recharges au prix du crédit Ultra, **hypothèse**).
 
 | Grille | Mois | Scénario | Abonnement | Bénéfice du mois (après abonnement) | Temps | €/h |
 |---|---|---|---|---|---|---|
@@ -170,11 +170,11 @@ Mois de démarrage : 4 commandes (2 Essai + 2 Pack Test). Mois de croissance : 1
 
 Le scénario prudent (4 essais par clip, retouches fréquentes, premiers temps de travail) **fait perdre de l'argent** au démarrage aux tarifs actuels : c'est pourquoi les trois premières commandes servent à mesurer, pas à gagner.
 
-**Abonnement :** à la grille Recommandée, un Plus à 54 € est couvert par environ **un Pack Test et un Essai** (47,6 + 19,5 € de bénéfice avant abonnement). Un Starter (≈ 17 €) est couvert par un seul Essai. Comme les crédits ne sont pas reportés, prenez l'offre du mois **selon les commandes déjà payées**, pas à l'avance.
+**Abonnement :** à la grille Recommandée, un Plus à 54 € est couvert par environ **un Pack Accroches et un Essai** (47,6 + 19,5 € de bénéfice avant abonnement). Un Starter (≈ 17 €) est couvert par un seul Essai. Comme les crédits ne sont pas reportés, prenez l'offre du mois **selon les commandes déjà payées**, pas à l'avance.
 
 ## 7. Canal de vente
 
-Ces chiffres supposent la **vente directe** sur le site (Stripe). Sur ComeUp, la commission est de 20 % du montant HT (`RESEARCH.md`, § 3.2) : à la grille Recommandée, le Pack Test passe de 13,4 à 8,4 €/h, l'Essai de 12,3 à 7,9 €/h et le Pack Campagne de 15,7 à 9,8 €/h ; aux tarifs actuels, l'Essai tombe à 4,6 €/h. Les repères relevés sur ComeUp (`RESEARCH.md`) : services « UGC » à partir de 18 $, vendeur IA établi à 23,99 $ de base avec des packs jusqu'à +258 $. **Les nouveaux vendeurs IA créés en 2026 y ont 0 vente observée** : les prix du site seront comparés à ces repères, d'où l'intérêt du prix de départ de la section suivante, mais le canal d'acquisition reste à construire.
+Ces chiffres supposent la **vente directe** sur le site (Stripe). Sur ComeUp, la commission est de 20 % du montant HT (`RESEARCH.md`, § 3.2) : à la grille Recommandée, le Pack Accroches passe de 13,4 à 8,4 €/h, l'Essai de 12,3 à 7,9 €/h et le Pack Campagne de 15,7 à 9,8 €/h ; aux tarifs actuels, l'Essai tombe à 4,6 €/h. Les repères relevés sur ComeUp (`RESEARCH.md`) : services « UGC » à partir de 18 $, vendeur IA établi à 23,99 $ de base avec des packs jusqu'à +258 $. **Les nouveaux vendeurs IA créés en 2026 y ont 0 vente observée** : les prix du site seront comparés à ces repères, d'où l'intérêt du prix de départ de la section suivante, mais le canal d'acquisition reste à construire.
 
 ## 8. Les formules : points à corriger quel que soit le tarif
 
@@ -189,7 +189,7 @@ Ces chiffres supposent la **vente directe** sur le site (Stripe). Sur ComeUp, la
 
 **Pour commencer : la grille Recommandée (35 / 89 / 169 €).**
 
-| | Essai 35 € | Pack Test 89 € | Pack Campagne 169 € |
+| | Essai 35 € | Pack Accroches 89 € | Pack Campagne 169 € |
 |---|---|---|---|
 | Vidéos | 1 | 3 | 6 |
 | Durée | jusqu'à 15 s | jusqu'à 15 s | jusqu'à 15 s |
@@ -201,7 +201,7 @@ Ces chiffres supposent la **vente directe** sur le site (Stripe). Sur ComeUp, la
 
 **Pourquoi pas l'Économique :** à 25 / 69 / 129 € le bénéfice est de 7 à 10 €/h dans le scénario central et négatif au démarrage dans le scénario prudent. Le gain d'un prix bas est un taux de conversion, que personne n'a mesuré ; la perte est certaine.
 **Pourquoi pas le Premium au départ :** la qualité supérieure n'est pas démontrée (les défauts connus de la source 720p sont décrits dans `production/essai-01/RAPPORT.md`), et un prix de 49 / 129 / 249 € demande des avis clients que vous n'avez pas. Gardez-le pour après 5 commandes validées.
-**Ce que le prix ne règle pas :** même à 35 / 89 / 169 €, le scénario central donne 12 à 16 €/h et le mois de démarrage 80 € de bénéfice pour 10 heures. Le résultat dépend d'abord de votre temps par commande : l'objectif est de passer du scénario central au scénario optimiste (1 h pour un Essai, 2 h pour un Pack Test), qui donne 27 à 39 €/h.
+**Ce que le prix ne règle pas :** même à 35 / 89 / 169 €, le scénario central donne 12 à 16 €/h et le mois de démarrage 80 € de bénéfice pour 10 heures. Le résultat dépend d'abord de votre temps par commande : l'objectif est de passer du scénario central au scénario optimiste (1 h pour un Essai, 2 h pour un Pack Accroches), qui donne 27 à 39 €/h.
 
 **Corrections autorisées : 1 tour pour l'Essai, 2 pour les packs** (la définition des retouches des conditions de vente, à script constant, reste la bonne : texte à l'écran, sous-titres, rythme, remplacement d'un plan). Un tour peut concerner toutes les vidéos du pack. Un changement de script, de produit ou d'angle est une nouvelle commande. Au-delà : tour supplémentaire payant.
 

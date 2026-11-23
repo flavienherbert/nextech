@@ -25,10 +25,10 @@ export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ ur
     payment_intent_data: { metadata: { commande: id }, description: `Studio Accroche — ${f.nom} — ${id}` },
     line_items: [{
       quantity: 1,
-      price_data: { currency: "eur", unit_amount: f.prixCents, product_data: { name: `Studio Accroche — ${f.nom}`, description: `${f.videos} vidéo${f.videos > 1 ? "s" : ""} publicitaire${f.videos > 1 ? "s" : ""} verticale${f.videos > 1 ? "s" : ""} de ${DUREE_TEXTE}, script et sous-titres inclus` } },
+      price_data: { currency: "eur", unit_amount: f.prixCents, product_data: { name: `Studio Accroche — ${f.nom}`, description: `${f.videos} vidéo${f.videos > 1 ? "s" : ""} publicitaire${f.videos > 1 ? "s" : ""} verticale${f.videos > 1 ? "s" : ""}, ${DUREE_TEXTE}${f.videos > 1 ? " chacune" : ""}, script et sous-titres inclus` } },
     }],
     success_url: `${base}/commande/${token}?retour=paiement`,
-    cancel_url: `${base}/commander/${f.id}?annule=1`,
+    cancel_url: `${base}/commander/${f.adresse}?annule=1`,
     expires_at: Math.floor(Date.now() / 1000) + 3600,
   });
   if (!session.url) throw new Error("Stripe n'a pas renvoyé d'adresse de paiement.");

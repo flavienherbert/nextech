@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
+import { env } from "@/lib/env";
 
-// Tant que INDEXATION n'est pas « oui » (jour de l'ouverture commerciale), tout le site est interdit aux moteurs de recherche.
+// Indexation : bloquée en préproduction (SITE_ENV=preprod) et tant que SITE_ENV n'est pas « production » (aucun référencement par oubli).
+// Autorisée en production, sauf l'administration, les pages de commande et l'API.
 export default function robots(): MetadataRoute.Robots {
-  if (process.env.INDEXATION !== "oui") return { rules: [{ userAgent: "*", disallow: "/" }] };
-  return { rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/commande/", "/commander/", "/api/"] }] };
+  if (!env.enProduction()) return { rules: [{ userAgent: "*", disallow: "/" }] };
+  return {
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/commande/", "/commander/", "/api/"] }],
+    sitemap: `${env.baseUrl()}/sitemap.xml`,
+  };
 }

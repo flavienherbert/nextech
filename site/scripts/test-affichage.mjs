@@ -48,6 +48,8 @@ const etat = (page) => page.evaluate(() => {
     engagements: compte(".engagements > div"), questions: compte("details"),
     images: tous("img").map((i) => i.complete && i.naturalWidth > 0), imagesVisibles: tous(".temps-cadre img, .pile img").filter(visible).length,
     videos: tous("video").length,
+    ouverture: { photos: tous(".hero img, .hero video").length, maquette: tous(".hero .maquette").length, h1: document.querySelector("h1").innerText.replace(/\s+/g, " ") },
+    boutonsOuverture: tous(".hero-actions .bouton").filter(visible).map((b) => Math.round(b.getBoundingClientRect().height)),
     debordement: document.documentElement.scrollWidth - window.innerWidth,
     classeAnim: document.documentElement.classList.contains("anim"),
   };
@@ -69,7 +71,9 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   verifier("Aucune erreur dans la console du navigateur", erreurs.length === 0, [...new Set(erreurs)].join(" | "));
   verifier("Aucune erreur de politique de contenu", !erreurs.some((x) => /Content Security Policy|EvalError/i.test(x)));
   verifier("Titre d'ouverture visible, animation terminée", e.titre && e.titreAnime);
-  verifier(`Tous les blocs animés sont visibles (${e.reveles.visibles}/${e.reveles.n})`, e.reveles.n >= 20 && e.reveles.visibles === e.reveles.n);
+  verifier("Ouverture : titre « Des pubs vidéo avec présentateur IA pour votre boutique. », maquette de téléphone, aucune photographie", e.ouverture.h1 === "Des pubs vidéo avec présentateur IA pour votre boutique." && e.ouverture.maquette === 1 && e.ouverture.photos === 0, JSON.stringify(e.ouverture));
+  verifier("Ouverture : boutons d'au moins 44 px de haut", e.boutonsOuverture.length === 2 && e.boutonsOuverture.every((h) => h >= 44), e.boutonsOuverture.join(","));
+  verifier(`Tous les blocs animés sont visibles (${e.reveles.visibles}/${e.reveles.n})`, e.reveles.n >= 15 && e.reveles.visibles === e.reveles.n);
   verifier("Le script d'apparition est actif", e.classeAnim);
   const vides = e.sections.filter((s) => s.h < 150 || s.texte < 20);
   verifier(`Aucune section vide (${e.sections.length} sections)`, e.sections.length >= 8 && vides.length === 0, JSON.stringify(vides));
@@ -79,7 +83,7 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   verifier("Offres : 3 formules visibles avec leurs prix", e.formules.visibles === 3 && e.prix.join("|") === "35 €|89 €|169 €", e.prix.join("|"));
   verifier("Offres : 3 boutons de commande visibles", e.boutons === 3);
   verifier("Engagements : 3 blocs visibles", e.engagements.n === 3 && e.engagements.visibles === 3);
-  verifier("Questions : 6 entrées visibles", e.questions.n === 6 && e.questions.visibles === 6);
+  verifier("Questions : 10 entrées visibles (accordéon)", e.questions.n === 10 && e.questions.visibles === 10);
   verifier(`Toutes les images sont chargées (${e.images.length})`, e.images.length >= 12 && e.images.every(Boolean));
   verifier("Images des plans et des formules visibles", e.imagesVisibles >= 14, String(e.imagesVisibles));
   verifier("Aucun débordement horizontal", e.debordement <= 0, String(e.debordement));
@@ -88,9 +92,9 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   await page.locator("details summary").first().scrollIntoViewIfNeeded();
   await page.locator("details summary").first().click();
   verifier("Questions : une réponse s'ouvre au clic", await page.locator("details[open] p").first().isVisible());
-  await page.locator('.formule a[href="/commander/test"]').scrollIntoViewIfNeeded();
-  await page.locator('.formule a[href="/commander/test"]').click();
-  await page.waitForURL("**/commander/test");
+  await page.locator('.formule a[href="/commander/accroches"]').scrollIntoViewIfNeeded();
+  await page.locator('.formule a[href="/commander/accroches"]').click();
+  await page.waitForURL("**/commander/accroches");
   await page.waitForSelector(".recap");
   verifier("Commande : page récapitulative affichée à 89 €", (await page.locator(".total strong").innerText()).includes("89") && await page.locator('.recap button[type="submit"]').isVisible());
   const actif = await page.locator('.recap button[type="submit"]').isEnabled();
@@ -131,7 +135,7 @@ console.log(`\n— Robustesse (${MODE}) —`);
   await page.goto(BASE, { waitUntil: "load" }); await page.waitForTimeout(2600);
   const visibles = await page.locator(".revele").evaluateAll((els) => els.filter((el) => getComputedStyle(el).opacity === "1").length);
   const n = await page.locator(".revele").count();
-  verifier(`JavaScript désactivé : tous les blocs sont visibles (${visibles}/${n})`, n >= 20 && visibles === n);
+  verifier(`JavaScript désactivé : tous les blocs sont visibles (${visibles}/${n})`, n >= 15 && visibles === n);
   await ctx.close();
 }
 {

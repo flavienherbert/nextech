@@ -58,8 +58,8 @@ export default function config(phase) {
     { key: "Referrer-Policy", value: "same-origin" },
     { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
     { key: "Content-Security-Policy", value: politiqueContenu(developpement) },
-    // Tant que le site n'est pas ouvert commercialement (INDEXATION=oui le jour de l'ouverture), aucun moteur de recherche ne le référence.
-    ...(process.env.INDEXATION === "oui" ? [] : [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]),
+    // Tant que SITE_ENV n'est pas « production » (le jour de l'ouverture commerciale), aucun moteur de recherche ne référence le site.
+    ...((process.env.SITE_ENV || "").trim().toLowerCase() === "production" ? [] : [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]),
     // Inutile et gênant sur un poste de développement en HTTP.
     ...(developpement
       ? // Aide au diagnostic sur un poste de développement : quelle version du code répond réellement.

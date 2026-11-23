@@ -43,7 +43,7 @@ Obligations une fois immatriculé :
 
 ## 3. Adresse e-mail professionnelle gratuite
 
-Le site lit l'adresse dans la variable `NEXT_PUBLIC_CONTACT_EMAIL` (voir `site/.env.example`). Rien d'autre à configurer.
+Le site lit l'adresse dans `site/app/config.ts` (ligne `email`) : c'est le seul endroit à changer (pied de page, mentions légales, conditions de vente, confidentialité, e-mails).
 
 - Maintenant, 0 € : une adresse dédiée chez Proton Mail ou Gmail, par exemple `studio.accroche@proton.me`. Disponibilité de l'identifiant à vérifier à la création.
 - Plus tard, avec un nom de domaine (~7 à 10 €/an, non souscrit) : `contact@studioaccroche.fr` par redirection gratuite vers la même boîte.

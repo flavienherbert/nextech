@@ -54,7 +54,7 @@ Je crée pour vous une publicité vidéo verticale avec un présentateur IA réa
 **Options**
 | Option | Prix | Délai |
 |---|---|---|
-| Pack Test : 3 vidéos de 15 s maximum, 3 accroches différentes, 2 tours de retouches | +72 € | +1 jour |
+| Pack Accroches : 3 vidéos de 15 s maximum, 3 accroches différentes, 2 tours de retouches | +72 € | +1 jour |
 | Pack Campagne : 6 vidéos de 15 s maximum, 2 présentateurs, formats 9:16 et 1:1, 2 tours de retouches | +182 € | +3 jours |
 | Livraison en 24 h | +15 € | −1 jour |
 | Version anglaise de la vidéo | +15 € | +1 jour |

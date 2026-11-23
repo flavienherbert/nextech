@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Mentions légales — Studio Accroch
 export default function MentionsLegales() {
   const i = infosLegales();
   return (
-    <PageLegale titre="Mentions légales" maj="13 novembre 2026">
+    <PageLegale titre="Mentions légales" maj="23 novembre 2026">
       <h2>Éditeur du site</h2>
       <p>
         Studio Accroche est le nom commercial de {i.nom}, entrepreneur individuel (micro-entreprise).

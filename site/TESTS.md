@@ -10,6 +10,7 @@ Aucune dépendance Python n'est stockée dans le dépôt (des fichiers `.whl` y 
 | `node scripts/e2e-medias.mjs` | Images et vidéos du site : envoi, contrôles, route publique, lecture par plages, cache, section Exemples, retour à l'origine (site lancé ; **ffmpeg** requis pour fabriquer les fichiers de test) |
 | `npm run test:csp`, `npm run test:affichage` | Politique de sécurité du contenu et affichage réel des sections |
 | `npm run test:postgres` | Le pilote PostgreSQL (base de **test** uniquement) |
+| `npm run test:environnements` | Les trois états du site : sans variable, `SITE_ENV=preprod`, `SITE_ENV=production` + `SHOW_EXAMPLE_VIDEO=true` (indexation, bandeau, vidéo d'exemple lue au clic et muette, mentions légales avec champs visibles) |
 
 ## Résultats du 22 novembre 2026 (code livré dans cette version)
 

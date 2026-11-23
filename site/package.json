@@ -15,6 +15,7 @@
     "stop": "node scripts/stop.mjs",
     "diagnostic": "node scripts/diagnostic.mjs",
     "test:csp": "node scripts/test-csp.mjs",
+    "test:environnements": "node scripts/test-environnements.mjs",
     "verifier:stockage": "node scripts/verifier-stockage.mjs",
     "test:postgres": "tsx scripts/test-postgres.mts",
     "sauvegarde": "node scripts/sauvegarde.mjs",

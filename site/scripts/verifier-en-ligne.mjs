@@ -17,9 +17,9 @@ if (PRE) {
   console.log("— Rien n'est accessible sans le mot de passe —");
   const html = await (await fetch(B + "/", { headers: basic })).text();
   const statiques = [...new Set([...html.matchAll(/\/_next\/static\/[^"')\s]+\.(?:js|css)/g)].map((m) => m[0]))].slice(0, 2);
-  const chemins = ["/", "/commander/essai", "/commander/test", "/commander/campagne", "/cgv", "/mentions-legales", "/confidentialite", "/admin", "/admin/connexion", "/admin/courriels", "/admin/diagnostic", "/api/admin/diagnostic", "/api/checkout", "/api/depot/x", "/api/commande/x/etat", "/api/taches/quotidienne", "/robots.txt", "/sitemap.xml", "/favicon.ico", "/media/photos/couverture-1920.webp", "/media/demo/demonstration.mp4", "/ADMIN", "//admin", "/_next/data/x/index.json", "/.netlify/functions/tache-quotidienne", "/.env", "/package.json", ...statiques];
+  const chemins = ["/", "/commander/essai", "/commander/test", "/commander/campagne", "/cgv", "/mentions-legales", "/confidentialite", "/admin", "/admin/connexion", "/admin/courriels", "/admin/diagnostic", "/api/admin/diagnostic", "/api/checkout", "/api/depot/x", "/api/commande/x/etat", "/api/taches/quotidienne", "/robots.txt", "/sitemap.xml", "/favicon.ico", "/ADMIN", "//admin", "/_next/data/x/index.json", "/.netlify/functions/tache-quotidienne", "/.env", "/package.json", ...statiques];
   const ouverts = [];
-  for (const c of chemins) { const s = await code(c); if (s !== 401 && s !== 400 && s !== 404) ouverts.push(`${c} → ${s}`); else if (s === 404 && c !== "/media/demo/demonstration.mp4") ouverts.push(`${c} → 404 sans mot de passe (devrait être 401)`); }
+  for (const c of chemins) { const s = await code(c); if (s !== 401 && s !== 400 && s !== 404) ouverts.push(`${c} → ${s}`); else if (s === 404) ouverts.push(`${c} → 404 sans mot de passe (devrait être 401)`); }
   verifier(`${chemins.length} adresses testées sans mot de passe : toutes refusées`, ouverts.length === 0, ouverts.join(" | "));
   verifier("Mauvais mot de passe refusé", (await code("/", { headers: { Authorization: "Basic " + Buffer.from("x:faux").toString("base64") } })) === 401);
   verifier("Méthodes POST, PUT, OPTIONS refusées sans mot de passe", (await Promise.all([code("/api/checkout", { method: "POST" }), code("/admin", { method: "PUT" }), code("/", { method: "OPTIONS" })])).every((s) => s === 401));

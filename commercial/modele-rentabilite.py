@@ -30,7 +30,7 @@ SCEN = {
 NV = {"essai": 1, "test": 3, "campagne": 6}        # vidéos livrées
 NS = {"essai": 1, "test": 3, "campagne": 3}        # scripts à écrire
 SUR = {"essai": 5, "test": 5, "campagne": 8}       # crédits annexes (images de départ, voix) par commande
-NOM = {"essai": "Essai", "test": "Pack Test", "campagne": "Pack Campagne"}
+NOM = {"essai": "Essai", "test": "Pack Accroches", "campagne": "Pack Campagne"}
 
 GRILLES = {
   # Décisions du 22/11/2026 : prix directs 35 / 89 / 169 €, tours de retouches 1 / 2 / 2, 15 secondes maximum par vidéo.
@@ -127,7 +127,7 @@ def decision():
     for f in NV:
         for scen in SCEN:
             r = formule(g, scen, f); print(f"| {NOM[f]} | {scen} | {r['net']:.1f} € | {r['h']:.2f} h | {r['eurh']:.1f} |")
-    print("\n### Prix de plateforme à bénéfice égal à la vente directe (central)\n\n| Plateforme | Base des cotisations | Essai | Pack Test | Pack Campagne |\n|---|---|---|---|---|")
+    print("\n### Prix de plateforme à bénéfice égal à la vente directe (central)\n\n| Plateforme | Base des cotisations | Essai | Pack Accroches | Pack Campagne |\n|---|---|---|---|---|")
     for nom, d in CANAUX.items():
         for base in ("brut", "net"):
             print(f"| {nom} | prix payé ({base}) | " + " | ".join(f"{parite(g, f, d['c'], d['e'], d['fixe'], base):.1f} €" for f in NV) + " |")

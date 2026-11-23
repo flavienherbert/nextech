@@ -66,7 +66,7 @@ Les conditions de vente prévoient un recours si le retard dépasse sept jours :
 
 ## 6. Proposer le pack supérieur (après validation d'un Essai)
 
-> Content que le rendu vous plaise ! Si vous voulez trouver l'accroche qui marche vraiment, le **Pack Test** (89 €) livre trois vidéos sur trois angles différents : vous les diffusez en parallèle et vous gardez le meilleur. Je reprends votre brief tel quel : [lien de commande].
+> Content que le rendu vous plaise ! Si vous voulez trouver l'accroche qui marche vraiment, le **Pack Accroches** (89 €) livre trois vidéos sur trois angles différents : vous les diffusez en parallèle et vous gardez le meilleur. Je reprends votre brief tel quel : [lien de commande].
 
 ## 7. Demande qui n'est pas une retouche (changement de produit, de brief, d'angle, de script validé ou de durée)
 

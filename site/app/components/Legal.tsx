@@ -2,18 +2,25 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BandeauMode, EnteteSimple, Pied } from "./Cadre";
 import { env } from "@/lib/env";
+import { site } from "../config";
 
-export const AC = "[à compléter avant mise en ligne]";
+// Champ visible tant qu'une information n'est pas renseignée : rien n'est inventé, rien n'est caché.
+export const MANQUE = {
+  nom: "[Nom et prénom de l'éditeur]",
+  siret: "[SIRET]",
+  adresse: "[Adresse postale de l'éditeur]",
+  mediateur: "[Médiateur de la consommation à désigner]",
+};
 
 export function infosLegales() {
   const l = env.legal();
   return {
-    nom: l.nom || AC,
-    siret: l.siret || AC,
-    adresse: l.adresse || AC,
-    email: l.email || AC,
-    mediateur: l.mediateur || AC,
-    hebergeur: process.env.NEXT_PUBLIC_LEGAL_HEBERGEUR || AC,
+    nom: l.nom || MANQUE.nom,
+    siret: l.siret || MANQUE.siret,
+    adresse: l.adresse || MANQUE.adresse,
+    email: l.email, // toujours renseigné : app/config.ts
+    mediateur: l.mediateur || MANQUE.mediateur,
+    hebergeur: process.env.NEXT_PUBLIC_LEGAL_HEBERGEUR || site.hebergeur,
     complet: Boolean(l.nom && l.siret && l.adresse && l.email),
   };
 }

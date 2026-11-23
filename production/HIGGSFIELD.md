@@ -39,12 +39,12 @@ Une génération n'est jamais réussie du premier coup à coup sûr : comptez **
 | Formule | Prix | Vidéos | Crédits (1 essai) | Crédits (2 essais) | Crédit maximal pour garder 80 % de marge sur la génération |
 |---|---|---|---|---|---|
 | Essai | 35 € | 1 | ≈ 38 | ≈ 112 (3 essais) | 0,062 € |
-| Pack Test | 89 € | 3 | ≈ 113 | ≈ 225 | 0,079 € |
+| Pack Accroches | 89 € | 3 | ≈ 113 | ≈ 225 | 0,079 € |
 | Pack Campagne | 169 € | 6 | ≈ 225 | ≈ 450 | 0,075 € |
 
 **Lecture :** si votre crédit coûte plus de ≈ 6 centimes, l'Essai devient peu rentable dès le troisième essai. Ajoutez les frais Stripe (environ 1,5 % + 0,25 € pour une carte européenne standard : 0,78 € sur 35 €, à vérifier sur stripe.com) et les cotisations de votre statut.
 
-**Votre temps compte aussi** : un Essai en 1 h, c'est 35 € de chiffre d'affaires pour 1 h : pour atteindre 25 €/h, il doit tenir **en moins de 47 minutes** (35 minutes abonnement compris), brief, script et livraison inclus (`commercial/GRILLES-ET-PLATEFORMES.md`). L'Essai est un produit d'appel (il mène au Pack Test). Le Pack Test (89 €) doit tenir en moins de 1 h 55 ; le Pack Campagne (169 €) en moins de 3 h 34.
+**Votre temps compte aussi** : un Essai en 1 h, c'est 35 € de chiffre d'affaires pour 1 h : pour atteindre 25 €/h, il doit tenir **en moins de 47 minutes** (35 minutes abonnement compris), brief, script et livraison inclus (`commercial/GRILLES-ET-PLATEFORMES.md`). L'Essai est un produit d'appel (il mène au Pack Accroches). Le Pack Accroches (89 €) doit tenir en moins de 1 h 55 ; le Pack Campagne (169 €) en moins de 3 h 34.
 
 Relevez à chaque commande le coût réel et le temps passé (§ 8) : après dix commandes, vous saurez si les prix tiennent.
 
@@ -81,7 +81,7 @@ Si une case n'est pas cochée : écrivez au client (modèle dans `MODELES-MESSAG
 ## 5. Le script (15 minutes) : avant toute génération
 
 1. Écrivez le script avec la structure de `PROCESS.md` (accroche 0–3 s, produit 3–8 s, bénéfice 8–12 s, appel 12–15 s ; 2,5 mots/s ; **37 mots maximum pour 15 s**).
-2. Pack Test : trois accroches, trois angles : **A problème · B résultat · C curiosité**. Formulez le « résultat » comme une présentation (« Avec ça, tu… »), jamais comme un avis fictif.
+2. Pack Accroches : trois accroches, trois angles : **A problème · B résultat · C curiosité**. Formulez le « résultat » comme une présentation (« Avec ça, tu… »), jamais comme un avis fictif.
 3. Dans la commande, panneau « Prochaine étape » : collez le script, **Envoyer le script au client**. Il reçoit un e-mail et répond « OK » (à la boîte du studio).
 4. Quand il répond OK : cochez « Le client a validé le script » puis **Démarrer la production**. Le client est prévenu.
 
@@ -97,7 +97,7 @@ Modèle éprouvé : **Seedance 2.0, mode fast, 720p, 9:16, audio activé**. Les 
    > Handheld smartphone selfie video, authentic UGC creator style. The [woman/man] speaks directly to the camera in natural, fluent French: « [ACCROCHE] ». [Geste]. Accurate lip sync. The [produit] keeps its exact shape, colour and details, no logo. Clean voice only, no music, no subtitles, no on-screen text.
 4. **Devis avant chaque génération** : notez le coût. Au-dessus de **2 essais ratés** sur le même plan, simplifiez le plan plutôt que de relancer.
 5. **Plafond** : 8 € de génération par vidéo livrée (réévaluez avec le vrai prix du crédit, § 2).
-6. Pack Test : ne régénérez que le **plan d'accroche** pour les angles B et C et réutilisez le corps de la vidéo (c'est ce qui rend le pack rentable).
+6. Pack Accroches : ne régénérez que le **plan d'accroche** pour les angles B et C et réutilisez le corps de la vidéo (c'est ce qui rend le pack rentable).
 7. Pack Campagne : « 2 présentateurs » : changez d'image de départ, gardez le script et le produit.
 
 Autres modèles proposés par Higgsfield (Marketing Studio, Intone pour une tête parlante à partir d'un enregistrement vocal, Kling 3.0) : **non testés pour le studio**. Essayez-les sur une commande à blanc, jamais sur la première commande d'un client.
