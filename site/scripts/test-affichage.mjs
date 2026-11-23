@@ -49,7 +49,7 @@ const etat = (page) => page.evaluate(() => {
     images: tous("img").map((i) => i.complete && i.naturalWidth > 0), imagesVisibles: tous(".temps-cadre img, .pile img").filter(visible).length,
     videos: tous("video").length,
     ouverture: { photos: tous(".hero img, .hero video").length, maquette: tous(".hero .maquette").length, h1: document.querySelector("h1").innerText.replace(/\s+/g, " ") },
-    boutonsOuverture: tous(".hero-actions .bouton").filter(visible).map((b) => Math.round(b.getBoundingClientRect().height)),
+    boutonsOuverture: tous(".hero .hero-actions .bouton").filter(visible).map((b) => Math.round(b.getBoundingClientRect().height)),
     debordement: document.documentElement.scrollWidth - window.innerWidth,
     classeAnim: document.documentElement.classList.contains("anim"),
   };

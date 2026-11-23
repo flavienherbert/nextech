@@ -34,8 +34,10 @@ export default async function Accueil() {
 
   // Vidéo d'exemple : la section n'existe QUE si SHOW_EXAMPLE_VIDEO vaut true (app/config.ts). Sinon, aucun texte de remplacement.
   // La vidéo envoyée dans Administration → Images et vidéos est prioritaire sur le fichier public/videos/exemple.mp4.
-  const videoDemo = m.envoye("demo-video") ? m.url("demo-video")! : demonstration.video;
-  const afficheDemo = m.envoye("demo-affiche") ? m.url("demo-affiche")! : demonstration.poster;
+  const videoEnvoyee = m.envoye("demo-video");
+  const videoDemo = videoEnvoyee ? m.url("demo-video")! : demonstration.video;
+  // L'aperçu par défaut (public/videos/exemple-apercu.jpg) ne va qu'avec la vidéo locale : jamais avec une vidéo envoyée sans aperçu.
+  const afficheDemo = m.envoye("demo-affiche") ? m.url("demo-affiche")! : videoEnvoyee ? "" : demonstration.poster;
   const demoVisible = SHOW_EXAMPLE_VIDEO && Boolean(videoDemo);
 
   // Exemples de vidéos livrées : la section n'existe que si au moins une vidéo a été envoyée.
