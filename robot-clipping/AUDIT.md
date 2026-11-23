@@ -1,5 +1,7 @@
 # Robot de clipping Content Rewards : audit technique
 
+> **Mise à jour du 23/11/2026** : l'architecture et le plan de développement sont remplacés par `PLAN.md` (trois agents et un orchestrateur), et l'étape 0 par `ETAPE-0.md`. Les constats, limites et sources ci-dessous restent valables.
+
 Audit du 23 novembre 2026. **Rien n'a été créé, déployé, souscrit ni dépensé. Aucun fichier existant n'a été modifié.** Ce document est le seul ajout au dépôt.
 
 Légende : **[vérifié]** = constaté pendant l'audit (requête, lecture, mesure) · **[à tester]** = plausible, à démontrer en phase 1 · **[estimation]** = calcul sur hypothèses écrites.

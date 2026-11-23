@@ -1,8 +1,10 @@
 # Étape 0 : préparer les accès
 
-Rédigé le 23 novembre 2026. **Rien n'a été créé, déployé ni payé.** Toutes les actions ci-dessous sont **les vôtres** : je ne les exécute pas à votre place.
+Mis à jour le 23 novembre 2026, pour l'architecture à trois agents et un orchestrateur (voir `PLAN.md`).
 
-**Règle d'or : aucun secret dans la conversation.** Mots de passe, clés et jetons vont uniquement dans votre gestionnaire de mots de passe (Trousseau iCloud ou app « Mots de passe »), puis dans les « Secrets » de GitHub (bloc E). Je n'ai jamais besoin de les voir.
+**Rien n'a été créé, déployé ni payé.** Toutes les actions ci-dessous sont **les vôtres** : je ne crée aucun compte et ne touche à aucune infrastructure à votre place.
+
+**Règle d'or : aucun secret dans la conversation.** Clés, mots de passe et jetons vont dans votre gestionnaire de mots de passe, puis dans les « Secrets » de GitHub. Je n'ai jamais besoin de les voir.
 
 ---
 
@@ -10,199 +12,165 @@ Rédigé le 23 novembre 2026. **Rien n'a été créé, déployé ni payé.** Tou
 
 | Sujet | Décision |
 |---|---|
-| Ancien Clipper | À étudier (`C:\Users\pc\clipper\clipper`, Python, Deepgram). La V1 n'en dépend pas : la transcription se fait avec faster-whisper, gratuit, sur le serveur. |
-| Content Rewards | Raccourci iPhone « Envoyer au robot ». Aucune automatisation qui se connecte à votre compte. |
-| IA | Haiku trie, Opus analyse les 15 meilleurs. Plafond strict de 5 $ pour le premier essai. Aucun achat de crédit sans votre accord. |
-| Volume | Aucune limite fixée dans le code (une file d'attente, une exécution par campagne). La seule limite est la ressource de calcul gratuite : 2 000 min par mois sur GitHub. Le robot prévient quand elle approche, et le même programme pourra tourner ailleurs sans réécriture. |
-| Google Drive | Votre compte habituel, celui qui reçoit les partages des campagnes. Un dossier dédié `ROBOT CLIPPING`. |
-| Format | 9:16, sans couper de visage ni d'élément important. Si les visages ne tiennent pas dans un recadrage, le robot passe au fond flou. Sous-titres seulement si la campagne les autorise et si le clip n'en a pas déjà. |
-| Infrastructure | Un dépôt GitHub privé séparé et un second projet Supabase gratuit. |
-| Priorité | Une première campagne complète : clips prédécoupés, meilleures sélections, descriptions prêtes à poster. |
+| Livraison | Les **10 meilleures vidéos** par campagne, plus d'autres si leur potentiel est excellent et qu'elles respectent toutes les règles. Un classement complet, avec une note et une justification pour chaque vidéo. |
+| Conservation | **Aucune suppression automatique.** La fonction sera préparée, désactivée, jusqu'à ce qu'une politique conforme aux licences soit validée. |
+| IA | Haiku pour le premier tri. Opus pour l'analyse approfondie, les consignes et les descriptions. **Plafond strict de 5 $ par campagne de test.** |
+| Ordinateur | Un PC Windows est disponible. Les blocs A, B et C se font dessus. |
+| Ancien Clipper | Étude reportée : la première version n'en dépend pas. |
+| Mention publicitaire | Vérifiée à chaque campagne, selon ses consignes et les obligations applicables. **Jamais considérée comme inutile.** |
+| Raccourci iPhone | Il transmet le lien, le texte complet et tous les liens. Toute information manquante est signalée, **jamais inventée**. Testé hors ligne, voir `RACCOURCI-IPHONE.md`. |
+| Infrastructure | Un dépôt GitHub privé séparé et un second projet Supabase gratuit. Studio Accroche n'est pas touché. |
 
----
+## 2. Vérifications déjà faites
 
-## 2. Vérifications faites avant l'étape 0
+**Conditions de Content Rewards** (conditions créateurs du 17/11/2026, politique de copyright du 24/09/2026) :
 
-### Conditions de Content Rewards
-
-Documents lus : conditions créateurs du 17/11/2026, politique de copyright du 24/09/2026.
-
-| Question | Ce que disent les textes | Conséquence pour le robot |
+| Sujet | Ce que disent les conditions | Conséquence pour le robot |
 |---|---|---|
-| Accès automatisé (scripts, robots, extensions) | Les conditions créateurs **n'en parlent pas**. Les CGU de Whop l'interdisent sans accord écrit. | **Aucune récupération automatique sur Content Rewards en V1.** Le Raccourci est lancé par vous, sur la page que vous voyez : c'est l'équivalent d'un copier-coller. |
-| Usage de l'IA pour choisir ou monter | Aucune clause. Pas d'exigence d'originalité. | Autorisé, en l'état des textes. |
-| Rushes et clips fournis | § 17.1 : licence « limited, revocable », « only to create and post the Campaign's Clip ». § 17.6 : la marque possède le clip final. | Le robot n'utilise les fichiers que pour vos clips de la campagne, puis **purge les vidéos après la fin de la campagne** (la licence est révocable). |
-| Faux engagement | § 12.2 et § 13.2 : acheter ou générer des vues mène au « permanent ban ». | Le robot ne touche jamais à TikTok, ni aux vues, ni aux comptes. |
-| Comptes multiples | § 13.3 : « one account only ». § 9.4 : les comptes liés sont surveillés. | Le robot n'utilise aucun compte Content Rewards. |
-| Mentions publicitaires | § 12.9 : vous êtes responsable des règles de publicité, et pour une vidéo la mention « must appear at the beginning of the video ». | Le robot recopie toute mention exigée par la campagne. Voir la question 3 au § 5. |
+| Accès automatisé | Rien sur ce sujet. Les CGU de Whop l'interdisent sans accord écrit. | **Aucune récupération automatique sur Content Rewards.** Le Raccourci est lancé par vous, sur la page affichée. |
+| IA | Aucune clause. | Rien à adapter. |
+| Rushes fournis | Licence limitée et révocable, « only to create and post the Campaign's Clip » (§ 17.1). | Les rushes ne servent qu'aux clips de la campagne. |
+| Faux engagement | Exclusion définitive (§ 12.2 et § 13.2). | Le robot ne touche ni à TikTok ni aux vues. |
+| Mention publicitaire | Votre responsabilité ; pour une vidéo, en début de vidéo (§ 12.9). | Signalée à chaque campagne. |
 
-Non lus :
-- les anciennes « Clippers Terms » de l'époque Whop, à demander à legal@contentrewards.com si une campagne a été rejointe sur Whop ;
-- la page FTC de Content Rewards.
+**Modèles Claude** (tarifs officiels relevés le 23/11/2026) :
 
-### Modèles et tarifs Claude
-
-Relevés le 23/11/2026 sur `platform.claude.com/docs/en/about-claude/pricing` et `…/models/overview`.
-
-| Rôle | Nom | Identifiant API exact | Entrée | Sortie | Lots (−50 %) |
-|---|---|---|---|---|---|
-| Tri | Claude Haiku 5.5 | `claude-haiku-5-5` | 0,10 $ / M jetons | 0,50 $ / M | 0,05 / 0,25 $ |
-| Analyse des 15 meilleurs | Claude Opus 5.5 | `claude-opus-5-5` | 4 $ / M | 20 $ / M | 2 / 10 $ |
-
-**Piège** : Haiku 5.5 coûte 5 fois plus cher (0,50 / 2,50 $) au-delà de 100 000 jetons par requête. Le robot envoie un clip par requête, soit environ 8 000 jetons, très en dessous du seuil.
-
-**Estimation pour Koba (43 clips)** : 1,35 $ au total, sous le plafond de 5 $. Le plafond est appliqué dans le code : toute requête qui ferait dépasser 5 $ est refusée avant l'envoi.
+| Modèle | Identifiant | Entrée | Sortie | Remarque |
+|---|---|---|---|---|
+| Haiku 5.5 | `claude-haiku-5-5` | 0,10 $ / M jetons | 0,50 $ / M jetons | Cinq fois plus cher au-delà de 100 000 jetons par requête. Le robot en envoie environ 4 000. |
+| Opus 5.5 | `claude-opus-5-5` | 4 $ / M jetons | 20 $ / M jetons | — |
 
 ---
 
-## 3. Liste des actions
+## 3. Ce qu'il faut, et pour quand
 
-Durée totale : environ 1 h. Les blocs B et G sont plus confortables sur un ordinateur, mais Safari sur iPhone en mode « site pour ordinateur » suffit.
+| Bloc | Pour la phase | Durée |
+|---|---|---|
+| A. Dépôt GitHub privé | **1** | 10 min |
+| B. Google Cloud (accès à votre Drive) | **1** | 25 min |
+| C. Secrets Google dans GitHub | **1** | 5 min |
+| D. Raccourci iPhone, version de test | **1** | 10 min |
+| E. Campagne Koba | **1** | 2 min |
+| F. Anthropic (clé et crédit, **sur votre autorisation**) | 2 | 10 min |
+| G. Supabase, jeton de lancement, ntfy | 3 | 20 min |
+| H. Ancien Clipper | 4 ou plus tard | — |
 
-### A. GitHub : dépôt privé (10 min, indispensable)
+**Seuls les blocs A à E sont nécessaires pour lancer la phase 1.**
 
-1. Ouvrez https://github.com/new. Remplissez :
-   - Owner : `flavienherbert`
-   - Repository name : `robot-clipping`
-   - **Private**
-   - cocher « Add a README file » ; pas de .gitignore ni de licence
+---
+
+## 4. Actions pour la phase 1
+
+### A. GitHub : dépôt privé (PC, 10 min)
+
+1. Ouvrez https://github.com/new et remplissez :
+   - Owner : `flavienherbert` ;
+   - nom : `robot-clipping` ;
+   - **Private** ;
+   - cochez « Add a README file ».
 
    Puis « Create repository ».
-2. **Vérifiez qu'aucun dépassement n'est possible.** Ouvrez https://github.com/settings/billing (*Billing and licensing*) :
-   - si aucun moyen de paiement n'est enregistré, rien ne peut être facturé ;
-   - sinon, dans *Budgets and alerts*, vérifiez qu'Actions a un budget de 0 $ et que l'usage s'arrête à la limite.
-3. **Donnez-moi accès à ce dépôt seulement.** Ouvrez https://github.com/settings/installations, puis l'application **Claude** et « Configure ». Dans *Repository access*, ajoutez `robot-clipping`, puis « Save ».
-4. Dites-moi « dépôt prêt ». Je le rattacherai à notre session, mais seulement quand vous aurez validé la phase 1.
+2. Ouvrez https://github.com/settings/billing (*Billing and licensing*). Vérifiez qu'**aucun dépassement ne peut être facturé** :
+   - soit aucun moyen de paiement n'est enregistré ;
+   - soit, dans *Budgets and alerts*, un budget Actions à 0 $ arrête l'usage à la limite.
+3. Ouvrez https://github.com/settings/installations, puis l'application **Claude**, « Configure ». Dans *Repository access*, ajoutez **uniquement** `robot-clipping`, puis « Save ».
 
-### B. Google Cloud : accès à votre Drive (25 min, indispensable)
+### B. Google Cloud : accès à votre Drive (PC, 25 min)
 
 Connectez-vous avec **votre compte Google habituel**, celui qui reçoit les partages des campagnes.
 
-1. Ouvrez https://console.cloud.google.com. Acceptez les conditions, puis « Sélectionner un projet », « Nouveau projet ». Nom : `robot-clipping`, sans organisation, puis « Créer ».
-   - **N'activez pas la facturation et ne cliquez pas sur l'essai gratuit** : il demande une carte. Rien de ce qui suit n'en a besoin.
-2. Dans *API et services*, puis *Bibliothèque*, activez :
-   - **Google Drive API** (indispensable) ;
-   - **Google Sheets API** et **Google Docs API** (gratuites, pour lire les documents de consignes).
-3. Ouvrez *Google Auth Platform* (anciennement « Écran de consentement OAuth ») et cliquez sur « Commencer ». Remplissez :
-   - nom de l'application : `Robot Clipping` ;
-   - e-mail d'assistance : votre adresse ;
-   - audience : **Externe** ;
-   - e-mail de contact : votre adresse.
+1. Ouvrez https://console.cloud.google.com, puis « Nouveau projet ». Nom : `robot-clipping`, sans organisation.
+   - **N'activez pas la facturation et ne cliquez pas sur l'essai gratuit** : il demande une carte.
+2. Dans *API et services*, puis *Bibliothèque*, activez **Google Drive API**, **Google Sheets API** et **Google Docs API**.
+3. Ouvrez *Google Auth Platform*, puis « Commencer » :
+   - nom : `Robot Clipping` ;
+   - e-mail : le vôtre ;
+   - audience : **Externe**.
 
-   Acceptez la politique, puis « Créer ».
-4. Dans *Accès aux données*, cliquez sur « Ajouter ou supprimer des niveaux d'accès ». Ajoutez **uniquement** `https://www.googleapis.com/auth/drive.file`, puis « Enregistrer ».
-   - Ce niveau d'accès ne donne au robot accès qu'aux fichiers qu'il crée lui-même. Il ne voit ni votre Gmail ni le reste de votre Drive.
-5. Dans *Audience*, cliquez sur « Publier l'application » et confirmez. Le statut doit indiquer **« En production »**.
-   - Pourquoi : en mode « Test », Google coupe l'accès au bout de 7 jours.
-   - Si Google exige une **vérification**, arrêtez-vous et dites-le-moi. Ce n'est normalement pas le cas pour ce niveau d'accès.
+   Puis « Créer ».
+4. Dans *Accès aux données*, ajoutez **uniquement** `https://www.googleapis.com/auth/drive.file`, puis « Enregistrer ».
+   - Le robot ne voit que les fichiers qu'il crée lui-même. Il ne voit ni votre Gmail ni le reste de votre Drive.
+5. Dans *Audience*, cliquez sur « Publier l'application ». Le statut doit indiquer **« En production »**.
+   - En mode « Test », Google coupe l'accès au bout de 7 jours.
+   - Si Google exige une vérification, **arrêtez-vous et dites-le-moi**.
 6. Dans *Clients*, cliquez sur « Créer un client » :
    - type : **Application Web** ;
    - nom : `robot-clipping` ;
-   - URI de redirection autorisé : `https://developers.google.com/oauthplayground`
+   - URI de redirection : `https://developers.google.com/oauthplayground`
 
-   Puis « Créer ». Copiez l'**ID client** et le **code secret du client** dans votre gestionnaire de mots de passe.
-7. Dans *API et services*, puis *Identifiants*, cliquez sur « Créer des identifiants », puis « Clé API ».
-   - Ouvrez la clé et cochez « Restreindre la clé » : Google Drive API, Google Sheets API, Google Docs API.
-   - Restriction d'application : aucune, car les serveurs de GitHub changent d'adresse.
-   - « Enregistrer », puis copiez la clé dans votre gestionnaire.
-8. **Jeton d'accès durable** :
-   1. Ouvrez https://developers.google.com/oauthplayground et cliquez sur l'engrenage en haut à droite.
-   2. Cochez « Use your own OAuth credentials », collez l'ID client et le code secret. Vérifiez que *Access type* est sur **Offline**.
-   3. À gauche, dans « Input your own scopes », tapez `https://www.googleapis.com/auth/drive.file`, puis « Authorize APIs ».
-   4. Choisissez votre compte habituel et cliquez sur « Autoriser ». Si l'écran « application non validée » apparaît : « Paramètres avancés », puis « Accéder à Robot Clipping ». C'est votre propre application.
+   Copiez l'**ID client** et le **code secret** dans votre gestionnaire de mots de passe.
+7. Dans *Identifiants*, cliquez sur « Créer des identifiants », puis « Clé API » :
+   - « Restreindre la clé » à Drive, Sheets et Docs ;
+   - aucune restriction d'application.
+
+   Copiez la clé dans votre gestionnaire.
+8. **Jeton d'accès durable :**
+   1. Ouvrez https://developers.google.com/oauthplayground, puis l'engrenage.
+   2. Cochez « Use your own OAuth credentials » et collez l'ID client et le code secret. *Access type* : **Offline**.
+   3. Dans « Input your own scopes », tapez `https://www.googleapis.com/auth/drive.file`, puis « Authorize APIs ».
+   4. Choisissez votre compte habituel, puis « Autoriser ».
    5. Cliquez sur « Exchange authorization code for tokens » et copiez le **Refresh token** dans votre gestionnaire.
-   - Vous pourrez révoquer cet accès à tout moment sur https://myaccount.google.com/permissions.
+   - Si l'écran « application non validée » apparaît : « Paramètres avancés », puis « Accéder à Robot Clipping ». C'est votre propre application.
+   - Accès révocable à tout moment : https://myaccount.google.com/permissions
 
-### C. Supabase : second projet gratuit (10 min, facultatif maintenant)
-
-L'historique ne sert qu'à partir de la phase 3. **Un projet gratuit sans activité se met en pause après 7 jours** (réactivation gratuite, en un clic). Vous pouvez donc le créer maintenant ou plus tard.
-
-1. Ouvrez https://supabase.com/dashboard, puis « New project ». Remplissez :
-   - organisation : la même que Studio Accroche ;
-   - nom : `robot-clipping` ;
-   - mot de passe de la base : « Generate », puis copiez-le dans votre gestionnaire ;
-   - région : **Central EU (Frankfurt)** ;
-   - plan : **Free**.
-
-   Puis « Create ».
-   - Si Supabase demande une carte ou propose un plan payant comme seule option, arrêtez-vous et dites-le-moi.
-2. Dans *Project Settings*, puis *API Keys* :
-   - copiez l'**URL du projet** ;
-   - créez une **clé secrète** nommée `robot-worker` (ou utilisez `service_role` si c'est l'ancien affichage) et copiez-la dans votre gestionnaire.
-3. Ne créez aucune table : je fournirai le script SQL, à relire avant exécution.
-
-### D. Anthropic : compte API sans paiement (5 min)
-
-1. Ouvrez https://platform.claude.com et connectez-vous avec votre adresse habituelle. Créez l'organisation si on vous le demande.
-2. **N'ajoutez aucun crédit et ne créez pas encore de clé.** Repérez seulement les pages de facturation et de limites de dépense.
-3. L'achat de crédit et la clé viendront à la phase 2, après votre accord explicite. Votre abonnement Claude (claude.ai) est séparé et ne paie pas l'API.
-
-### E. Secrets dans GitHub (5 min, après A et B, et C si fait)
+### C. Secrets Google dans GitHub (PC, 5 min)
 
 Dans le dépôt `robot-clipping`, ouvrez *Settings*, *Secrets and variables*, *Actions*. Pour chaque ligne, cliquez sur « New repository secret » :
 
-| Nom exact | Valeur (depuis votre gestionnaire) |
+| Nom exact | Valeur |
 |---|---|
 | `GOOGLE_CLIENT_ID` | B6 |
 | `GOOGLE_CLIENT_SECRET` | B6 |
 | `GOOGLE_REFRESH_TOKEN` | B8 |
 | `GOOGLE_API_KEY` | B7 |
-| `SUPABASE_URL` | C2 (si fait) |
-| `SUPABASE_SECRET_KEY` | C2 (si fait) |
 
-GitHub masque ces valeurs dans les journaux, et je ne peux pas les lire. Envoyez-moi seulement **la liste des noms créés**.
+Envoyez-moi **seulement la liste des noms créés**.
 
-### F. iPhone (5 min)
+### D. Raccourci iPhone, version de test (iPhone, 10 min)
 
-1. Ouvrez *Réglages*, *Apps*, *Raccourcis*, *Avancé* et activez **« Autoriser l'exécution de scripts »**. Le Raccourci « Envoyer au robot » en aura besoin ; je le fournirai à la phase 2.
-2. Dans Safari, connecté à Content Rewards, ouvrez la campagne Koba. Vérifiez que « Content requirements » et « Reference materials » sont lisibles, et non plus « Visible once you join ».
+Suivez `RACCOURCI-IPHONE.md`, § 5. Le Raccourci enregistre la capture dans un dossier Drive `CAPTURES ROBOT` que vous créez vous-même. **Ne l'essayez pas encore** : l'essai sur Koba est la première action de la phase 1, avec moi.
 
-### G. Ancien Clipper (pour l'étude, non bloquant)
+### E. Campagne Koba (2 min)
 
-Choisissez **une** des deux méthodes.
+Vérifiez dans Safari que la campagne est **toujours ouverte** et que vous y êtes **inscrit** : les consignes et les fichiers doivent être lisibles.
 
-**1. Recommandée : envoi d'une copie nettoyée.**
-1. Sur l'ancien PC, copiez `C:\Users\pc\clipper\clipper` vers un nouveau dossier.
-2. Dans la copie, **supprimez** :
-   - `.env` et tout fichier contenant une clé (par exemple `config` ou `settings` avec « deepgram ») ;
-   - `venv`, `.venv` et `__pycache__` ;
-   - toutes les vidéos et tous les fichiers produits.
-3. Sur github.com, dans `robot-clipping`, cliquez sur « Add file », puis « Upload files ». Glissez le dossier nettoyé dans `reference/clipper-ancien/`, puis « Commit ».
+### Quand A à E sont faits
 
-**2. Lecture à distance.** Allumez l'ancien PC et lancez Desktop Commander. Je lis le code en lecture seule, sans ouvrir `.env`, et seulement après votre accord.
-
-Si une clé Deepgram a pu se glisser dans un fichier envoyé ou partagé, **régénérez-la** dans la console Deepgram.
-
-### H. Campagne Koba, pour le premier essai
-
-1. Confirmez que la campagne est toujours ouverte et que vous y êtes inscrit.
-2. Au démarrage de la phase 1, collez-moi le **texte exact** de « Content requirements » : la description officielle, les hashtags et mentions imposés, les interdictions, la durée. Ce texte n'est pas secret. Collez aussi les liens « Reference materials ».
-3. Facultatif, mais utile pour mesurer l'IA : notez vous-même 20 clips du dossier, en gardant / en écartant avec une raison courte. Je comparerai vos choix à ceux du robot.
-
-### Reporté à plus tard (inutile pour la première campagne)
-
-- Cloudflare Pages (interface web) : phase 5.
-- ntfy (notifications) : phase 5.
-- Achat de crédit Anthropic : phase 2, avec votre accord.
-- Espace Google One : seulement si les 15 Go gratuits ne suffisent pas.
+Envoyez-moi : « Étape 0 terminée », la **liste des noms de secrets**, et tout point bloqué. **La phase 1 ne démarre qu'après votre accord explicite** (voir `PLAN.md`).
 
 ---
 
-## 4. Ensuite (pour information, rien ne démarre sans votre accord)
+## 5. Pour les phases suivantes (ne rien faire maintenant)
 
-**Phase 1, sans IA payante.** Je propose ceci :
-- un programme dans `robot-clipping` ;
-- un premier contrôle en lecture seule : présence des secrets, accès au dossier Drive Koba, création de `ROBOT CLIPPING/CAMPAGNES/Koba LaD…` ;
-- l'inventaire des 43 clips : doublons par empreinte md5, durée, format, transcription, images clés.
+### F. Anthropic, avant la phase 2
 
-Le déclenchement se fera à la main depuis Safari (github.com) ou l'application GitHub, avant que l'interface existe.
+1. Sur https://platform.claude.com, créez le compte avec votre adresse habituelle. **N'ajoutez aucun crédit sans en avoir parlé avec moi.**
+2. Au démarrage de la phase 2, après votre accord :
+   - achetez le crédit au montant minimal proposé par la Console ;
+   - réglez une **limite de dépense** dans la Console (seconde sécurité, en plus du plafond de 5 $ appliqué dans le code) ;
+   - créez une clé et ajoutez-la dans GitHub sous le nom `ANTHROPIC_API_KEY`.
 
-**Phase 2, avec le plafond de 5 $** : tri par Haiku, analyse des 15 meilleurs par Opus, conversion 9:16 si nécessaire, puis dépôt des vidéos, descriptions, consignes et rapport. **C'est la première campagne complète.**
+### G. Envoi direct sans passer par Drive, avant la phase 3
+
+1. Second projet Supabase gratuit `robot-clipping`, région **Central EU (Frankfurt)**, plan **Free**. Copiez l'URL du projet et une clé secrète `robot-worker`.
+2. **Jeton GitHub limité** pour le lancement :
+   - https://github.com/settings/personal-access-tokens/new ;
+   - accès : **uniquement** `robot-clipping` ;
+   - permission : **Actions** en lecture et écriture, rien d'autre.
+
+   Il sera enregistré côté Supabase, jamais dans le Raccourci.
+3. Un **code secret** pour le Raccourci (généré par votre gestionnaire de mots de passe).
+4. L'application **ntfy** sur l'iPhone (gratuite, sans compte), pour les notifications.
+5. Le déploiement de la boîte de réception Supabase sera **soumis à votre autorisation**.
+
+### H. Ancien Clipper (plus tard)
+
+Copie nettoyée (sans `.env`, sans clé Deepgram, sans `venv` ni vidéos), envoyée dans `robot-clipping/reference/clipper-ancien/` par « Add file », puis « Upload files ».
 
 ---
 
-## 5. Questions ouvertes
+## 6. Points à surveiller pendant l'étape 0
 
-1. Avez-vous un **ordinateur en service**, en plus de l'iPhone ? Il est plus pratique pour les blocs B et G.
-2. Pour l'ancien Clipper : **méthode 1 ou 2** ?
-3. La campagne Koba exige-t-elle une **mention publicitaire** (« Publicité », « Collaboration commerciale », #ad) ? En France, la loi de 2023 sur l'influence commerciale impose une mention quand il y a une contrepartie. Je ne sais pas si elle s'applique au clipping rémunéré à la vue : c'est à vérifier, ce n'est pas un avis juridique. Le robot appliquera ce que la campagne exige.
+- **Si Google demande une carte, une vérification ou une facturation** à n'importe quelle étape : arrêtez-vous, rien de tout cela n'est nécessaire.
+- **Si GitHub affiche un moyen de paiement** : vérifiez le budget Actions à 0 $ (A2).
+- Le dépôt `nextech` est **public**. Ces documents n'y contiennent aucun secret ni identifiant, et le code du robot ira dans le dépôt **privé**.
