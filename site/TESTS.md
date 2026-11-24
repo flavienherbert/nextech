@@ -12,16 +12,16 @@ Aucune dépendance Python n'est stockée dans le dépôt (des fichiers `.whl` y 
 | `npm run test:postgres` | Le pilote PostgreSQL (base de **test** uniquement) |
 | `npm run test:environnements` | Les trois états du site : sans variable, `SITE_ENV=preprod`, `SITE_ENV=production` + `SHOW_EXAMPLE_VIDEO=true` (indexation, bandeau, vidéo d'exemple lue au clic et muette, mentions légales avec champs visibles) |
 
-## Résultats du 23 novembre 2026 (refonte du site, branche `refonte-pro`)
+## Résultats du 24 novembre 2026 (refonte et offre réservée aux professionnels, branche `refonte-pro`)
 
 | Vérification | Disque | PostgreSQL + disque | PostgreSQL + S3 | S3 seul |
 |---|---|---|---|---|
-| Tests ciblés (`npm run test:unitaires`) | 251/251 | réussis | réussis | réussis |
-| Parcours complet dans le navigateur (`npm run test:e2e`) | 224/224 | 224/224 | 223/223 | — |
+| Tests ciblés (`npm run test:unitaires`) | 258/258 | réussis | réussis | réussis |
+| Parcours complet dans le navigateur (`npm run test:e2e`) | 234/234 | 234/234 | 233/233 | — |
 | Images et vidéos du site (`scripts/e2e-medias.mjs`, avec `SHOW_EXAMPLE_VIDEO=true`) | 35/35 | 35/35 | 35/35 | — |
 | Affichage de la version compilée (`scripts/test-affichage.mjs`) | 61/61 | 61/61 | 61/61 | — |
 
-Aussi : pilote PostgreSQL réussi ; `npm run test:csp` 31/31 ; **`npm run test:environnements` 33/33** (sans variable, préproduction, production avec vidéo d'exemple) ; `npx tsc --noEmit` sans erreur ; build de production sans erreur.
+Aussi : pilote PostgreSQL réussi ; `npm run test:csp` 31/31 ; `npm run test:environnements` 34/34 ; `npx tsc --noEmit` sans erreur ; build de production sans erreur.
 
 ## Résultats du 22 novembre 2026 (code livré dans cette version)
 
