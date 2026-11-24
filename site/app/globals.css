@@ -2734,3 +2734,36 @@ summary {
     min-height: 44px;
   }
 }
+
+/* — Offre réservée aux professionnels : mention et champs de la page de commande — */
+
+.reserve-pro {
+  margin: 20px 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.champs-pro {
+  display: grid;
+  gap: 14px;
+}
+
+.champs-pro .champ > span {
+  font-size: 14px;
+}
+
+.champs-pro small {
+  color: var(--encre-douce);
+}
+
+/* Mention sous les cartes de formules (accueil) */
+
+.mention-pro {
+  margin: 28px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--encre);
+}

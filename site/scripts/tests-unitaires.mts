@@ -261,9 +261,33 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Aucun délai, aucune durée, aucun format ni ancien nom de formule écrits à la main dans les pages, les e-mails et les factures", fautifsClient.length === 0, fautifsClient.join(", "));
   // Configuration du site : contact, images, réglages, bandeau, indexation
   const config = await import("../app/config");
-  const { env } = await import("../lib/env");
+  const { env, modePaiement } = await import("../lib/env");
   verifier("Configuration : adresse de contact unique (app/config.ts), lue par les mentions légales, la facture et les e-mails", config.site.email === "contactstudioaccroche@gmail.com" && env.legal().email === config.site.email);
   verifier("Configuration : vidéo d'exemple masquée par défaut (SHOW_EXAMPLE_VIDEO absent) et active seulement si la valeur est true / oui / 1", config.SHOW_EXAMPLE_VIDEO === false && config.demonstration.video === "/videos/exemple.mp4" && config.demonstration.poster === "/videos/exemple-apercu.jpg");
+  {
+    // Offre réservée aux professionnels : textes, contrôle des informations saisies avant le paiement, FAQ
+    const { verifierProfessionnel, siretLisible, normaliserSiret, siretValide } = await import("../lib/professionnel");
+    const formulaire = (o: Record<string, string>) => ({ get: (k: string) => o[k] ?? null });
+    verifier("Offre réservée aux professionnels : mention « Offre réservée aux professionnels », case « Je commande en tant que professionnel, pour les besoins de mon activité. »", config.site.reservePro === "Offre réservée aux professionnels" && config.site.casePro === "Je commande en tant que professionnel, pour les besoins de mon activité.");
+    const ok = verifierProfessionnel(formulaire({ pro: "oui", entreprise: "  Société   Exemple SAS ", siret: "123 456 789.00012" }));
+    verifier("Commande professionnelle : nom d'entreprise nettoyé, SIRET normalisé (espaces et points retirés)", ok.ok && ok.client.entreprise === "Société Exemple SAS" && ok.client.siret === "12345678900012");
+    verifier("Commande professionnelle : le SIRET est facultatif", verifierProfessionnel(formulaire({ pro: "oui", entreprise: "Mon Association" })).ok === true);
+    const refus = [formulaire({ entreprise: "Société" }), formulaire({ pro: "non", entreprise: "Société" }), formulaire({ pro: "oui" }), formulaire({ pro: "oui", entreprise: " A " }), formulaire({ pro: "oui", entreprise: "Société", siret: "1234" }), formulaire({ pro: "oui", entreprise: "Société", siret: "1234567890123X" }), formulaire({ pro: "oui", entreprise: "Société", siret: "123456789012345" })].map((f) => { const r = verifierProfessionnel(f); return r.ok ? "ok" : r.erreur; });
+    verifier("Commande professionnelle : case non cochée → pro ; nom absent ou d'une lettre → entreprise ; SIRET de 4, 14 caractères avec une lettre ou 15 chiffres → siret", refus.join() === "pro,pro,entreprise,entreprise,siret,siret,siret", refus.join());
+    verifier("SIRET : 14 chiffres exigés, affichage lisible « 123 456 789 00012 »", siretValide("12345678900012") && !siretValide("1234567890001") && siretLisible("12345678900012") === "123 456 789 00012" && normaliserSiret("123 456 789 00012") === "12345678900012" && siretLisible("123456789") === "123456789");
+    const q = config.faq.find((x) => x.q === "Je suis un particulier, puis-je commander ?");
+    const r = config.faq.find((x) => x.q === "Y a-t-il un droit de rétractation ?");
+    verifier("FAQ : question sur les particuliers (réponse : non, offre réservée aux professionnels) ; droit de rétractation : ne s'applique pas aux professionnels ; 11 questions sans doublon", Boolean(q) && q!.r.startsWith("Non. L'offre est réservée aux professionnels") && Boolean(r) && /réservée aux professionnels, le droit de rétractation prévu pour les consommateurs ne s'applique pas/.test(r!.r) && config.faq.length === 11 && new Set(config.faq.map((x) => x.q)).size === 11);
+    // Mentions légales : le téléphone fait partie des informations exigées avant d'ouvrir les ventes réelles
+    const sauve = { cle: process.env.STRIPE_SECRET_KEY, hote: process.env.STRIPE_API_HOST, ventes: process.env.VENTES_REELLES, tel: process.env.NEXT_PUBLIC_LEGAL_PHONE, whsec: process.env.STRIPE_WEBHOOK_SECRET };
+    process.env.STRIPE_SECRET_KEY = "sk_live_cle_fictive_pour_le_test"; process.env.STRIPE_WEBHOOK_SECRET = "whsec_fictif_pour_le_test"; delete process.env.STRIPE_API_HOST; process.env.VENTES_REELLES = "oui";
+    process.env.NEXT_PUBLIC_LEGAL_PHONE = "";
+    const sansTel = modePaiement();
+    process.env.NEXT_PUBLIC_LEGAL_PHONE = "01 99 00 12 34";
+    const avecTel = modePaiement();
+    for (const [k, v] of [["STRIPE_SECRET_KEY", sauve.cle], ["STRIPE_API_HOST", sauve.hote], ["VENTES_REELLES", sauve.ventes], ["NEXT_PUBLIC_LEGAL_PHONE", sauve.tel], ["STRIPE_WEBHOOK_SECRET", sauve.whsec]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+    verifier("Mentions légales : sans numéro de téléphone (NEXT_PUBLIC_LEGAL_PHONE) le paiement réel reste fermé ; avec, il s'ouvre", sansTel.mode === "ferme" && /Mentions légales incomplètes/.test(sansTel.raison || "") && avecTel.mode === "reel", JSON.stringify([sansTel, avecTel]));
+  }
   {
     const chemins = [...config.images.temps, ...Object.values(config.images.formules).flat(), config.images.cloture, config.images.partage];
     const manquants = chemins.filter((c) => !fs.existsSync(path.join("public", c)));
@@ -329,13 +353,13 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
     const sauve = { cle: process.env.STRIPE_SECRET_KEY, hote: process.env.STRIPE_API_HOST, ventes: process.env.VENTES_REELLES };
     process.env.STRIPE_SECRET_KEY = "sk_live_cle_fictive_pour_le_test"; delete process.env.STRIPE_API_HOST; process.env.VENTES_REELLES = "oui";
     for (const f of formules) {
-      const c = commandeTest({ formule: f.id, montantCents: f.prixCents, statut: "livree" }); await store.creerCommande(c);
+      const c = commandeTest({ formule: f.id, montantCents: f.prixCents, statut: "livree", entreprise: "Société Exemple SAS", siret: "12345678900012" }); await store.creerCommande(c);
       const r = await emettreFacture(c.id);
       const facture = (await store.commande(c.id))!.facture;
       let texte = "";
       if (pdftotext && facture) { const l = await depot().lire(facture.cle); const t = path.join(os.tmpdir(), `sa-${c.id}.pdf`); fs.writeFileSync(t, l!.corps); texte = execFileSync("pdftotext", ["-layout", t, "-"]).toString().replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " "); fs.rmSync(t); }
       const prix = `${f.prixCents / 100} €`;
-      verifier(`Facture « ${f.nom} » : montant ${prix} identique au catalogue${pdftotext ? ", présent dans le PDF avec la durée maximale" : " (texte du PDF non vérifié : pdftotext absent)"}`, !r.obstacles && facture?.montantCents === f.prixCents && (!pdftotext || (texte.includes(`${prix}`) && texte.includes("jusqu'à 15 secondes") && texte.includes(`${f.videos} vidéo`) && !texte.includes("SPÉCIMEN"))) && facture?.specimen === false, JSON.stringify([r.obstacles, facture?.montantCents, facture?.specimen]));
+      verifier(`Facture « ${f.nom} » : montant ${prix} identique au catalogue${pdftotext ? ", présent dans le PDF avec la durée maximale, l'entreprise et le SIRET de la commande" : " (texte du PDF non vérifié : pdftotext absent)"}`, !r.obstacles && facture?.montantCents === f.prixCents && (!pdftotext || (texte.includes(`${prix}`) && texte.includes("jusqu'à 15 secondes") && texte.includes(`${f.videos} vidéo`) && texte.includes("Société Exemple SAS") && texte.includes("123 456 789 00012") && !texte.includes("SPÉCIMEN"))) && facture?.specimen === false, JSON.stringify([r.obstacles, facture?.montantCents, facture?.specimen]));
     }
     for (const [k, v] of [["STRIPE_SECRET_KEY", sauve.cle], ["STRIPE_API_HOST", sauve.hote], ["VENTES_REELLES", sauve.ventes]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
   }

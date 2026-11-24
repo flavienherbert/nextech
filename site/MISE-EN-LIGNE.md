@@ -155,6 +155,7 @@ Limite connue : sans nom de domaine authentifié, les e-mails peuvent arriver en
 | `ADMIN_PASSWORD` | un autre mot de passe, long (accès à l'administration) |
 | `SESSION_SECRET` | 64 caractères aléatoires |
 | `ADMIN_EMAIL` | l'adresse du studio |
+| `NEXT_PUBLIC_LEGAL_NAME`, `NEXT_PUBLIC_LEGAL_SIRET`, `NEXT_PUBLIC_LEGAL_ADDRESS`, `NEXT_PUBLIC_LEGAL_PHONE` | nom de l'éditeur, SIRET, adresse, téléphone (mentions légales, factures, conditions de vente). Tant qu'ils manquent, `[SIRET]`, `[ADRESSE]`, `[TÉLÉPHONE]` restent visibles et les ventes réelles sont refusées |
 | `SITE_ENV` | `preprod` tant que le site est une préproduction (bandeau affiché, indexation bloquée) ; `production` le jour de l'ouverture (bandeau retiré, indexation ouverte) |
 | `SHOW_EXAMPLE_VIDEO` | laisser vide ; `true` quand votre vidéo est déposée dans `site/public/videos/exemple.mp4` (voir `MEDIAS.md`) |
 | `S3_BUCKET` | `studio-accroche-preprod` |

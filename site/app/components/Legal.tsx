@@ -8,8 +8,8 @@ import { site } from "../config";
 export const MANQUE = {
   nom: "[Nom et prénom de l'éditeur]",
   siret: "[SIRET]",
-  adresse: "[Adresse postale de l'éditeur]",
-  mediateur: "[Médiateur de la consommation à désigner]",
+  adresse: "[ADRESSE]",
+  telephone: "[TÉLÉPHONE]",
 };
 
 export function infosLegales() {
@@ -19,9 +19,9 @@ export function infosLegales() {
     siret: l.siret || MANQUE.siret,
     adresse: l.adresse || MANQUE.adresse,
     email: l.email, // toujours renseigné : app/config.ts
-    mediateur: l.mediateur || MANQUE.mediateur,
+    telephone: l.telephone || MANQUE.telephone,
     hebergeur: process.env.NEXT_PUBLIC_LEGAL_HEBERGEUR || site.hebergeur,
-    complet: Boolean(l.nom && l.siret && l.adresse && l.email),
+    complet: Boolean(l.nom && l.siret && l.adresse && l.telephone && l.email),
   };
 }
 

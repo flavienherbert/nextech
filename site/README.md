@@ -35,7 +35,7 @@ Pour repartir de zéro : supprimer le dossier `site/data`.
 |---|---|
 | Offre : noms, prix, nombre de vidéos, durée, délais, retouches, formats | `lib/formules.ts` (source unique : tout le site, les e-mails et les factures la lisent) |
 | Adresse de contact, textes, chemins des images, vidéo d'exemple | `app/config.ts` |
-| Identité de l'entreprise (nom, SIRET, adresse) | variables `NEXT_PUBLIC_LEGAL_*` dans Netlify |
+| Identité de l'entreprise (nom, SIRET, adresse, téléphone) | variables `NEXT_PUBLIC_LEGAL_NAME`, `_SIRET`, `_ADDRESS`, `_PHONE` dans Netlify |
 | Adresse du site | variable `SITE_URL` dans Netlify (à changer le jour où le nom de domaine est acheté) |
 | Préproduction ou production | variable `SITE_ENV` : `preprod` (bandeau, indexation bloquée) ou `production` (indexation ouverte) ; absente = indexation bloquée |
 | Vidéo d'exemple de l'accueil | variable `SHOW_EXAMPLE_VIDEO` (`true` pour afficher la section) |

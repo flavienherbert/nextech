@@ -142,6 +142,9 @@ export default async function Detail({ params, searchParams }: { params: Promise
               <dl className="recap-liste">
                 {ligne("Formule", `${f.nom} — ${f.videos} vidéo${f.videos > 1 ? "s" : ""} — ${delaiTexte(f)}`)}
                 {ligne("Montant", euros(c.montantCents))}
+                {ligne("Entreprise (commande)", c.entreprise)}
+                {ligne("SIRET (commande)", c.siret)}
+                {ligne("Déclaration « professionnel »", c.professionnelDeclareLe ? `cochée le ${quand(c.professionnelDeclareLe)}` : undefined)}
                 {ligne("État", c.paiement.etat === "paye" ? `Payé le ${quand(c.paiement.payeLe)}` : c.paiement.etat)}
                 {ligne("Mode", c.paiement.mode)}
                 {ligne("E-mail (Stripe)", c.paiement.emailStripe)}
@@ -170,7 +173,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
                   {ligne("Complément", b.complement)}
                   {ligne("À facturer à", b.nomFacture)}
                   {ligne("Adresse de facturation", b.adresseFacture)}
-                  {ligne("SIREN / SIRET", b.sirenClient)}
+                  {ligne("SIREN / SIRET (facturation)", b.sirenClient)}
                 </dl>
               )}
               {b && (

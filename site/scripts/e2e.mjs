@@ -69,8 +69,13 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
   {
     const questions = await page.locator("#questions details summary").allTextContents();
     const attendues = ["Quels produits acceptez-vous ?", "Combien de photos faut-il envoyer ?", "En combien de temps je reçois mes vidéos ?", "Et si le rendu ne me plaît pas ?", "Puis-je utiliser les vidéos en publicité payante ?", "Pourquoi la mention « générée par IA » ?"];
-    verifier("FAQ : accordéon de 10 questions sans doublon, avec produits, photos, délais, retouches, publicité payante et mention IA", questions.length === 10 && new Set(questions).size === 10 && attendues.every((q) => questions.includes(q)) && (await page.locator("#questions details[name=faq]").count()) === 10, questions.join(" | "));
+    attendues.push("Je suis un particulier, puis-je commander ?");
+    verifier("FAQ : accordéon de 11 questions sans doublon, avec produits, particuliers, photos, délais, retouches, publicité payante et mention IA", questions.length === 11 && new Set(questions).size === 11 && attendues.every((q) => questions.includes(q)) && (await page.locator("#questions details[name=faq]").count()) === 11, questions.join(" | "));
     const reponses = norm(await page.locator("#questions").evaluate((e) => [...e.querySelectorAll("details")].map((d) => d.textContent).join(" ")));
+    const rep = norm(await page.locator("#questions details", { hasText: "Je suis un particulier" }).innerText());
+    const retract = norm(await page.locator("#questions details", { hasText: "droit de rétractation" }).innerText());
+    verifier("FAQ : « Je suis un particulier, puis-je commander ? » → non, offre réservée aux professionnels ; rétractation : ne s'applique pas aux professionnels", /Non\. L'offre est réservée aux professionnels/.test(rep) && /réservée aux professionnels, le droit de rétractation prévu pour les consommateurs ne s'applique pas/.test(retract), rep + " || " + retract);
+    verifier("Offre réservée aux professionnels : mention sous les cartes de formules et en bas de page", norm(await page.locator("#formules .mention-pro").innerText()) === "Offre réservée aux professionnels." && norm(await page.locator(".pied").innerText()).includes("Offre réservée aux professionnels"));
     verifier("FAQ : réponses alignées sur le catalogue (délais, retouches, durée, photos, droits publicitaires)", reponses.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours") && reponses.includes("1 pour Essai, 2 pour Pack Accroches, 2 pour Pack Campagne") && reponses.includes("jusqu'à 15 secondes") && reponses.includes("3 à 5 photos nettes") && reponses.includes("droits d'exploitation publicitaire"));
   }
   {
@@ -80,13 +85,14 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
     const og = await fetch(`${BASE}/media/og-studio-accroche.jpg`);
     verifier("Image de partage servie (JPEG)", og.status === 200 && /image\/jpeg/.test(og.headers.get("content-type") || "") && (await og.arrayBuffer()).byteLength > 20000);
     const ml = norm(await (await fetch(`${BASE}/mentions-legales`)).text().then((h) => h.replace(/<[^>]+>/g, " ").replace(/&#x27;|&#39;|&apos;/g, "'").replace(/&amp;/g, "&")));
-    verifier("Mentions légales : éditeur, micro-entreprise, SIRET, e-mail de contact, hébergeur Netlify avec son adresse, TVA non applicable (article 293 B)", ["micro-entreprise", "SIRET : 00000000000000", "contactstudioaccroche@gmail.com", "Netlify, Inc.", "101 2nd Street, San Francisco", "TVA non applicable, article 293 B du CGI"].every((t) => ml.includes(t)), ml.slice(0, 300));
+    verifier("Mentions légales : éditeur, micro-entreprise, SIRET, adresse, téléphone, e-mail, hébergeur Netlify avec son adresse, TVA non applicable (article 293 B), plus de médiation de la consommation", ["micro-entreprise", "SIRET : 00000000000000", "Adresse : 1 rue du Test, 00000 Testville", "Téléphone : 01 99 00 12 34", "contactstudioaccroche@gmail.com", "Netlify, Inc.", "101 2nd Street, San Francisco", "TVA non applicable, article 293 B du CGI"].every((t) => ml.includes(t)) && !/édiation|médiateur/.test(ml), ml.slice(0, 400));
     verifier("Pied de page : adresse de contact lue dans la configuration (app/config.ts)", accueil.includes("Contact : contactstudioaccroche@gmail.com") && html.includes("mailto:contactstudioaccroche@gmail.com"));
   }
   const cg = await ctx.newPage();
   await cg.goto(`${BASE}/cgv`);
   const cgv = norm(await cg.locator("body").innerText());
   verifier("Conditions de vente : prix, durée (jusqu'à 15 secondes) et tours de retouches identiques au catalogue", [`Essai — 35 €`, `Pack Accroches — 89 €`, `Pack Campagne — 169 €`, "1 vidéo, jusqu'à 15 secondes, 1 tour de retouches", "3 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches", "6 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
+  verifier("Conditions de vente : clause « Offre réservée aux professionnels », droit de rétractation et médiation de la consommation écartés, plus aucune clause consommateur", /Offre réservée aux professionnels\. L'offre du studio s'adresse exclusivement aux professionnels/.test(cgv) && /case, commander en tant que professionnel pour les besoins de son activité/.test(cgv) && /Les dispositions du Code de la consommation propres aux consommateurs, notamment le droit de rétractation et la médiation de la consommation, ne s'appliquent donc pas/.test(cgv) && !/médiateur|L221-28|client consommateur|professionnel ou consommateur|droits que la loi reconnaît aux consommateurs/.test(cgv), cgv.slice(0, 600));
   verifier("Conditions de vente : définition d'un tour (demande consolidée), hors périmètre = nouvelle commande, durée supérieure non proposée", /Un tour de retouches est une seule demande, qui regroupe toutes vos remarques sur l'ensemble des vidéos livrées/.test(cgv) && /changement de produit, de brief, de script validé, de présentateur, d'angle ou de durée n'est pas une retouche/.test(cgv) && /Une durée supérieure n'est pas proposée à ce jour/.test(cgv));
   await cg.close();
 }
@@ -95,14 +101,32 @@ await page.waitForURL("**/commander/accroches");
 verifier(`Clic sur « Pack Accroches » → page de commande à ${eur(PRIX.test)} €`, (await page.locator(".total strong").textContent()).includes(eur(PRIX.test)));
 await cap(page, "02-commander");
 await page.locator('button[type="submit"]').click();
-verifier("Paiement refusé tant que les deux cases ne sont pas cochées", page.url().includes("/commander/accroches"));
-await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
+verifier("Paiement refusé tant que les cases ne sont pas cochées et le nom de l'entreprise absent", page.url().includes("/commander/accroches"));
+{
+  // Offre réservée aux professionnels : la page de commande, côté navigateur puis côté serveur
+  const norm2 = (t) => t.replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " ");
+  const corps = norm2(await page.locator(".recap").innerText());
+  verifier("Commande : mention « Offre réservée aux professionnels », case « Je commande en tant que professionnel, pour les besoins de mon activité. » obligatoire, nom de l'entreprise obligatoire, SIRET facultatif", corps.includes("Offre réservée aux professionnels") && corps.includes("Je commande en tant que professionnel, pour les besoins de mon activité.") && (await page.locator('input[name="pro"]').getAttribute("required")) !== null && (await page.locator('input[name="entreprise"]').getAttribute("required")) !== null && (await page.locator('input[name="siret"]').getAttribute("required")) === null && corps.includes("Nom de l'entreprise *") && /SIRET\s*\(facultatif\)/.test(corps), corps.slice(0, 300));
+  const poster = (champs) => fetch(`${BASE}/api/checkout`, { method: "POST", redirect: "manual", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ formule: "essai", cgv: "oui", ia: "oui", ...champs }) });
+  const dest = async (champs) => (await poster(champs)).headers.get("location") || "";
+  const nb0 = commandes().length;
+  const refus = [await dest({ entreprise: "Société Test" }), await dest({ pro: "oui" }), await dest({ pro: "oui", entreprise: "A" }), await dest({ pro: "oui", entreprise: "Société Test", siret: "123" }), await dest({ pro: "oui", entreprise: "Société Test", siret: "1234567890123X" }), await dest({ pro: "oui", entreprise: "Société Test", cgv: "non" })];
+  verifier("Côté serveur : sans la case « professionnel » (erreur=pro), sans nom d'entreprise (erreur=entreprise), avec un SIRET invalide (erreur=siret) ou sans les conditions, le paiement est refusé et aucune commande n'est créée", /erreur=pro/.test(refus[0]) && /erreur=entreprise/.test(refus[1]) && /erreur=entreprise/.test(refus[2]) && /erreur=siret/.test(refus[3]) && /erreur=siret/.test(refus[4]) && /erreur=conditions/.test(refus[5]) && commandes().length === nb0, refus.join(" | "));
+  await page.goto(`${BASE}/commander/accroches?erreur=siret&entreprise=${encodeURIComponent("Société Test")}&siret=123`);
+  verifier("Commande : le message d'erreur du SIRET s'affiche et les valeurs saisies sont conservées", (await page.locator(".avis-erreur").innerText()).includes("14 chiffres") && (await page.locator('input[name="entreprise"]').inputValue()) === "Société Test" && (await page.locator('input[name="siret"]').inputValue()) === "123");
+  await page.goto(`${BASE}/commander/accroches?erreur=pro`);
+  verifier("Commande : le refus sans la case « professionnel » est expliqué", (await page.locator(".avis-erreur").innerText()).includes("réservée aux professionnels"));
+  await page.goto(`${BASE}/commander/accroches`);
+}
+await page.fill('input[name="entreprise"]', "Exemple Marque SAS"); await page.fill('input[name="siret"]', "123 456 789 00012");
+await page.check('input[name="pro"]'); await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
 const avant = new Set(commandes().map((c) => c.id));
 await page.locator('button[type="submit"]').click();
 await page.waitForURL(`${MOCK}/pay/**`);
 verifier("Redirection vers la page de paiement", true);
 let c = commandes().find((x) => !avant.has(x.id));
 verifier("Commande créée avec un numéro unique, non payée", c && /^SA-\d{6}-[A-Z0-9]{5}$/.test(c.id) && c.paiement.etat === "en_attente" && c.statut === "attente_paiement", JSON.stringify(c?.id));
+verifier("Commande : nom de l'entreprise, SIRET (sans espaces) et déclaration « professionnel » enregistrés avec la commande et tracés dans l'historique", c.entreprise === "Exemple Marque SAS" && c.siret === "12345678900012" && Boolean(c.professionnelDeclareLe) && c.historique.some((h) => /Client déclaré professionnel, pour les besoins de son activité : Exemple Marque SAS \(SIRET 12345678900012\)/.test(h.evenement)), JSON.stringify([c.entreprise, c.siret, c.professionnelDeclareLe]));
 verifier(`Montant envoyé à Stripe = ${PRIX.test} centimes`, (await session(c.paiement.sessionId)).amount_total === PRIX.test);
 for (const [id, cents] of Object.entries(PRIX)) {
   const x = await commandeNonPayee(id);
@@ -138,9 +162,8 @@ verifier("Fichier déguisé (extension image, contenu différent) refusé", (awa
 await page.fill('input[name="nom"]', "Marie Durand");
 await page.fill('input[name="marque"]', "Exemple Marque");
 await page.fill('input[name="telephone"]', "06 00 00 00 00");
-await page.fill('input[name="nomFacture"]', "Exemple Marque SAS");
+verifier("Brief : le nom à facturer et le SIRET saisis à la commande sont déjà remplis", (await page.locator('input[name="nomFacture"]').inputValue()) === "Exemple Marque SAS" && (await page.locator('input[name="sirenClient"]').inputValue()) === "12345678900012");
 await page.fill('textarea[name="adresseFacture"]', "12 rue de l'Exemple\n75000 Paris");
-await page.fill('input[name="sirenClient"]', "123456789");
 await page.fill('input[name="lien"]', "https://exemple-marque.fr/produits/gourde");
 await page.fill('input[name="produit"]', "Gourde inox 750 ml");
 await page.selectOption('select[name="style"]', "Complice");
@@ -282,7 +305,7 @@ verifier("Second événement pour une commande déjà payée : aucun e-mail en d
 // ───────────── 5. Annulation et expiration ─────────────
 console.log("\n— Paiement annulé ou expiré —");
 await page.goto(`${BASE}/commander/essai`);
-await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
+await page.fill('input[name="entreprise"]', "Exemple Marque SAS"); await page.check('input[name="pro"]'); await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
 const av = new Set(commandes().map((x) => x.id));
 await page.locator('button[type="submit"]').click();
 await page.waitForURL(`${MOCK}/pay/**`);
@@ -291,7 +314,7 @@ await page.waitForURL("**/commander/essai?annule=1");
 const annulee = commandes().find((x) => !av.has(x.id));
 verifier("Annulation : retour au site avec message, commande non payée, aucun e-mail", (await page.locator(".avis").first().textContent()).includes("rien n'a été débité") && annulee.paiement.etat === "en_attente" && courriels(annulee.id).length === 0);
 await cap(page, "09-annulation");
-await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
+await page.fill('input[name="entreprise"]', "Exemple Marque SAS"); await page.check('input[name="pro"]'); await page.check('input[name="cgv"]'); await page.check('input[name="ia"]');
 const av2 = new Set(commandes().map((x) => x.id));
 await page.locator('button[type="submit"]').click();
 await page.waitForURL(`${MOCK}/pay/**`);
@@ -313,6 +336,12 @@ const pdfR = await fetch(`${BASE}/api/admin/facture/${idCommande}`, { headers: {
 const pdf = Buffer.from(await pdfR.arrayBuffer());
 verifier("L'administrateur télécharge la facture en PDF", pdfR.status === 200 && pdf.subarray(0, 5).toString() === "%PDF-" && pdf.length > 1500);
 if (CAPTURES) fs.writeFileSync(`${CAPTURES}/facture-specimen.pdf`, pdf);
+{
+  // Offre réservée aux professionnels : l'entreprise et le SIRET saisis à la commande figurent sur la facture
+  let texte = null;
+  try { const t = `/tmp/sa-facture-${process.pid}.pdf`; fs.writeFileSync(t, pdf); texte = execFileSync("pdftotext", ["-layout", t, "-"], { encoding: "utf8" }).replace(/\s+/g, " "); fs.rmSync(t, { force: true }); } catch { /* pdftotext absent */ }
+  verifier(texte === null ? "Facture : entreprise et SIRET de la commande (texte du PDF non vérifié : pdftotext absent)" : "Facture : le nom de l'entreprise et le SIRET saisis à la commande y figurent", texte === null || (texte.includes("Exemple Marque SAS") && texte.includes("123 456 789 00012")), (texte || "").slice(0, 400));
+}
 verifier("Facture inaccessible sans session administrateur (401)", (await fetch(`${BASE}/api/admin/facture/${idCommande}`)).status === 401);
 verifier("Un spécimen n'est jamais remis au client (404)", (await fetch(`${BASE}/api/commande/${tokenClient}/facture`)).status === 404);
 verifier("Journal de la commande : émission tracée", c.historique.some((h) => h.evenement.includes(c.facture.numero)));

@@ -3,7 +3,7 @@
 //   • L'OFFRE (noms, prix, nombre de vidéos, durée, délais, retouches, formats) est dans lib/formules.ts : source unique.
 //     Tout ce fichier-ci lit ce catalogue : aucun prix ni délai ne s'écrit à la main.
 //   • L'adresse de contact, la vidéo d'exemple et les chemins des images sont ci-dessous.
-//   • L'identité de l'entreprise (nom, SIRET, adresse) se renseigne dans les variables d'environnement NEXT_PUBLIC_LEGAL_*.
+//   • L'identité de l'entreprise (nom, SIRET, adresse, téléphone) se renseigne dans les variables d'environnement NEXT_PUBLIC_LEGAL_*.
 //   • Les images et les vidéos peuvent aussi se remplacer dans Administration → Images et vidéos, sans toucher au code.
 
 import {
@@ -40,7 +40,11 @@ export const site = {
     nom: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "",
     siret: process.env.NEXT_PUBLIC_LEGAL_SIRET ?? "",
     adresse: process.env.NEXT_PUBLIC_LEGAL_ADDRESS ?? "",
+    telephone: process.env.NEXT_PUBLIC_LEGAL_PHONE ?? "",
   },
+  // Offre réservée aux professionnels (décision du 24 novembre 2026) : textes affichés sous les formules, en bas de page et avant le paiement.
+  reservePro: "Offre réservée aux professionnels",
+  casePro: "Je commande en tant que professionnel, pour les besoins de mon activité.",
   // Hébergeur du site (mentions légales). Source : conditions d'utilisation du site de Netlify.
   hebergeur: "Netlify, Inc. — 101 2nd Street, San Francisco, CA 94105, États-Unis — netlify.com",
 };
@@ -152,6 +156,10 @@ export const faq = [
     r: "Des produits physiques que l'on peut photographier nettement. Nous refusons les allégations de santé, de minceur ou de gains financiers non prouvées.",
   },
   {
+    q: "Je suis un particulier, puis-je commander ?",
+    r: "Non. L'offre est réservée aux professionnels (entreprises, auto-entrepreneurs, associations) qui commandent pour les besoins de leur activité. Une case à cocher le rappelle avant le paiement.",
+  },
+  {
     q: "Combien de photos faut-il envoyer ?",
     r: `${capitale(photosTexte)} du produit, sur fond neutre, avec l'étiquette lisible. Plus les photos sont nettes, plus le rendu est fidèle.`,
   },
@@ -185,7 +193,7 @@ export const faq = [
   },
   {
     q: "Y a-t-il un droit de rétractation ?",
-    r: "La prestation est réalisée sur mesure et démarre à votre demande dès la validation du script. Avant cette validation, vous pouvez annuler et être remboursé intégralement.",
+    r: "L'offre étant réservée aux professionnels, le droit de rétractation prévu pour les consommateurs ne s'applique pas. En revanche, avant la validation du script, vous pouvez annuler et être remboursé intégralement : la prestation est réalisée sur mesure et démarre à votre demande une fois le script validé.",
   },
 ];
 

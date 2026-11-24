@@ -2,7 +2,7 @@
 
 **Prix propres à Fiverr (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; Fiverr prélève 20 % (chiffre issu de sources tierces, **à vérifier dans votre espace vendeur** : les pages officielles de Fiverr refusent la lecture automatique) et verse en dollars : les prix sont relevés pour garder le même bénéfice, soit **54 / 135 / 255 $**. L'acheteur paie en plus des frais de service (≈ 5,5 % et des frais de petite commande, d'après des blogs). Détail : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
 
-**Règles communes** : 15 secondes maximum par vidéo ; **une révision = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 pour Basic, 2 pour Standard et Premium) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une révision ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
+**Règles communes** : service **réservé aux professionnels** (businesses, sole proprietors, associations : décision du 24 novembre 2026, à écrire dans la description de chaque gig) ; 15 secondes maximum par vidéo ; **une révision = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 pour Basic, 2 pour Standard et Premium) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une révision ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
 
 Fiverr est majoritairement anglophone. Publier la fiche en anglais et proposer le français comme langue de la vidéo : peu de vendeurs IA livrent un français naturel, c'est l'angle.
 

@@ -36,7 +36,7 @@ Obligations une fois immatriculé :
 - Factures avec mentions obligatoires, dont « TVA non applicable, art. 293 B du CGI ».
 - Livre des recettes.
 - Cotisation foncière des entreprises à partir de la deuxième année.
-- Médiateur de la consommation si vente à des particuliers.
+- Aucun médiateur de la consommation à désigner : l'offre est réservée aux professionnels (décision du 24 novembre 2026). Les conditions de vente doivent tout de même être relues par un juriste.
 - Réception des factures électroniques via une plateforme agréée (obligation depuis 09/2026) ; émission à partir de 09/2027.
 - Si tu es salarié : vérifier l'absence de clause d'exclusivité dans ton contrat.
 - Assurance responsabilité civile professionnelle : non obligatoire pour cette activité, recommandée.

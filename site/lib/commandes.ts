@@ -7,10 +7,11 @@ import { courriels, enEchec } from "./mail";
 import { emettreFacture } from "./factures";
 import { DUREE_TEXTE, euros, formuleParId, type FormuleId } from "./formules";
 import { correctionOuverte } from "./suivi";
+import type { ClientPro } from "./professionnel";
 import { DELAI_RETOUCHE_JOURS, dateEcheanceTexte, echeanceRetouche, miseADisposition } from "./delais";
 import { store, journal, maintenant, nouveauNumero, nouveauToken, type Brief, type Commande, type Courriel, type Statut } from "./store";
 
-export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ url: string; commande: Commande }> {
+export async function creerCommandeEtSession(formuleId: FormuleId, client?: ClientPro): Promise<{ url: string; commande: Commande }> {
   const f = formuleParId(formuleId);
   if (!f) throw new Error("Formule inconnue.");
   const s = stripe();
@@ -39,6 +40,13 @@ export async function creerCommandeEtSession(formuleId: FormuleId): Promise<{ ur
     fichiersClient: [], livrables: [], retouchesDemandees: [], notes: "",
     historique: [{ date: maintenant(), evenement: "Commande créée, client envoyé vers le paiement." }],
   };
+  if (client?.entreprise) {
+    // Offre réservée aux professionnels : la déclaration et les informations de l'entreprise sont conservées avec la commande.
+    commande.entreprise = client.entreprise;
+    if (client.siret) commande.siret = client.siret;
+    commande.professionnelDeclareLe = maintenant();
+    commande.historique.push({ date: maintenant(), evenement: `Client déclaré professionnel, pour les besoins de son activité : ${client.entreprise}${client.siret ? ` (SIRET ${client.siret})` : " (SIRET non renseigné)"}.` });
+  }
   await store.creerCommande(commande);
   return { url: session.url, commande };
 }

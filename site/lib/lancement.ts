@@ -81,16 +81,13 @@ export async function controlerLancement(): Promise<{ groupes: Groupe[]; bloquan
 
   // — Informations légales
   const l = env.legal();
-  const manquants = [!l.nom && "nom du titulaire", !l.siret && "SIRET", !l.adresse && "adresse", !l.email && "e-mail de contact"].filter(Boolean) as string[];
+  const manquants = [!l.nom && "nom du titulaire", !l.siret && "SIRET", !l.adresse && "adresse", !l.telephone && "téléphone", !l.email && "e-mail de contact"].filter(Boolean) as string[];
   groupes.push({
     titre: "Informations légales",
     controles: [
       manquants.length
-        ? c("legal", "Mentions légales complètes", "bloquant", `Manque : ${manquants.join(", ")}. Le paiement réel reste fermé tant que ce n'est pas renseigné.`, `${NETLIFY} → NEXT_PUBLIC_LEGAL_NAME, NEXT_PUBLIC_LEGAL_SIRET, NEXT_PUBLIC_LEGAL_ADDRESS`)
+        ? c("legal", "Mentions légales complètes", "bloquant", `Manque : ${manquants.join(", ")}. Le paiement réel reste fermé tant que ce n'est pas renseigné.`, `${NETLIFY} → NEXT_PUBLIC_LEGAL_NAME, NEXT_PUBLIC_LEGAL_SIRET, NEXT_PUBLIC_LEGAL_ADDRESS, NEXT_PUBLIC_LEGAL_PHONE`)
         : c("legal", "Mentions légales complètes", "ok", `${l.nom}, SIRET ${l.siret}.`),
-      l.mediateur
-        ? c("mediateur", "Médiateur de la consommation", "ok", l.mediateur)
-        : c("mediateur", "Médiateur de la consommation", "conseil", "Non renseigné. Obligatoire pour vendre à des consommateurs ; à vérifier selon votre clientèle (boutiques en ligne = clients professionnels : voir avec un conseil).", `${NETLIFY} → NEXT_PUBLIC_LEGAL_MEDIATEUR`),
     ],
   });
 

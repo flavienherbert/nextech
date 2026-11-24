@@ -67,7 +67,7 @@ export default async function PageCommande({ params }: { params: Promise<{ token
                     Paiement de {euros(c.montantCents)} confirmé pour la formule {f.nom}. Répondez à ces questions
                     pour lancer la production.
                   </p>
-                  <Brief token={token} emailConnu={c.paiement.emailStripe || ""} fichiers={c.fichiersClient.map(({ id, nom, taille }) => ({ id, nom, taille }))} />
+                  <Brief token={token} entreprise={c.entreprise || ""} siret={c.siret || ""} emailConnu={c.paiement.emailStripe || ""} fichiers={c.fichiersClient.map(({ id, nom, taille }) => ({ id, nom, taille }))} />
                 </>
               )}
 

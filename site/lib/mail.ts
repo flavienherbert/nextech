@@ -254,6 +254,7 @@ export const courriels = {
       gabarit("Nouvelle commande payée", `<p>Un client vient de payer : le paiement est confirmé par Stripe.</p>${tableau([
         ["Commande", c.id],
         ["Client", c.brief?.nom || c.paiement.nomStripe || "non renseigné"],
+        ["Entreprise", c.entreprise ? `${c.entreprise}${c.siret ? ` — SIRET ${c.siret}` : " — SIRET non renseigné"}` : "non renseignée"],
         ["E-mail", c.brief?.email || c.paiement.emailStripe || "non renseigné"],
         ["Offre", `${f.nom} — ${f.videos} vidéo${f.videos > 1 ? "s" : ""}`],
         ["Montant payé", euros(c.montantCents)],

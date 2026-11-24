@@ -45,7 +45,7 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 5. **Ajouter votre vidéo d'exemple** : déposez-la dans `site/public/videos/exemple.mp4` (avec `exemple-apercu.jpg`), puis `SHOW_EXAMPLE_VIDEO=true` dans Netlify. Tant que ce n'est pas fait, la section est masquée (plus d'exemple d'un autre studio). Vous pouvez aussi remplacer les images et ajouter trois exemples dans *Administration → Images et vidéos*.
 6. **Passer un test complet de commande** : `site/TEST-CLIENT.md` (carte de test Stripe).
 7. **Compte Stripe réel** : activation (identité, IBAN), clé réelle et webhook réel dans Netlify.
-8. **Informations légales** : SIRET, adresse, médiateur si vous vendez à des particuliers, relecture des conditions de vente (`site/MISE-EN-LIGNE.md`).
+8. **Informations légales** : SIRET, adresse et téléphone (variables `NEXT_PUBLIC_LEGAL_*`), relecture des conditions de vente par un juriste (`site/MISE-EN-LIGNE.md`). **L'offre est réservée aux professionnels** (décision du 24 novembre 2026) : pas de vente aux particuliers, donc pas de médiateur de la consommation ni de droit de rétractation.
 9. **Donner le feu vert** : `VENTES_REELLES=oui`, puis `SITE_ENV=production` (ouvre l'indexation et retire le bandeau de préproduction). Votre page *Administration → Lancement* dit, case par case, ce qui reste.
 
 Tant que ces points ne sont pas faits, le site refuse d'encaisser de vrais paiements : c'est voulu.

@@ -11,13 +11,24 @@ export const metadata: Metadata = { title: "Conditions générales de vente — 
 export default function CGV() {
   const i = infosLegales();
   return (
-    <PageLegale titre="Conditions générales de vente" maj="22 novembre 2026">
-      <h2>1. Objet</h2>
+    <PageLegale titre="Conditions générales de vente" maj="24 novembre 2026">
+      <h2>1. Objet et champ d&apos;application</h2>
       <p>
         Les présentes conditions régissent la vente de prestations de réalisation de vidéos publicitaires par
         Studio Accroche, nom commercial de {i.nom} (SIRET {i.siret}, {i.adresse}), ci-après « le studio », à
-        tout client professionnel ou consommateur, ci-après « le client ». Toute commande implique leur
-        acceptation.
+        ses clients, ci-après « le client ». Toute commande implique leur acceptation.
+      </p>
+      <p>
+        <strong>Offre réservée aux professionnels.</strong> L&apos;offre du studio s&apos;adresse exclusivement aux
+        professionnels (entreprises, entrepreneurs individuels, auto-entrepreneurs, associations) qui commandent pour les
+        besoins de leur activité. Elle n&apos;est pas proposée aux particuliers. Avant le paiement, le client déclare, en cochant
+        une case, commander en tant que professionnel pour les besoins de son activité ; il indique le nom de son entreprise
+        et, s&apos;il en dispose, son numéro SIRET.
+      </p>
+      <p>
+        Les dispositions du Code de la consommation propres aux consommateurs, notamment le droit de rétractation et la médiation
+        de la consommation, ne s&apos;appliquent donc pas. Le studio peut refuser, ou annuler et rembourser intégralement, toute
+        commande dont il apparaît qu&apos;elle émane d&apos;un particulier.
       </p>
 
       <h2>2. Prestations et prix</h2>
@@ -42,7 +53,7 @@ export default function CGV() {
         La commande est passée en ligne. Le paiement est exigible en totalité à la commande, par carte bancaire,
         via le prestataire de paiement Stripe. La commande n&apos;est définitive qu&apos;après confirmation du paiement
         par Stripe. Le client reçoit alors un numéro de commande et un lien privé de suivi. Une facture est
-        adressée au client sur demande ou, pour les clients professionnels, systématiquement.
+        adressée au client à la livraison ; elle porte le nom de l&apos;entreprise et, le cas échéant, le SIRET indiqués à la commande.
       </p>
 
       <h2>4. Brief et obligations du client</h2>
@@ -90,16 +101,16 @@ export default function CGV() {
         automatiquement, la facture est émise et le client en est informé par e-mail. Les fichiers restent disponibles 90 jours.
       </p>
 
-      <h2>8. Annulation, rétractation et remboursement</h2>
+      <h2>8. Annulation et remboursement</h2>
       <p>
         <strong>Avant la validation du script</strong>, le client peut annuler sa commande et obtenir un
-        remboursement intégral, sans motif.
+        remboursement intégral, sans motif. Il s&apos;agit d&apos;une faculté offerte par le studio : l&apos;offre étant réservée
+        aux professionnels, aucun droit de rétractation ne s&apos;applique à la commande.
       </p>
       <p>
         <strong>Après la validation du script</strong>, la production est lancée à la demande expresse du client.
-        La prestation étant confectionnée selon ses spécifications, le client consommateur ne bénéficie plus du
-        droit de rétractation (article L221-28, 1° et 3°, du Code de la consommation). Le client professionnel ne
-        bénéficie d&apos;aucun droit de rétractation.
+        La prestation étant confectionnée selon ses spécifications, la commande n&apos;est plus annulable, sans préjudice des
+        remboursements prévus par les présentes.
       </p>
       <p>
         Le studio rembourse intégralement le client lorsqu&apos;il constate, avant production, que le produit ne peut
@@ -134,8 +145,7 @@ export default function CGV() {
       <h2>11. Responsabilité</h2>
       <p>
         Le studio est tenu d&apos;une obligation de moyens. Il ne garantit aucun résultat commercial ou publicitaire.
-        Sa responsabilité est limitée, pour les clients professionnels, au montant payé pour la commande
-        concernée. Rien dans les présentes ne limite les droits que la loi reconnaît aux consommateurs.
+        Sa responsabilité est limitée au montant payé pour la commande concernée.
       </p>
 
       <h2>12. Données personnelles</h2>
@@ -144,11 +154,9 @@ export default function CGV() {
         <Link href="/confidentialite">politique de confidentialité</Link>.
       </p>
 
-      <h2>13. Réclamations, médiation et droit applicable</h2>
+      <h2>13. Réclamations et droit applicable</h2>
       <p>
-        Toute réclamation est adressée à {i.email}. Le client consommateur peut, après une réclamation écrite
-        restée sans solution, saisir gratuitement le médiateur de la consommation : {i.mediateur}. Les présentes
-        sont soumises au droit français.
+        Toute réclamation est adressée à {i.email}. Les présentes sont soumises au droit français.
       </p>
     </PageLegale>
   );

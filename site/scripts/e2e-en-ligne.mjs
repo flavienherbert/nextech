@@ -90,6 +90,7 @@ try {
   } else {
   console.log("\n— Commande et paiement (mode test) —");
   await client.goto(`${B}/commander/test`, { waitUntil: "networkidle" });
+  await client.fill('input[name="entreprise"]', "Client Test Studio"); await client.check('input[name="pro"]');
   await client.check('input[name="cgv"]'); await client.check('input[name="ia"]');
   await client.click('button[type="submit"]');
   if (MOCK) {

@@ -29,7 +29,7 @@ export const env = {
     siret: process.env.NEXT_PUBLIC_LEGAL_SIRET || "",
     adresse: process.env.NEXT_PUBLIC_LEGAL_ADDRESS || "",
     email: site.email, // adresse de contact : app/config.ts, un seul endroit
-    mediateur: process.env.NEXT_PUBLIC_LEGAL_MEDIATEUR || "",
+    telephone: process.env.NEXT_PUBLIC_LEGAL_PHONE || "",
   }),
 };
 
@@ -47,7 +47,7 @@ export function modePaiement(): { mode: ModePaiement; raison?: string } {
   if (cle.startsWith("sk_test_") || cle.startsWith("rk_test_")) return { mode: "test" };
   const l = env.legal();
   if (!env.ventesReelles()) return { mode: "ferme", raison: "Ventes réelles non autorisées (VENTES_REELLES)." };
-  if (!l.nom || !l.siret || !l.adresse || !l.email)
+  if (!l.nom || !l.siret || !l.adresse || !l.telephone || !l.email)
     return { mode: "ferme", raison: "Mentions légales incomplètes." };
   return { mode: "reel" };
 }

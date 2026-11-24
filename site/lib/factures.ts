@@ -5,6 +5,7 @@ import PDFDocument from "pdfkit";
 import { depot } from "./depot";
 import { env, modePaiement } from "./env";
 import { DUREE_TEXTE, euros, formuleParId } from "./formules";
+import { siretLisible } from "./professionnel";
 import { store, journal, maintenant, type Commande, type Facture } from "./store";
 
 export type Vendeur = { nom: string; siret: string; adresse: string; email: string };
@@ -71,7 +72,10 @@ export function composerPdf(c: Commande, f: Facture, v: Vendeur): Promise<Buffer
     doc.font(G).fontSize(8.5).fillColor(gris).text("CLIENT", 320, yBlocs);
     doc.font(G).fontSize(10.5).fillColor(noir).text(b.nomFacture, 320, yBlocs + 14, { width: 219 });
     doc.font(N).fontSize(10).text(b.adresseFacture, { width: 219 });
-    if (b.sirenClient) doc.text(`${b.sirenClient.length === 9 ? "SIREN" : "SIRET"} : ${b.sirenClient}`);
+    // Entreprise et SIRET déclarés à la commande (offre réservée aux professionnels) ; le SIREN / SIRET du brief prime s'il a été corrigé.
+    if (c.entreprise && c.entreprise.trim().toLowerCase() !== b.nomFacture.trim().toLowerCase()) doc.text(`Commande passée par : ${c.entreprise}`, { width: 219 });
+    const identifiant = b.sirenClient || c.siret || "";
+    if (identifiant) doc.text(`${identifiant.length === 9 ? "SIREN" : "SIRET"} : ${siretLisible(identifiant)}`);
     doc.text(b.email);
 
     // Références

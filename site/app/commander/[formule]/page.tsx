@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BandeauMode, EnteteSimple, Pied } from "../../components/Cadre";
 import { delaiTexte, euros, formuleParCle, formules } from "@/lib/formules";
 import { modePaiement } from "@/lib/env";
+import { site } from "../../config";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Commander — Studio Accroche", robots: { index: false } };
@@ -13,6 +14,9 @@ const messages: Record<string, string> = {
   ferme: "Les commandes ne sont pas encore ouvertes.",
   rythme: "Trop de tentatives. Réessayez dans quelques minutes.",
   paiement: "Le paiement n'a pas pu être préparé. Réessayez dans un instant.",
+  pro: "L'offre est réservée aux professionnels : cochez la case « Je commande en tant que professionnel » pour continuer.",
+  entreprise: "Indiquez le nom de votre entreprise.",
+  siret: "Le SIRET doit comporter 14 chiffres (ce champ est facultatif : vous pouvez le laisser vide).",
 };
 
 export default async function Commander({
@@ -20,7 +24,7 @@ export default async function Commander({
   searchParams,
 }: {
   params: Promise<{ formule: string }>;
-  searchParams: Promise<{ erreur?: string; annule?: string }>;
+  searchParams: Promise<{ erreur?: string; annule?: string; entreprise?: string; siret?: string }>;
 }) {
   const f = formuleParCle((await params).formule);
   if (!f) notFound();
@@ -87,6 +91,21 @@ export default async function Commander({
             </div>
             <p className="petit">TVA non applicable, article 293 B du CGI.</p>
 
+            <p className="reserve-pro">{site.reservePro}</p>
+            <div className="champs-pro">
+              <label className="champ">
+                <span>Nom de l&apos;entreprise *</span>
+                <input name="entreprise" required minLength={2} maxLength={160} autoComplete="organization" defaultValue={q.entreprise || ""} aria-invalid={q.erreur === "entreprise"} />
+              </label>
+              <label className="champ">
+                <span>SIRET <small>(facultatif)</small></span>
+                <input name="siret" inputMode="numeric" autoComplete="off" maxLength={20} placeholder="14 chiffres" defaultValue={q.siret || ""} aria-invalid={q.erreur === "siret"} />
+              </label>
+            </div>
+            <label className="case">
+              <input type="checkbox" name="pro" value="oui" required />
+              <span>{site.casePro}</span>
+            </label>
             <label className="case">
               <input type="checkbox" name="cgv" value="oui" required />
               <span>

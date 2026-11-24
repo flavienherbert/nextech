@@ -7,7 +7,7 @@ import { envoyerFichier } from "../../components/envoi";
 type Depot = { id: string; nom: string; taille: number };
 const STYLES = ["Direct", "Complice", "Haut de gamme", "Drôle", "Je vous laisse choisir"];
 
-export default function Brief({ token, emailConnu, fichiers }: { token: string; emailConnu: string; fichiers: Depot[] }) {
+export default function Brief({ token, emailConnu, fichiers, entreprise = "", siret = "" }: { token: string; emailConnu: string; fichiers: Depot[]; entreprise?: string; siret?: string }) {
   const router = useRouter();
   const [depots, setDepots] = useState<Depot[]>(fichiers);
   const [envoi, setEnvoi] = useState<string | null>(null);
@@ -90,8 +90,8 @@ export default function Brief({ token, emailConnu, fichiers }: { token: string; 
       <fieldset>
         <legend>Facturation</legend>
         <div className="grille-champs">
-          {champ("nomFacture", "Nom ou raison sociale à facturer *", { required: true }, "Tel qu'il doit figurer sur la facture.")}
-          {champ("sirenClient", "SIREN ou SIRET", { inputMode: "numeric" }, "Pour les professionnels. Laissez vide si vous êtes un particulier.")}
+          {champ("nomFacture", "Nom ou raison sociale à facturer *", { required: true, defaultValue: entreprise }, "Tel qu'il doit figurer sur la facture (repris de votre commande).")}
+          {champ("sirenClient", "SIREN ou SIRET", { inputMode: "numeric", defaultValue: siret }, "Facultatif.")}
         </div>
         <label className="champ champ-large">
           <span>Adresse de facturation *</span>

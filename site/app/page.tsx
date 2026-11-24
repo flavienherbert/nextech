@@ -339,6 +339,7 @@ export default async function Accueil() {
                 </Reveal>
               ))}
             </div>
+            <p className="mention-pro">{site.reservePro}.</p>
             <p className="mention">
               Chaque vidéo est livrée en fichier MP4, avec les droits d&apos;exploitation
               publicitaire. Le délai court à partir de la réception de votre brief. TVA non

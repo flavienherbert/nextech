@@ -64,6 +64,10 @@ export type Commande = {
     nomStripe?: string; // nom saisi par le client sur la page de paiement
     mode: string;
   };
+  // Client professionnel : déclaration faite avant le paiement (offre réservée aux professionnels).
+  entreprise?: string; // nom de l'entreprise, saisi à la commande
+  siret?: string; // facultatif, 14 chiffres sans espaces
+  professionnelDeclareLe?: string; // case « je commande en tant que professionnel, pour les besoins de mon activité » cochée
   brief?: Brief;
   fichiersClient: Fichier[];
   livrables: Fichier[];

@@ -11,7 +11,7 @@ L'état et l'ordre sont dans `LANCEMENT.md` (sections B et C). La page `/admin/l
 5. Remplacer les images et vidéos de démonstration : Administration → Images et vidéos (`site/MEDIAS.md`).
 6. Passer un test complet de commande : `site/TEST-CLIENT.md`.
 7. Activer le compte Stripe, ajouter la clé réelle et le webhook réel dans Netlify.
-8. Renseigner SIRET, adresse, médiateur si vente aux particuliers ; faire relire les conditions de vente.
+8. Renseigner SIRET, adresse et téléphone (offre réservée aux professionnels : pas de médiateur) ; faire relire les conditions de vente.
 9. Poser la question de la date de facturation à un comptable.
 10. Feu vert : `VENTES_REELLES=oui`, puis `SITE_ENV=production`.
 

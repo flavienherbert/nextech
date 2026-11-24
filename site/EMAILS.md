@@ -4,7 +4,7 @@ Chaque e-mail est **archivé** avant l'envoi (Administration, E-mails), même s'
 
 | # | Étape | Déclencheur | Destinataire | Objet | À retenir |
 |---|---|---|---|---|---|
-| 1 | Paiement confirmé | Webhook Stripe signé (jamais avant) | **Vous** | `[Studio Accroche] Nouvelle commande payée — N° — offre — montant` | Numéro, client, e-mail, offre, montant, date, délai, bouton « Ouvrir la commande ». Doublée d'une notification téléphone (sans donnée personnelle). |
+| 1 | Paiement confirmé | Webhook Stripe signé (jamais avant) | **Vous** | `[Studio Accroche] Nouvelle commande payée — N° — offre — montant` | Numéro, client, **entreprise et SIRET**, e-mail, offre, montant, date, délai, bouton « Ouvrir la commande ». Doublée d'une notification téléphone (sans donnée personnelle). |
 | 2 | Paiement confirmé | idem | Client | `Commande N° confirmée — il nous manque votre brief` | Récapitulatif + bouton vers son lien privé pour remplir le brief. |
 | 3 | Brief manquant depuis 48 h | Tâche quotidienne, une seule fois | Client | `Commande N° — il nous manque encore votre brief` | Relance automatique ; relançable à la main depuis la commande. |
 | 4 | Brief reçu | Envoi du brief par le client | **Vous** | `[Studio Accroche] Brief reçu — N° — marque` | Brief complet, liste des fichiers, lien vers la commande. |

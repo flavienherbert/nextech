@@ -5,7 +5,7 @@ Vérifier les paliers de prix autorisés par ComeUp au moment de la saisie et ar
 
 **Prix propres à ComeUp (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; ComeUp prélève 20 % du prix hors taxes (offre gratuite, source : support ComeUp, article 1490), donc les prix ci-dessous sont relevés pour que le bénéfice reste le même : **47 / 119 / 229 €**. **ComeUp Plus (12 € HT/mois, 1 € par commande) : décision du 22 novembre 2026, attendre les premières ventes** ; la grille serait alors 36 / 90 / 170 €. Détail et calculs : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
 
-**Règles communes à toutes les fiches** : 15 secondes maximum par vidéo ; **un tour de retouches = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
+**Règles communes à toutes les fiches** : service **réservé aux professionnels** (entreprises, auto-entrepreneurs, associations : décision du 24 novembre 2026, à écrire dans la description de chaque fiche) ; 15 secondes maximum par vidéo ; **un tour de retouches = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
 
 ## Profil vendeur
 

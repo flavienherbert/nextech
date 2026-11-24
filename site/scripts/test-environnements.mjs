@@ -26,7 +26,7 @@ const attendreLibres = async () => { for (let i = 0; i < 40 && !(await libres())
 // Environnement propre : aucune variable d'un autre test ne doit influencer le résultat.
 const propre = (extra) => {
   const e = { ...process.env, PORT, MOCK_STRIPE_PORT: SIM, DATA_DIR: donnees, ...extra };
-  for (const k of ["DATABASE_URL", "S3_BUCKET", "S3_ENDPOINT", "NEXT_PUBLIC_LEGAL_NAME", "NEXT_PUBLIC_LEGAL_SIRET", "NEXT_PUBLIC_LEGAL_ADDRESS", "NEXT_PUBLIC_LEGAL_MEDIATEUR", "NEXT_PUBLIC_LEGAL_HEBERGEUR", "SITE_ENV", "SHOW_EXAMPLE_VIDEO"]) if (!(k in (extra || {}))) delete e[k];
+  for (const k of ["DATABASE_URL", "S3_BUCKET", "S3_ENDPOINT", "NEXT_PUBLIC_LEGAL_NAME", "NEXT_PUBLIC_LEGAL_SIRET", "NEXT_PUBLIC_LEGAL_ADDRESS", "NEXT_PUBLIC_LEGAL_PHONE", "NEXT_PUBLIC_LEGAL_HEBERGEUR", "SITE_ENV", "SHOW_EXAMPLE_VIDEO"]) if (!(k in (extra || {}))) delete e[k];
   return e;
 };
 function lancer(extra) {
@@ -58,7 +58,8 @@ verifier("Le site démarre", await s.pret, s.sortie().slice(-300));
   verifier("Aucun bandeau de préproduction sans variable", !/bandeau-mode|Préproduction —/.test(html));
   verifier("Vidéo d'exemple : section absente, sans texte de remplacement, ni YouTube ni « Exemple externe »", !/id="demonstration"/.test(html) && !/iframe|youtube|Exemple externe|Emplacement réservé|en cours de production/i.test(html) && !/href="#demonstration"/.test(html));
   const ml = texte(await (await fetch(BASE + "/mentions-legales")).text());
-  verifier("Mentions légales sans identité renseignée : champs visibles [SIRET], [Nom et prénom de l'éditeur], [Adresse postale de l'éditeur] ; rien d'inventé", ["[SIRET]", "[Nom et prénom de l'éditeur]", "[Adresse postale de l'éditeur]"].every((t) => ml.includes(t)));
+  verifier("Mentions légales sans identité renseignée : champs visibles [SIRET], [ADRESSE], [TÉLÉPHONE] et nom de l'éditeur ; rien d'inventé", ["[SIRET]", "[ADRESSE]", "[TÉLÉPHONE]", "[Nom et prénom de l'éditeur]"].every((t) => ml.includes(t)));
+  verifier("Offre réservée aux professionnels : mention en bas de page, clause dans les conditions de vente, plus de médiation de la consommation dans les mentions légales", ml.includes("Offre réservée aux professionnels") && texte(await (await fetch(BASE + "/cgv")).text()).includes("Offre réservée aux professionnels. L'offre du studio s'adresse exclusivement aux professionnels") && !/édiation|médiateur/.test(ml));
   verifier("Mentions légales : micro-entreprise, e-mail de contact, hébergeur Netlify avec son adresse, TVA non applicable (article 293 B)", ["micro-entreprise", "contactstudioaccroche@gmail.com", "Netlify, Inc.", "101 2nd Street, San Francisco, CA 94105", "TVA non applicable, article 293 B du CGI"].every((t) => ml.includes(t)));
   const cg = texte(await (await fetch(BASE + "/cgv")).text()), conf = texte(await (await fetch(BASE + "/confidentialite")).text());
   verifier("Conditions de vente et confidentialité : même adresse de contact (configuration unique), aucune mention de YouTube", cg.includes("contactstudioaccroche@gmail.com") && conf.includes("contactstudioaccroche@gmail.com") && !/YouTube/i.test(conf));
@@ -85,7 +86,7 @@ fs.mkdirSync(dossierVideos, { recursive: true });
 const posees = [];
 for (const [src, dest] of [["scripts/fixtures/demonstration.mp4", "exemple.mp4"], ["scripts/fixtures/demonstration.jpg", "exemple-apercu.jpg"]]) { const d = path.join(dossierVideos, dest); if (!fs.existsSync(d)) { fs.copyFileSync(src, d); posees.push(d); } }
 try {
-  s = lancer({ SITE_ENV: "production", SHOW_EXAMPLE_VIDEO: "true", NEXT_PUBLIC_LEGAL_NAME: "Titulaire De Test", NEXT_PUBLIC_LEGAL_SIRET: "00000000000000", NEXT_PUBLIC_LEGAL_ADDRESS: "1 rue du Test, 00000 Testville" });
+  s = lancer({ SITE_ENV: "production", SHOW_EXAMPLE_VIDEO: "true", NEXT_PUBLIC_LEGAL_NAME: "Titulaire De Test", NEXT_PUBLIC_LEGAL_SIRET: "00000000000000", NEXT_PUBLIC_LEGAL_ADDRESS: "1 rue du Test, 00000 Testville", NEXT_PUBLIC_LEGAL_PHONE: "01 99 00 12 34" });
   verifier("Le site démarre", await s.pret, s.sortie().slice(-300));
   const r = await fetch(BASE + "/"); const html = await r.text();
   verifier("Production : aucun bandeau de préproduction", !/bandeau-mode|Préproduction —/.test(html));
@@ -94,7 +95,10 @@ try {
   verifier("robots.txt : pages publiques autorisées, administration / commandes / API exclues, plan du site annoncé sur l'adresse du site", /Allow:\s*\//.test(robots) && /Disallow:\s*\/admin/.test(robots) && /Disallow:\s*\/commande\//.test(robots) && /Disallow:\s*\/api\//.test(robots) && robots.includes(`Sitemap: ${BASE}/sitemap.xml`), robots);
   verifier("Plan du site : accueil, mentions légales, conditions de vente, confidentialité", [`${BASE}/`, `${BASE}/mentions-legales`, `${BASE}/cgv`, `${BASE}/confidentialite`].every((u) => plan.includes(`<loc>${u}</loc>`)) && !/\/admin|\/commande/.test(plan), plan.slice(0, 300));
   verifier("L'administration et les pages de commande restent exclues des moteurs de recherche", /noindex/.test((await fetch(BASE + "/admin/connexion")).headers.get("x-robots-tag") || "") && /noindex/.test((await fetch(BASE + "/commande/" + "a".repeat(48))).headers.get("x-robots-tag") || "") && /<meta name="robots" content="noindex/.test(await (await fetch(BASE + "/commander/essai")).text()));
-  verifier("Mentions légales : identité renseignée, plus aucun champ entre crochets", !/\[SIRET\]|\[Nom et prénom|\[Adresse postale/.test(texte(await (await fetch(BASE + "/mentions-legales")).text())) && texte(await (await fetch(BASE + "/mentions-legales")).text()).includes("SIRET : 00000000000000"));
+  {
+    const ml = texte(await (await fetch(BASE + "/mentions-legales")).text());
+    verifier("Mentions légales : identité, adresse et téléphone renseignés par variables, plus aucun champ entre crochets", !/\[SIRET\]|\[Nom et prénom|\[ADRESSE\]|\[TÉLÉPHONE\]/.test(ml) && ml.includes("SIRET : 00000000000000") && ml.includes("Adresse : 1 rue du Test, 00000 Testville") && ml.includes("Téléphone : 01 99 00 12 34"), ml.slice(0, 400));
+  }
   verifier("Partage : image Open Graph et Twitter sur l'adresse du site (SITE_URL)", html.includes(`content="${BASE}/media/og-studio-accroche.jpg"`) && /twitter:card" content="summary_large_image"/.test(html));
 
   // Navigateur : la section « vidéo d'exemple »

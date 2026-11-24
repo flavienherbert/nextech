@@ -36,7 +36,7 @@ export function Pied({ illustrations = false }: { illustrations?: boolean }) {
     <footer className="pied">
       <div className="conteneur pied-ligne">
         <span>
-          © {new Date().getFullYear()} {site.marque} · Vidéos générées par intelligence artificielle
+          © {new Date().getFullYear()} {site.marque} · Vidéos générées par intelligence artificielle · {site.reservePro}
         </span>
         <nav className="pied-liens" aria-label="Informations légales">
           <a href={`mailto:${site.email}`}>Contact : {site.email}</a>
