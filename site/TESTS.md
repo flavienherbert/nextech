@@ -13,6 +13,18 @@ Aucune dépendance Python n'est stockée dans le dépôt (des fichiers `.whl` y 
 | `npm run test:postgres` | Le pilote PostgreSQL (base de **test** uniquement) |
 | `npm run test:environnements` | Les trois états du site : sans variable, `SITE_ENV=preprod`, `SITE_ENV=production` + `SHOW_EXAMPLE_VIDEO=true` (indexation, bandeau, vidéo d'exemple lue au clic et muette, mentions légales avec champs visibles) |
 
+## Résultats du 24 novembre 2026 (bibliothèque de publicités, branche `bibliotheque-pubs`)
+
+| Vérification | Disque | PostgreSQL + disque | PostgreSQL + S3 | S3 seul |
+|---|---|---|---|---|
+| Tests ciblés (`npm run test:unitaires`) | 313/313 | réussis | réussis | réussis |
+| Parcours complet dans le navigateur (`npm run test:e2e`) | 234/234 | 234/234 | 233/233 | — |
+| Bibliothèque de publicités (`scripts/e2e-bibliotheque.mjs`) | 76/76 | 76/76 | 76/76 | — |
+| Images et vidéos du site (`scripts/e2e-medias.mjs`, avec `SHOW_EXAMPLE_VIDEO=true`) | 35/35 | 35/35 | 35/35 | — |
+| Affichage de la version compilée (`scripts/test-affichage.mjs`) | 61/61 | 61/61 | 61/61 | — |
+
+Aussi : pilote PostgreSQL réussi ; `npm run test:csp` 31/31 ; `npm run test:environnements` 34/34 ; `npx tsc --noEmit` sans erreur ; `npm run build` sans erreur. Les deux tests d'« Indexation » de `tests-unitaires.mts` attendent désormais le plan du site (`await sitemap()`), devenu asynchrone parce qu'il consulte la bibliothèque.
+
 ## Résultats du 24 novembre 2026 (refonte et offre réservée aux professionnels, branche `refonte-pro`)
 
 | Vérification | Disque | PostgreSQL + disque | PostgreSQL + S3 | S3 seul |
