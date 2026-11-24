@@ -80,7 +80,7 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   verifier("Anatomie : 4 plans visibles", e.temps.n === 4 && e.temps.visibles === 4);
   verifier("Accroches : 3 angles visibles", e.angles.n === 3 && e.angles.visibles === 3);
   verifier("Parcours : 4 étapes visibles", e.etapes.n === 4 && e.etapes.visibles === 4);
-  verifier("Offres : 3 formules visibles avec leurs prix", e.formules.visibles === 3 && e.prix.join("|") === "35 €|89 €|169 €", e.prix.join("|"));
+  verifier("Offres : 3 formules visibles avec leurs prix", e.formules.visibles === 3 && e.prix.join("|") === "49 €|139 €|259 €", e.prix.join("|"));
   verifier("Offres : 3 boutons de commande visibles", e.boutons === 3);
   verifier("Engagements : 3 blocs visibles", e.engagements.n === 3 && e.engagements.visibles === 3);
   verifier("Questions : 11 entrées visibles (accordéon)", e.questions.n === 11 && e.questions.visibles === 11);
@@ -96,7 +96,7 @@ for (const [nom, viewport, mobile] of [["Ordinateur 1440", { width: 1440, height
   await page.locator('.formule a[href="/commander/accroches"]').click();
   await page.waitForURL("**/commander/accroches");
   await page.waitForSelector(".recap");
-  verifier("Commande : page récapitulative affichée à 89 €", (await page.locator(".total strong").innerText()).includes("89") && await page.locator('.recap button[type="submit"]').isVisible());
+  verifier("Commande : page récapitulative affichée à 139 €", (await page.locator(".total strong").innerText()).includes("139") && await page.locator('.recap button[type="submit"]').isVisible());
   const actif = await page.locator('.recap button[type="submit"]').isEnabled();
   if (actif) {
     await page.fill('input[name="entreprise"]', "Entreprise Test"); await page.check('input[name="pro"]');

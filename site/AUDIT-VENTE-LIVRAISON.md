@@ -47,7 +47,7 @@ Ce document dit, étape par étape, ce qui **fonctionne réellement**, ce qui n'
 2. **Publication** de la version actuelle (après décision sur le quota Netlify).
 3. **Commande de test complète** avec une carte de test (`TEST-CLIENT.md`), en ajoutant : l'envoi du script et **la réponse « OK » du client qui arrive dans la boîte du studio**.
 4. **Téléphone du client** : ouvrir le lien privé de livraison sur un iPhone et un Android : lecture dans la page, téléchargement, galerie.
-5. **Facture réelle** : seulement le jour de l'ouverture, avec la première commande réelle de contrôle à 35 € que vous vous remboursez.
+5. **Facture réelle** : seulement le jour de l'ouverture, avec la première commande réelle de contrôle à 49 € que vous vous remboursez.
 
 ## 4. Décisions à prendre (sans toucher aux prix)
 

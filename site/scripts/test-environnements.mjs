@@ -63,7 +63,7 @@ verifier("Le site démarre", await s.pret, s.sortie().slice(-300));
   verifier("Mentions légales : micro-entreprise, e-mail de contact, hébergeur Netlify avec son adresse, TVA non applicable (article 293 B)", ["micro-entreprise", "contactstudioaccroche@gmail.com", "Netlify, Inc.", "101 2nd Street, San Francisco, CA 94105", "TVA non applicable, article 293 B du CGI"].every((t) => ml.includes(t)));
   const cg = texte(await (await fetch(BASE + "/cgv")).text()), conf = texte(await (await fetch(BASE + "/confidentialite")).text());
   verifier("Conditions de vente et confidentialité : même adresse de contact (configuration unique), aucune mention de YouTube", cg.includes("contactstudioaccroche@gmail.com") && conf.includes("contactstudioaccroche@gmail.com") && !/YouTube/i.test(conf));
-  verifier("Page de commande : adresse « accroches » et ancienne adresse « test » mènent au Pack Accroches", texte(await (await fetch(BASE + "/commander/accroches")).text()).includes("Pack Accroches — 89 €") && texte(await (await fetch(BASE + "/commander/test")).text()).includes("Pack Accroches — 89 €") && (await fetch(BASE + "/commander/inconnue")).status === 404);
+  verifier("Page de commande : adresse « accroches » et ancienne adresse « test » mènent au Pack Accroches", texte(await (await fetch(BASE + "/commander/accroches")).text()).includes("Pack Accroches — 139 €") && texte(await (await fetch(BASE + "/commander/test")).text()).includes("Pack Accroches — 139 €") && (await fetch(BASE + "/commander/inconnue")).status === 404);
 }
 await arreter(s);
 

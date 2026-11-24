@@ -3,9 +3,9 @@
 Pseudo vendeur : `Studio_Accroche`. Catégorie : Audiovisuel → Vidéos et photos UGC.
 Vérifier les paliers de prix autorisés par ComeUp au moment de la saisie et arrondir au palier le plus proche (prix de départ minimum : 15 €).
 
-**Prix propres à ComeUp (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; ComeUp prélève 20 % du prix hors taxes (offre gratuite, source : support ComeUp, article 1490), donc les prix ci-dessous sont relevés pour que le bénéfice reste le même : **47 / 119 / 229 €**. **ComeUp Plus (12 € HT/mois, 1 € par commande) : décision du 22 novembre 2026, attendre les premières ventes** ; la grille serait alors 36 / 90 / 170 €. Détail et calculs : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
+**Prix propres à ComeUp (décisions du 22 novembre 2026).** **Mise à jour du 24 novembre 2026 : le site direct vend maintenant 49 / 139 / 259 € avec 1 tour de retouches par formule ; les prix ci-dessous (47 / 119 / 229 €) n'ont PAS été recalculés et datent de l'ancienne base 35 / 89 / 169 €.** Ancienne base : le site direct vendait 35 / 89 / 169 € ; ComeUp prélève 20 % du prix hors taxes (offre gratuite, source : support ComeUp, article 1490), donc les prix ci-dessous sont relevés pour que le bénéfice reste le même : **47 / 119 / 229 €**. **ComeUp Plus (12 € HT/mois, 1 € par commande) : décision du 22 novembre 2026, attendre les premières ventes** ; la grille serait alors 36 / 90 / 170 €. Détail et calculs : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
 
-**Règles communes à toutes les fiches** : service **réservé aux professionnels** (entreprises, auto-entrepreneurs, associations : décision du 24 novembre 2026, à écrire dans la description de chaque fiche) ; 15 secondes maximum par vidéo ; **un tour de retouches = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
+**Règles communes à toutes les fiches** : service **réservé aux professionnels** (entreprises, auto-entrepreneurs, associations : décision du 24 novembre 2026, à écrire dans la description de chaque fiche) ; 15 secondes maximum par vidéo ; **un tour de retouches = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 tour pour chaque formule) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
 
 ## Profil vendeur
 
@@ -54,8 +54,8 @@ Je crée pour vous une publicité vidéo verticale avec un présentateur IA réa
 **Options**
 | Option | Prix | Délai |
 |---|---|---|
-| Pack Accroches : 3 vidéos de 15 s maximum, 3 accroches différentes, 2 tours de retouches | +72 € | +1 jour |
-| Pack Campagne : 6 vidéos de 15 s maximum, 2 présentateurs, formats 9:16 et 1:1, 2 tours de retouches | +182 € | +3 jours |
+| Pack Accroches : 3 vidéos de 15 s maximum, 3 accroches différentes, 1 tour de retouches | +72 € | +1 jour |
+| Pack Campagne : 6 vidéos de 15 s maximum, 2 présentateurs, formats 9:16 et 1:1, 1 tour de retouches | +182 € | +3 jours |
 | Livraison en 24 h | +15 € | −1 jour |
 | Version anglaise de la vidéo | +15 € | +1 jour |
 | Script supplémentaire | +10 € | — |
@@ -90,7 +90,7 @@ Avec ce pack, vous recevez 3 publicités vidéo sur le même produit, chacune av
 - 3 vidéos de 15 secondes maximum, 9:16, 1080p
 - 3 accroches écrites sur 3 angles différents, argumentaire commun
 - Présentateur IA francophone, sous-titres animés
-- 2 tours de retouches (une seule demande par tour, qui regroupe toutes vos remarques sur les 3 vidéos)
+- 1 tour de retouches (une seule demande, qui regroupe toutes vos remarques sur les 3 vidéos)
 - Un court mémo : quelle métrique regarder pour choisir la gagnante
 
 **Options** : second présentateur (+30 €), format carré 1:1 (+15 €), livraison 48 h (+20 €).

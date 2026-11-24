@@ -13,9 +13,10 @@ const DATA = path.resolve(process.env.DATA_DIR || "./data");
 const SECRET = process.env.STRIPE_WEBHOOK_SECRET || "whsec_simulation";
 const MDP = process.env.ADMIN_PASSWORD || "demonstration";
 const CAPTURES = process.env.CAPTURES || "";
-// Contrat de prix et de retouches décidé le 22 novembre 2026. lib/formules.ts est la source unique : en changer une valeur impose de changer celle-ci,
-// et ce test le rappelle. Les montants sont en centimes.
-const PRIX = { essai: 3500, test: 8900, campagne: 16900 };
+// Contrat de prix et de retouches (prix du 24 novembre 2026 : 49 / 139 / 259 €, 1 tour de retouches par formule). lib/formules.ts est la source unique :
+// en changer une valeur impose de changer celle-ci, et ce test le rappelle. Les montants sont en centimes.
+const PRIX = { essai: 4900, test: 13900, campagne: 25900 };
+const TOURS = { essai: 1, test: 1, campagne: 1 };
 const eur = (cents) => `${cents / 100}`;
 
 const resultats = [];
@@ -55,8 +56,11 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
   const norm = (t) => t.replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " ");
   const accueil = norm(await page.locator("body").innerText());
   verifier("Accueil : « jusqu'à 15 secondes » dans chaque formule, jamais « 15 à 20 » ni « 10 à 15 », aucun ancien prix", (accueil.match(/jusqu'à 15 secondes/g) || []).length >= 3 && !/15 secondes maximum|15 à 20|10 à 15|20 secondes/.test(accueil) && !/(^|[^\d])(25|69|129) €/.test(accueil), accueil.match(/.{20}(15 à 20|10 à 15|(25|69|129) €).{20}/)?.[0]);
-  verifier("Accueil : fourchette de prix et délais lus dans le catalogue", accueil.includes("De 35 € à 169 € selon la formule") && accueil.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours"));
-  verifier("Accueil : 1 / 2 / 2 tours de retouches dans les trois formules", (await page.locator(".formule").allInnerTexts()).map((t) => t.match(/(\d) tours? de retouches/)?.[1]).join("/") === "1/2/2");
+  verifier("Accueil : fourchette de prix et délais lus dans le catalogue", accueil.includes("De 49 € à 259 € selon la formule") && accueil.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours"));
+  // Les montants du catalogue (lib/formules.ts) apparaissent partout : ouverture, boutons des cartes, dernière section
+  const textes = async (sel) => (await page.locator(sel).allInnerTexts()).map((t) => t.replace(/[\u00a0\u202f]/g, " ").replace(/\s+/g, " ").trim());
+  verifier("Prix : bouton de l'ouverture « Essayer pour 49 € », boutons des cartes « Commander — 49 € / 139 € / 259 € », dernière section « Commander l'essai — 49 € »", (await textes(".hero-actions a"))[1] === `Essayer pour ${eur(PRIX.essai)} €` && (await textes(".formule a.bouton")).join("|") === Object.values(PRIX).map((c) => `Commander — ${eur(c)} €`).join("|") && (await textes(".cloture .hero-actions a"))[0] === `Commander l'essai — ${eur(PRIX.essai)} €` && accueil.includes("De 49 € à 259 € selon la formule"), JSON.stringify([await textes(".hero-actions a"), await textes(".formule a.bouton")]));
+  verifier("Accueil : 1 tour de retouches dans chacune des trois formules", (await page.locator(".formule").allInnerTexts()).map((t) => t.match(/(\d) tours? de retouches/)?.[1]).join("/") === Object.values(TOURS).join("/"));
   // Refonte du 23 novembre 2026 : ouverture, formules, illustrations, vidéo d'exemple, bandeau, FAQ, métadonnées
   const h1 = norm(await page.locator("h1").innerText());
   verifier("Ouverture : titre « Des pubs vidéo avec présentateur IA pour votre boutique. », accroche « Trois secondes pour arrêter un pouce. » conservée", h1 === "Des pubs vidéo avec présentateur IA pour votre boutique." && accueil.includes("Trois secondes pour arrêter un pouce."), h1);
@@ -77,7 +81,7 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
     const retract = await texteDe("droit de rétractation");
     verifier("FAQ : « Je suis un particulier, puis-je commander ? » → non, offre réservée aux professionnels ; rétractation : ne s'applique pas aux professionnels", /Non\. L'offre est réservée aux professionnels/.test(rep) && /réservée aux professionnels, le droit de rétractation prévu pour les consommateurs ne s'applique pas/.test(retract), rep + " || " + retract);
     verifier("Offre réservée aux professionnels : mention sous les cartes de formules et en bas de page", norm(await page.locator("#formules .mention-pro").innerText()) === "Offre réservée aux professionnels." && norm(await page.locator(".pied").innerText()).includes("Offre réservée aux professionnels"));
-    verifier("FAQ : réponses alignées sur le catalogue (délais, retouches, durée, photos, droits publicitaires)", reponses.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours") && reponses.includes("1 pour Essai, 2 pour Pack Accroches, 2 pour Pack Campagne") && reponses.includes("jusqu'à 15 secondes") && reponses.includes("3 à 5 photos nettes") && reponses.includes("droits d'exploitation publicitaire"));
+    verifier("FAQ : réponses alignées sur le catalogue (délais, retouches, durée, photos, droits publicitaires)", reponses.includes("Essai 48 h, Pack Accroches 3 jours, Pack Campagne 5 jours") && reponses.includes("Chaque formule inclut 1 tour de retouches") && reponses.includes("jusqu'à 15 secondes") && reponses.includes("3 à 5 photos nettes") && reponses.includes("droits d'exploitation publicitaire"));
   }
   {
     const html = await (await fetch(BASE)).text();
@@ -92,7 +96,7 @@ verifier("Accueil : trois formules avec prix", (await page.locator(".formule").c
   const cg = await ctx.newPage();
   await cg.goto(`${BASE}/cgv`);
   const cgv = norm(await cg.locator("body").innerText());
-  verifier("Conditions de vente : prix, durée (jusqu'à 15 secondes) et tours de retouches identiques au catalogue", [`Essai — 35 €`, `Pack Accroches — 89 €`, `Pack Campagne — 169 €`, "1 vidéo, jusqu'à 15 secondes, 1 tour de retouches", "3 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches", "6 vidéos, jusqu'à 15 secondes chacune, 2 tours de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
+  verifier("Conditions de vente : prix, durée (jusqu'à 15 secondes) et tours de retouches identiques au catalogue", [`Essai — 49 €`, `Pack Accroches — 139 €`, `Pack Campagne — 259 €`, "1 vidéo, jusqu'à 15 secondes, 1 tour de retouches", "3 vidéos, jusqu'à 15 secondes chacune, 1 tour de retouches", "6 vidéos, jusqu'à 15 secondes chacune, 1 tour de retouches"].every((t) => cgv.includes(t)) && !/retouches? par vidéo|15 à 20|10 à 15/.test(cgv), cgv.match(/Essai — .{0,160}/)?.[0]);
   verifier("Conditions de vente : clause « Offre réservée aux professionnels », droit de rétractation et médiation de la consommation écartés, plus aucune clause consommateur", /Offre réservée aux professionnels\. L'offre du studio s'adresse exclusivement aux professionnels/.test(cgv) && /case, commander en tant que professionnel pour les besoins de son activité/.test(cgv) && /Les dispositions du Code de la consommation propres aux consommateurs, notamment le droit de rétractation et la médiation de la consommation, ne s'appliquent donc pas/.test(cgv) && !/médiateur|L221-28|client consommateur|professionnel ou consommateur|droits que la loi reconnaît aux consommateurs/.test(cgv), cgv.slice(0, 600));
   verifier("Conditions de vente : définition d'un tour (demande consolidée), hors périmètre = nouvelle commande, durée supérieure non proposée", /Un tour de retouches est une seule demande, qui regroupe toutes vos remarques sur l'ensemble des vidéos livrées/.test(cgv) && /changement de produit, de brief, de script validé, de présentateur, d'angle ou de durée n'est pas une retouche/.test(cgv) && /Une durée supérieure n'est pas proposée à ce jour/.test(cgv));
   await cg.close();
@@ -341,7 +345,7 @@ if (CAPTURES) fs.writeFileSync(`${CAPTURES}/facture-specimen.pdf`, pdf);
   // Offre réservée aux professionnels : l'entreprise et le SIRET saisis à la commande figurent sur la facture
   let texte = null;
   try { const t = `/tmp/sa-facture-${process.pid}.pdf`; fs.writeFileSync(t, pdf); texte = execFileSync("pdftotext", ["-layout", t, "-"], { encoding: "utf8" }).replace(/\s+/g, " "); fs.rmSync(t, { force: true }); } catch { /* pdftotext absent */ }
-  verifier(texte === null ? "Facture : entreprise et SIRET de la commande (texte du PDF non vérifié : pdftotext absent)" : "Facture : le nom de l'entreprise et le SIRET saisis à la commande y figurent", texte === null || (texte.includes("Exemple Marque SAS") && texte.includes("123 456 789 00012")), (texte || "").slice(0, 400));
+  verifier(texte === null ? "Facture : entreprise, SIRET et montant de la commande (texte du PDF non vérifié : pdftotext absent)" : "Facture : le nom de l'entreprise, le SIRET saisis à la commande et le montant du catalogue y figurent", texte === null || (texte.includes("Exemple Marque SAS") && texte.includes("123 456 789 00012") && texte.includes(`${eur(c.montantCents)} €`)), (texte || "").slice(0, 400));
 }
 verifier("Facture inaccessible sans session administrateur (401)", (await fetch(`${BASE}/api/admin/facture/${idCommande}`)).status === 401);
 verifier("Un spécimen n'est jamais remis au client (404)", (await fetch(`${BASE}/api/commande/${tokenClient}/facture`)).status === 404);
@@ -607,6 +611,27 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
     verifier("Lecture intégrée : mauvais jeton, PDF, fichier inconnu, fichier d'une autre commande → 404", autres.every((r) => r.status === 404), autres.map((r) => r.status).join(","));
   }
 
+  {
+    // — Demande hors périmètre (Pack Campagne : 1 tour inclus) : refusée par l'administrateur, non décomptée, le tour reste disponible
+    const T = TOURS.campagne;
+    const API0 = (corps) => fetch(`${BASE}/api/commande/${A.token}/validation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+    const utilises0 = () => commande(A.id).retouchesDemandees.filter((x) => !x.horsPerimetre).length;
+    await page.goto(`${BASE}/commande/${A.token}`);
+    verifier(`Page du client : « Tours de retouches restants : ${T} sur ${T} » (Pack Campagne, aucun tour utilisé)`, (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes(`restants : ${T} sur ${T}`));
+    const r0 = await API0({ action: "retouche", message: "Finalement, changez l'angle : présentez le produit pour les enfants." });
+    verifier("Demande acceptée à l'enregistrement (la commande repasse en production)", r0.status === 200 && commande(A.id).statut === "en_production");
+    await admin.goto(`${BASE}/admin/commande/${A.id}`);
+    verifier(`Administration : « Tour de retouches ${T} sur ${T} » et formulaire « Refuser : hors périmètre »`, (await admin.locator(".etape").textContent()).includes(`Tour de retouches ${T} sur ${T}`) && (await admin.locator('button:has-text("Refuser : hors périmètre")').count()) === 1);
+    await admin.fill('textarea[name="explication"]', "Un changement d'angle n'est pas une retouche : il faut une nouvelle commande.");
+    await admin.click('button:has-text("Refuser : hors périmètre")');
+    await admin.waitForURL(/ok=refus&mail=oui/);
+    const A6 = commande(A.id);
+    verifier(`Demande hors périmètre : refusée, retour en validation, historique tenu, tour non décompté (0 utilisé sur ${T})`, A6.statut === "attente_validation" && /nouvelle commande/.test(A6.retouchesDemandees.at(-1).horsPerimetre || "") && utilises0() === 0 && A6.historique.some((h) => /refusée \(hors périmètre\)/.test(h.evenement)));
+    verifier("Demande hors périmètre : e-mail au client avec l'explication, « ne vous est pas décompté » et la définition du tour", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("hors périmètre") && m.texte.includes("nouvelle commande") && /ne vous est pas décompté/.test(m.texte) && /seule demande/.test(m.texte)));
+    await page.goto(`${BASE}/commande/${A.token}`);
+    verifier(`Page du client : la raison du refus est affichée, le tour reste disponible (${T} sur ${T})`, (await page.locator(".avis").allTextContents()).join(" ").includes("ne pouvait pas être traitée comme une retouche") && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes(`restants : ${T} sur ${T}`));
+  }
+
   // — Demande de correction du client
   await fauxJson("/_vider", "POST");
   await page.goto(`${BASE}/commande/${A.token}`);
@@ -627,33 +652,15 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
   verifier("Version corrigée envoyée : retouche marquée traitée, e-mail « version corrigée » expédié", A5.statut === "attente_validation" && A5.retouchesDemandees.every((r) => r.traiteeLe) && (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("version corrigée")));
   verifier("Tableau de bord : plus dans « Corrections demandées »", !(await idsVue("corrections")).includes(A.id) && (await idsVue("livrees")).includes(A.id));
   {
-    // — Tours de retouches (Pack Campagne : 2 tours). Un tour = une demande consolidée ; hors périmètre : refusé, non décompté ; au-delà : refusé.
+    // — Le tour de retouches inclus est utilisé : toute nouvelle demande est refusée (Pack Campagne : 1 tour).
+    const T = TOURS.campagne;
     const API = (corps) => fetch(`${BASE}/api/commande/${A.token}/validation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
     const utilises = () => commande(A.id).retouchesDemandees.filter((x) => !x.horsPerimetre).length;
     await page.goto(`${BASE}/commande/${A.token}`);
-    verifier("Page du client : « Tours de retouches restants : 1 sur 2 » (Pack Campagne, un tour déjà utilisé)", (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("restants : 1 sur 2"));
-    let r = await API({ action: "retouche", message: "Finalement, changez l'angle : présentez le produit pour les enfants." });
-    verifier("2e demande acceptée à l'enregistrement (la commande repasse en production)", r.status === 200 && commande(A.id).statut === "en_production");
-    await admin.goto(`${BASE}/admin/commande/${A.id}`);
-    verifier("Administration : « Tour de retouches 2 sur 2 » et formulaire « Refuser : hors périmètre »", (await admin.locator(".etape").textContent()).includes("Tour de retouches 2 sur 2") && (await admin.locator('button:has-text("Refuser : hors périmètre")').count()) === 1);
-    await admin.fill('textarea[name="explication"]', "Un changement d'angle n'est pas une retouche : il faut une nouvelle commande.");
-    await admin.click('button:has-text("Refuser : hors périmètre")');
-    await admin.waitForURL(/ok=refus&mail=oui/);
-    const A6 = commande(A.id);
-    verifier("Demande hors périmètre : refusée, retour en validation, historique tenu, tour non décompté (1 utilisé sur 2)", A6.statut === "attente_validation" && /nouvelle commande/.test(A6.retouchesDemandees.at(-1).horsPerimetre || "") && utilises() === 1 && A6.historique.some((h) => /refusée \(hors périmètre\)/.test(h.evenement)));
-    verifier("Demande hors périmètre : e-mail au client avec l'explication, « ne vous est pas décompté » et la définition du tour", (await mails()).some((m) => m.a.includes("claire@exemple-boutique.fr") && m.objet.includes("hors périmètre") && m.texte.includes("nouvelle commande") && /ne vous est pas décompté/.test(m.texte) && /seule demande/.test(m.texte)));
-    await page.goto(`${BASE}/commande/${A.token}`);
-    verifier("Page du client : la raison du refus est affichée, il reste 1 tour sur 2", (await page.locator(".avis").allTextContents()).join(" ").includes("ne pouvait pas être traitée comme une retouche") && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("restants : 1 sur 2"));
-    r = await API({ action: "retouche", message: "Raccourcissez les sous-titres de la deuxième vidéo, merci." });
-    verifier("2e tour valable accepté (2 sur 2)", r.status === 200 && utilises() === 2);
-    await admin.goto(`${BASE}/admin/commande/${A.id}`);
-    await admin.click("button:has-text('Envoyer la version corrigée au client')");
-    await admin.waitForURL(/ok=livraison&mail=oui/);
-    r = await API({ action: "retouche", message: "Encore une petite modification, s'il vous plaît." });
+    verifier("Page du client : plus de bouton de retouche quand le tour inclus est utilisé", (await page.locator('button:has-text("Demander un tour de retouches")').count()) === 0 && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("ont été utilisés"));
+    const r = await API({ action: "retouche", message: "Encore une petite modification, s'il vous plaît." });
     const rj = await r.json();
-    verifier("Au-delà des 2 tours : refusé (409) avec explication, aucun tour de plus", r.status === 409 && /utilisés/.test(rj.erreur) && /nouvelle commande/.test(rj.erreur) && utilises() === 2);
-    await page.goto(`${BASE}/commande/${A.token}`);
-    verifier("Page du client : plus de bouton de retouche quand les tours sont utilisés", (await page.locator('button:has-text("Demander un tour de retouches")').count()) === 0 && (await page.locator(".validation .petit", { hasText: "Tours de retouches" }).first().textContent()).includes("ont été utilisés"));
+    verifier(`Au-delà du tour inclus (${T}) : refusé (409) avec explication, aucun tour de plus`, r.status === 409 && /utilisés/.test(rj.erreur) && /nouvelle commande/.test(rj.erreur) && utilises() === T);
   }
   const avantRenvoi = (await mails()).length;
   await admin.goto(`${BASE}/admin/commande/${A.id}`);

@@ -17,6 +17,7 @@ import {
   formules,
   fourchettePrix,
   photosTexte,
+  toursInclusTexte,
 } from "@/lib/formules";
 
 const actif = (v: string | undefined) => ["true", "oui", "1"].includes((v ?? "").trim().toLowerCase());
@@ -109,7 +110,7 @@ export const raisons = [
     titre: "Accroches à comparer",
     texte: `Le ${FORMULE_ACCROCHES.nom} livre ${enLettres(FORMULE_ACCROCHES.accroches)} débuts différents : vous diffusez, vous gardez celui qui retient.`,
   },
-  { chiffre: "1", titre: "Prix, payé une fois", texte: `${fourchettePrix()} selon la formule. Pas d'abonnement, script et tours de retouches inclus.` },
+  { chiffre: "1", titre: "Prix, payé une fois", texte: `${fourchettePrix()} selon la formule. Pas d'abonnement, script et retouches inclus.` },
 ];
 
 export const etapes = [
@@ -173,7 +174,7 @@ export const faq = [
   },
   {
     q: "Et si le rendu ne me plaît pas ?",
-    r: `Chaque formule inclut des tours de retouches (${formules.map((f) => `${f.tours} pour ${f.nom}`).join(", ")}), à demander depuis votre espace de commande. Un tour est une seule demande qui regroupe toutes vos remarques sur l'ensemble des vidéos. Un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.`,
+    r: `Chaque formule inclut ${toursInclusTexte()}, à demander depuis votre espace de commande. Un tour est une seule demande qui regroupe toutes vos remarques sur l'ensemble des vidéos. Un changement de produit, de brief, d'angle ou de script validé n'est pas une retouche. Si votre produit ne peut pas être reproduit fidèlement, vous êtes prévenu avant le début du travail et remboursé.`,
   },
   {
     q: "Pourquoi plusieurs accroches ?",

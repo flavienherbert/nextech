@@ -9,7 +9,7 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 ## A. Ce qui est terminé
 
 **Le site**
-- Accueil, formules à 35 / 89 / 169 € (décidées le 22 novembre 2026 ; prix ComeUp et Fiverr : `commercial/GRILLES-ET-PLATEFORMES.md`), FAQ, pages légales, affichage ordinateur et mobile, bandeau de préproduction tant que les paiements réels sont fermés.
+- Accueil, formules à 49 / 139 / 259 € (prix du 24 novembre 2026 ; prix ComeUp et Fiverr : `commercial/GRILLES-ET-PLATEFORMES.md`), FAQ, pages légales, affichage ordinateur et mobile, bandeau de préproduction tant que les paiements réels sont fermés.
 - Accueil et pages légales servies depuis un cache (renouvelé toutes les 15 minutes) : plus rapide pour les visiteurs, presque aucun calcul facturé par Netlify.
 - **Images et vidéos remplaçables sans toucher au code** : Administration → *Images et vidéos*. 30 emplacements (couverture, vidéo de démonstration, six exemples, quatre temps, visuels des formules, fond, vignette de partage). Chaque envoi est contrôlé (type réel, signature, poids), les images lourdes sont réduites automatiquement, un retour à l'image d'origine est possible. Guide : `site/MEDIAS.md`.
 
@@ -37,7 +37,7 @@ Ce document est la seule page à lire pour savoir où on en est. Le détail tech
 
 ## C. Les seules actions qui restent pour vous, dans l'ordre
 
-0. **Tarifs, tours de retouches et durée : décidés le 22 novembre 2026** (35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum par vidéo). Le correctif est prêt et testé ; il n'est appliqué au site qu'après votre validation (`RAPPORT-MODIFICATIONS.md`). L'audit de la vente et de la livraison est dans `site/AUDIT-VENTE-LIVRAISON.md`.
+0. **Tarifs, tours de retouches et durée : décidés le 22 novembre 2026** (49 / 139 / 259 € depuis le 24 novembre 2026, 1 tour de retouches par formule, 15 secondes maximum par vidéo). Appliqué sur la branche `refonte-pro` ; les prix ComeUp et Fiverr restent à recalculer. L'audit de la vente et de la livraison est dans `site/AUDIT-VENTE-LIVRAISON.md`.
 1. **Décider pour Netlify** (attendre la remise à zéro, acheter des crédits, ou autre) : c'est ce qui permet de publier tout le reste. Une seule publication suffira.
 2. **Remplacer les trois secrets exposés** (mot de passe administrateur, `SESSION_SECRET`, `TACHES_SECRET`) : `site/ROTATION-SECRETS.md`, une dizaine de minutes. Fait avant l'ouverture, pas après.
 3. **Recréer le mot de passe d'application Gmail** et le saisir dans *Administration → Réglages e-mail* (après la publication).

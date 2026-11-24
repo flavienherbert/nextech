@@ -1,5 +1,7 @@
 # Étude de rentabilité — Seedance 2.0 via Higgsfield (21 novembre 2026)
 
+> **Mise à jour du 24 novembre 2026 : nouveaux prix du site (49 / 139 / 259 €) et 1 tour de retouches pour chaque formule.** Les chiffres de ce document (prix, bénéfices, temps maximal pour 25 €/h, prix ComeUp et Fiverr) ont été calculés sur l'ancienne base 35 / 89 / 169 € et 1 / 2 / 2 tours : **ils ne sont pas recalculés ici.**
+
 > **Mise à jour du 22 novembre 2026 : les décisions commerciales sont prises** (site direct 35 / 89 / 169 €, tours de retouches 1 / 2 / 2, 15 secondes maximum, vente aussi sur ComeUp et Fiverr). Les grilles Économique et Premium ci-dessous restent des repères ; la grille Recommandée est devenue la grille décidée. Prix des plateformes, commissions vérifiées et temps maximal pour 25 €/h : **`commercial/GRILLES-ET-PLATEFORMES.md`**.
 
 Le site a été mis à jour le 22 novembre 2026 (35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum). Les sections 4 et 5 décrivent l'**ancienne** grille (25 / 69 / 129 €, retouches 1 / 3 / 12) : elles servent de point de comparaison. Aucune génération lancée, aucun abonnement souscrit, aucun crédit dépensé (les coûts viennent de devis Higgsfield en lecture seule).

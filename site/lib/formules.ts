@@ -73,7 +73,7 @@ export const formules: Formule[] = [
     id: "essai",
     adresse: "essai",
     nom: "Essai",
-    prixCents: 3500,
+    prixCents: 4900,
     resume: "Pour juger le rendu sur votre produit.",
     videos: 1,
     accroches: 1,
@@ -86,14 +86,14 @@ export const formules: Formule[] = [
     id: "test",
     adresse: "accroches",
     nom: "Pack Accroches",
-    prixCents: 8900,
+    prixCents: 13900,
     // « Trois accroches pour trouver celle qui vend. » : le nombre vient du catalogue.
     resume: `${capitale(enLettres(3))} accroches pour trouver celle qui vend.`,
     videos: 3,
     accroches: 3,
     presentateurs: 1,
     delaiJours: 3,
-    tours: 2,
+    tours: 1,
     formats: ["9:16"],
     badge: "Recommandé",
   }),
@@ -101,13 +101,13 @@ export const formules: Formule[] = [
     id: "campagne",
     adresse: "campagne",
     nom: "Pack Campagne",
-    prixCents: 16900,
+    prixCents: 25900,
     resume: "Pour alimenter une campagne complète.",
     videos: 6,
     accroches: 3,
     presentateurs: 2,
     delaiJours: 5,
-    tours: 2,
+    tours: 1,
     formats: ["9:16", "1:1"],
   }),
 ];
@@ -130,6 +130,12 @@ export const delaiCourt = (f: Formule): string => (f.delaiJours === 2 ? "48 h" :
 export const delaiTexte = (f: Formule): string => `Livré en ${delaiCourt(f)}`;
 
 export const toursTexte = (f: Formule): string => `${pluriel(f.tours, "tour")} de retouches`;
+
+// « 1 tour de retouches » quand toutes les formules en incluent autant ; sinon le détail par formule.
+export const toursInclusTexte = (): string =>
+  formules.every((f) => f.tours === formules[0].tours)
+    ? toursTexte(formules[0])
+    : `des tours de retouches (${formules.map((f) => `${f.tours} pour ${f.nom}`).join(", ")})`;
 
 // Phrases dérivées du catalogue, pour les textes commerciaux (jamais de prix ni de délai recopié à la main).
 export const fourchettePrix = (): string => `De ${euros(Math.min(...formules.map((f) => f.prixCents)))} à ${euros(Math.max(...formules.map((f) => f.prixCents)))}`;

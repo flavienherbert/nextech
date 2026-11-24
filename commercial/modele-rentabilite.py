@@ -34,6 +34,7 @@ NOM = {"essai": "Essai", "test": "Pack Accroches", "campagne": "Pack Campagne"}
 
 GRILLES = {
   # Décisions du 22/11/2026 : prix directs 35 / 89 / 169 €, tours de retouches 1 / 2 / 2, 15 secondes maximum par vidéo.
+  # ATTENTION (24/11/2026) : le site vend désormais 49 / 139 / 259 € avec 1 tour par formule ; ce modèle n'a pas été recalculé.
   "décidée":     dict(prix=dict(essai=35, test=89, campagne=169),  mode="fast720", cap=dict(essai=1, test=2, campagne=2),  extra=dict(),                             plus=0.0),
   "actuelle":    dict(prix=dict(essai=25, test=69, campagne=129),  mode="fast720", cap=dict(essai=1, test=3, campagne=12), extra=dict(),                             plus=0.0),
   "économique":  dict(prix=dict(essai=25, test=69, campagne=129),  mode="fast720", cap=dict(essai=1, test=2, campagne=2),  extra=dict(),                             plus=0.0),

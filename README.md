@@ -27,7 +27,7 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `commercial/PLAN.md` | Méthode de présentation, messages types, plan jusqu'au premier client |
 | `production/pipeline/make_site_media.sh` | Fabrique les vidéos du site à partir d'une publicité |
 | `publicite-studio/CONCEPT.md` | Concept, storyboard, script et prompts de la publicité du studio |
-| `publicite-studio/studio-accroche-pub-v0.mp4` | Version sans génération de la publicité (22 s) ; `animation/` contient de quoi la reconstruire. **Annonce l'ancien prix « Dès 25 € » : à refaire à 35 € avant toute diffusion** |
+| `publicite-studio/studio-accroche-pub-v0.mp4` | Version sans génération de la publicité (22 s) ; `animation/` contient de quoi la reconstruire. **Annonce l'ancien prix « Dès 25 € » : à refaire à 49 € avant toute diffusion** |
 | `commercial/VERIFICATION.md` | Vérification visuelle des prospects |
 | `commercial/ACCROCHES.md` | Trois accroches pour chacun des 8 prospects prioritaires |
 | `commercial/MESSAGES.md` | Huit messages personnalisés prêts à envoyer |

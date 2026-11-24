@@ -1,8 +1,8 @@
 # Fiches Fiverr — prêtes à coller
 
-**Prix propres à Fiverr (décisions du 22 novembre 2026).** Le site direct vend 35 / 89 / 169 € ; Fiverr prélève 20 % (chiffre issu de sources tierces, **à vérifier dans votre espace vendeur** : les pages officielles de Fiverr refusent la lecture automatique) et verse en dollars : les prix sont relevés pour garder le même bénéfice, soit **54 / 135 / 255 $**. L'acheteur paie en plus des frais de service (≈ 5,5 % et des frais de petite commande, d'après des blogs). Détail : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
+**Prix propres à Fiverr (décisions du 22 novembre 2026).** **Mise à jour du 24 novembre 2026 : le site direct vend maintenant 49 / 139 / 259 € avec 1 tour de retouches par formule ; les prix ci-dessous (54 / 135 / 255 $) n'ont PAS été recalculés et datent de l'ancienne base 35 / 89 / 169 €.** Ancienne base : le site direct vendait 35 / 89 / 169 € ; Fiverr prélève 20 % (chiffre issu de sources tierces, **à vérifier dans votre espace vendeur** : les pages officielles de Fiverr refusent la lecture automatique) et verse en dollars : les prix sont relevés pour garder le même bénéfice, soit **54 / 135 / 255 $**. L'acheteur paie en plus des frais de service (≈ 5,5 % et des frais de petite commande, d'après des blogs). Détail : `commercial/GRILLES-ET-PLATEFORMES.md`. Ne pas rediriger les acheteurs vers le site.
 
-**Règles communes** : service **réservé aux professionnels** (businesses, sole proprietors, associations : décision du 24 novembre 2026, à écrire dans la description de chaque gig) ; 15 secondes maximum par vidéo ; **une révision = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 pour Basic, 2 pour Standard et Premium) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une révision ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
+**Règles communes** : service **réservé aux professionnels** (businesses, sole proprietors, associations : décision du 24 novembre 2026, à écrire dans la description de chaque gig) ; 15 secondes maximum par vidéo ; **une révision = une seule demande qui regroupe toutes les remarques sur l'ensemble des vidéos** (1 pour chaque package) ; un changement de produit, de brief, d'angle ou de script validé n'est pas une révision ; les vidéos de plus de 15 secondes ne sont pas proposées pour le moment.
 
 Fiverr est majoritairement anglophone. Publier la fiche en anglais et proposer le français comme langue de la vidéo : peu de vendeurs IA livrent un français naturel, c'est l'angle.
 
@@ -28,7 +28,7 @@ I come from sales and marketing. I write ad hooks and turn them into vertical AI
 | Videos | 1 (max 15 s) | 3 (max 15 s each), 3 different hooks | 6 (max 15 s each), 2 presenters, 9:16 + 1:1 |
 | Script included | Yes | Yes | Yes |
 | Subtitles | Yes | Yes | Yes |
-| Revisions | 1 | 2 | 2 |
+| Revisions | 1 | 1 | 1 |
 | Revision rule | One revision = one consolidated request covering all videos | idem | idem |
 | Delivery | 2 days | 3 days | 5 days |
 

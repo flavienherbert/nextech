@@ -81,9 +81,9 @@ export default function CGV() {
 
       <h2>7. Modifications et retouches</h2>
       <p>
-        Chaque formule inclut le nombre de <strong>tours de retouches</strong> indiqué à l&apos;article 2. {TOUR_DEFINITION} Un client
-        dont la formule inclut deux tours peut ainsi demander un premier tour, puis un second tour après réception de la version
-        corrigée ; il ne peut pas demander une retouche séparée pour chaque vidéo.
+        Chaque formule inclut le nombre de <strong>tours de retouches</strong> indiqué à l&apos;article 2. {TOUR_DEFINITION} Le client
+        regroupe donc dans une même demande toutes ses remarques, sur chacune des vidéos livrées ; il ne peut pas demander une
+        retouche séparée pour chaque vidéo.
       </p>
       <p>{TOUR_PERIMETRE}</p>
       <p>

@@ -27,7 +27,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Notre démonstration, présentée plan par plan, porte justement sur une gourde : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -56,7 +56,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -85,7 +85,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -114,7 +114,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -143,7 +143,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -172,7 +172,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -201,7 +201,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -230,7 +230,7 @@ Avant chaque envoi : remplacer [prénom] et [lien du site], relire le « fait à
 >
 > Exemple plan par plan, sur un produit de démonstration : [lien du site].
 >
-> L'essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> L'essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche

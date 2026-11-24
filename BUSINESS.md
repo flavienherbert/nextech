@@ -14,9 +14,9 @@ Des publicités vidéo verticales avec présentateur IA, écrites par un markete
 
 | Formule | Contenu | Prix |
 |---|---|---|
-| Essai | 1 vidéo de 15 s maximum, 1 accroche, script inclus, sous-titres, format 9:16, 1 tour de retouches | 35 € |
-| Pack Accroches | 3 vidéos de 15 s maximum : 3 accroches différentes sur le même argumentaire, 2 tours de retouches | 89 € |
-| Pack Campagne | 6 vidéos de 15 s maximum (3 accroches × 2 présentateurs), formats 9:16 et 1:1, 2 tours de retouches | 169 € |
+| Essai | 1 vidéo de 15 s maximum, 1 accroche, script inclus, sous-titres, format 9:16, 1 tour de retouches | 49 € |
+| Pack Accroches | 3 vidéos de 15 s maximum : 3 accroches différentes sur le même argumentaire, 1 tour de retouches | 139 € |
+| Pack Campagne | 6 vidéos de 15 s maximum (3 accroches × 2 présentateurs), formats 9:16 et 1:1, 1 tour de retouches | 259 € |
 
 *Prix du site direct, décidés le 22 novembre 2026. Prix ComeUp et Fiverr (commissions absorbées) : `commercial/GRILLES-ET-PLATEFORMES.md`. Les tableaux de résultats ci-dessous datent de la première étude, sur les anciens prix : voir `commercial/RENTABILITE.md` et `GRILLES-ET-PLATEFORMES.md`.*
 
@@ -47,7 +47,7 @@ Ce refus coûte des commandes. Il protège le compte vendeur et le fondateur.
 
 ## Économie par commande (estimations)
 
-> **Ancienne grille.** Les tableaux de cette section et de la suivante datent d'avant les décisions du 22 novembre 2026 (25 / 69 / 129 €, retouches 1 / 3 / 12). Prix actuels : 35 / 89 / 169 €, tours 1 / 2 / 2, 15 secondes maximum. Chiffres à jour : `commercial/RENTABILITE.md` et `commercial/GRILLES-ET-PLATEFORMES.md`.
+> **Ancienne grille.** Les tableaux de cette section et de la suivante datent d'avant les décisions du 22 novembre 2026 (25 / 69 / 129 €, retouches 1 / 3 / 12). Prix actuels (24 novembre 2026) : 49 / 139 / 259 €, 1 tour de retouches par formule, 15 secondes maximum. Chiffres à jour : `commercial/RENTABILITE.md` et `commercial/GRILLES-ET-PLATEFORMES.md`.
 
 Hypothèses : commission plateforme 20 % ; coût de génération 3–8 € par vidéo livrée, essais ratés inclus ; cotisations micro-entreprise ≈ 23 % du chiffre d'affaires (taux exact à confirmer selon la catégorie d'activité déclarée) ; franchise de TVA.
 

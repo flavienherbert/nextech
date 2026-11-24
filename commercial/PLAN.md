@@ -55,7 +55,7 @@ Règles :
 >
 > Si vous voulez voir ce que cela donne en image, voici une démonstration du studio, plan par plan, sur un produit fictif : [lien du site].
 >
-> Le premier essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> Le premier essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -81,7 +81,7 @@ Observation tirée de la fiche, à revérifier avant envoi : le site annonce une
 >
 > Il se trouve que notre démonstration porte justement sur une gourde : [lien du site].
 >
-> Le premier essai coûte 35 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
+> Le premier essai coûte 49 € : une vidéo de 15 secondes maximum, script inclus, livrée en 48 h. Le présentateur est généré par IA et la vidéo est signalée comme telle.
 >
 > Bonne journée,
 > [prénom] — Studio Accroche
@@ -94,7 +94,7 @@ Observation tirée de la fiche, à revérifier avant envoi : le site annonce une
 
 ### Réponse à « c'est combien ? »
 
-> Trois formules, sans abonnement : 35 € pour une vidéo d'essai, 89 € pour trois vidéos avec trois accroches différentes, 169 € pour six vidéos avec deux présentateurs. Le détail est ici : [lien]#formules. Pour démarrer, il me faut le lien du produit et trois photos.
+> Trois formules, sans abonnement : 49 € pour une vidéo d'essai, 139 € pour trois vidéos avec trois accroches différentes, 259 € pour six vidéos avec deux présentateurs. Le détail est ici : [lien]#formules. Pour démarrer, il me faut le lien du produit et trois photos.
 
 ## 4. Ce qu'il faut attendre, chiffres honnêtes
 

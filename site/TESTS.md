@@ -43,7 +43,7 @@ Règle : le délai court de chaque mise à disposition réelle (première versio
 
 ## Contrat de prix et de retouches (22 novembre 2026)
 
-`lib/formules.ts` est la source unique des prix (35 / 89 / 169 €), des durées (15 secondes maximum) et des tours de retouches (1 / 2 / 2). Les tests gardent ce contrat : `scripts/tests-unitaires.mts` (« Cohérence du catalogue » : aucun prix, aucune durée ni nombre de retouches écrits à la main dans `app/` et `lib/`), `scripts/e2e.mjs` (constantes `PRIX` : montants Stripe, pages, conditions de vente), `scripts/test-affichage.mjs`. Pour changer un prix : modifier `lib/formules.ts` **et** les constantes `PRIX` de ces scripts (le test échoue sinon, volontairement).
+`lib/formules.ts` est la source unique des prix (49 / 139 / 259 €), des durées (jusqu'à 15 secondes) et des tours de retouches (1 par formule). Les tests gardent ce contrat : `scripts/tests-unitaires.mts` (« Cohérence du catalogue » : aucun prix, aucune durée ni nombre de retouches écrits à la main dans `app/` et `lib/`), `scripts/e2e.mjs` (constantes `PRIX` : montants Stripe, pages, conditions de vente), `scripts/test-affichage.mjs`. Pour changer un prix : modifier `lib/formules.ts` **et** les constantes `PRIX` de ces scripts (le test échoue sinon, volontairement).
 
 ## Modes de stockage
 

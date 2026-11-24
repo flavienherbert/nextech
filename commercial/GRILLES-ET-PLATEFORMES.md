@@ -1,5 +1,7 @@
 # Grilles tarifaires : site direct, ComeUp, Fiverr (décisions du 22 novembre 2026)
 
+> **Mise à jour du 24 novembre 2026 : nouveaux prix du site (49 / 139 / 259 €) et 1 tour de retouches pour chaque formule.** Les chiffres de ce document (prix, bénéfices, temps maximal pour 25 €/h, prix ComeUp et Fiverr) ont été calculés sur l'ancienne base 35 / 89 / 169 € et 1 / 2 / 2 tours : **ils ne sont pas recalculés ici.**
+
 Modèle reproductible : `python3 commercial/modele-rentabilite.py decision`. Hypothèses et sources : `commercial/RENTABILITE.md`.
 
 ## 1. Décisions
@@ -51,7 +53,7 @@ Prix de parité calculés (avant arrondi) : ComeUp gratuit 46,1 / 117,8 / 224,1 
 ### Services « à partir de » et options
 
 - **ComeUp** : un service « Essai » à 47 €, et des options « Pack Accroches » (+72 €) et « Pack Campagne » (+182 €) pour atteindre 119 € et 229 € ; ou trois services séparés.
-- **Fiverr** : un gig à trois packages Basic 54 $ / Standard 135 $ / Premium 255 $, avec 1 / 2 / 2 révisions.
+- **Fiverr** : un gig à trois packages Basic 54 $ / Standard 135 $ / Premium 255 $, avec 1 / 2 / 2 révisions (avant le 24 novembre 2026 ; depuis : 1 / 1 / 1).
 - Dans chaque fiche : « 15 secondes maximum par vidéo » et la définition d'un tour de retouches (pas d'option de durée supérieure).
 - Les commandes de plateforme se livrent **dans la plateforme** (fichiers, messagerie, révisions). Ne redirigez pas les acheteurs vers le site : c'est interdit par la plupart des plateformes (à vérifier dans leurs conditions).
 

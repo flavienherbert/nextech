@@ -22,7 +22,7 @@ Le site n'appelle jamais Higgsfield. Aucune génération n'est déclenchée par 
 1. **Abonnement Higgsfield** : choisissez-le vous-même sur higgsfield.ai (rien n'est souscrit à votre place). Au moment de l'écriture, le compte relié à Claude est en offre gratuite avec **0 crédit** : aucune génération n'y est possible.
    - Le modèle Seedance 2.0 en mode **standard** (1080p) exige un abonnement Plus ou supérieur ; le mode **fast** (480p/720p) est ouvert dès les abonnements d'entrée. Vérifiez sur la page des tarifs avant de payer.
    - **Droits d'usage commercial** : lisez les conditions de votre abonnement. Les clients reçoivent des droits d'exploitation publicitaire : vous devez avoir ceux de l'outil.
-2. **Calculez le prix de votre crédit** : prix mensuel ÷ crédits inclus. Il décide si l'Essai à 35 € est rentable (§ 2).
+2. **Calculez le prix de votre crédit** : prix mensuel ÷ crédits inclus. Il décide si l'Essai à 49 € est rentable (§ 2).
 3. **Faites une commande à blanc** : une vidéo complète avec un faux produit, de la génération à l'export, chronomètre en main. Les trois premières vraies commandes prendront 2 à 3 heures chacune.
 4. Installez FFmpeg si vous utilisez `build_ad.py` (`production/essai-01/RAPPORT.md` explique le montage).
 
@@ -38,13 +38,13 @@ Une génération n'est jamais réussie du premier coup à coup sûr : comptez **
 
 | Formule | Prix | Vidéos | Crédits (1 essai) | Crédits (2 essais) | Crédit maximal pour garder 80 % de marge sur la génération |
 |---|---|---|---|---|---|
-| Essai | 35 € | 1 | ≈ 38 | ≈ 112 (3 essais) | 0,062 € |
-| Pack Accroches | 89 € | 3 | ≈ 113 | ≈ 225 | 0,079 € |
-| Pack Campagne | 169 € | 6 | ≈ 225 | ≈ 450 | 0,075 € |
+| Essai | 49 € | 1 | ≈ 38 | ≈ 112 (3 essais) | 0,062 € |
+| Pack Accroches | 139 € | 3 | ≈ 113 | ≈ 225 | 0,079 € |
+| Pack Campagne | 259 € | 6 | ≈ 225 | ≈ 450 | 0,075 € |
 
-**Lecture :** si votre crédit coûte plus de ≈ 6 centimes, l'Essai devient peu rentable dès le troisième essai. Ajoutez les frais Stripe (environ 1,5 % + 0,25 € pour une carte européenne standard : 0,78 € sur 35 €, à vérifier sur stripe.com) et les cotisations de votre statut.
+**Lecture :** si votre crédit coûte plus de ≈ 6 centimes, l'Essai devient peu rentable dès le troisième essai. Ajoutez les frais Stripe (environ 1,5 % + 0,25 € pour une carte européenne standard : 0,99 € sur 49 €, à vérifier sur stripe.com) et les cotisations de votre statut.
 
-**Votre temps compte aussi** : un Essai en 1 h, c'est 35 € de chiffre d'affaires pour 1 h : pour atteindre 25 €/h, il doit tenir **en moins de 47 minutes** (35 minutes abonnement compris), brief, script et livraison inclus (`commercial/GRILLES-ET-PLATEFORMES.md`). L'Essai est un produit d'appel (il mène au Pack Accroches). Le Pack Accroches (89 €) doit tenir en moins de 1 h 55 ; le Pack Campagne (169 €) en moins de 3 h 34.
+**Votre temps compte aussi** : un Essai en 1 h, c'est 49 € de chiffre d'affaires pour 1 h. *Les durées maximales ci-après (47 minutes, 1 h 55, etc.) ont été calculées au prix de 35 / 89 / 169 € : à refaire aux nouveaux prix.* Pour atteindre 25 €/h au prix de 35 €, l'Essai devait tenir **en moins de 47 minutes** (35 minutes abonnement compris), brief, script et livraison inclus (`commercial/GRILLES-ET-PLATEFORMES.md`). L'Essai est un produit d'appel (il mène au Pack Accroches). Le Pack Accroches (calcul à 89 €) doit tenir en moins de 1 h 55 ; le Pack Campagne (calcul à 169 €) en moins de 3 h 34.
 
 Relevez à chaque commande le coût réel et le temps passé (§ 8) : après dix commandes, vous saurez si les prix tiennent.
 
@@ -123,7 +123,7 @@ Autres modèles proposés par Higgsfield (Marketing Studio, Intone pour une têt
 
 1. Colonne de droite « Livrables » → **Ajouter** les MP4 (et le script en PDF ou texte si vous voulez).
 2. **Envoyer la livraison au client** : il reçoit un lien privé par fichier.
-3. Il valide ou demande un **tour de retouches**. Un tour = **une seule demande qui regroupe toutes ses remarques sur l'ensemble des vidéos** (1 tour pour l'Essai, 2 pour les packs). Vous êtes prévenu, vous corrigez, « Retirer » l'ancien fichier, ajoutez le nouveau, **Envoyer la version corrigée**.
+3. Il valide ou demande un **tour de retouches**. Un tour = **une seule demande qui regroupe toutes ses remarques sur l'ensemble des vidéos** (1 tour pour chaque formule). Vous êtes prévenu, vous corrigez, « Retirer » l'ancien fichier, ajoutez le nouveau, **Envoyer la version corrigée**.
    - Si la demande change le produit, le brief, le script validé, le présentateur, l'angle ou la durée, **ce n'est pas une retouche** : bouton **« Refuser : hors périmètre »** (explication au client, tour non décompté), puis proposez une nouvelle commande (modèle de message 7).
 4. Sans réponse du client : **Clôturer**. La facture est émise à la validation.
 
