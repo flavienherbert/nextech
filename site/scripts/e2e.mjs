@@ -34,7 +34,7 @@ const cap = async (page, nom) => { if (CAPTURES) await page.screenshot({ path: `
 // Crée une commande sans la payer (le client s'arrête sur la page de paiement).
 async function commandeNonPayee(formule = "essai") {
   const avant = new Set(commandes().map((c) => c.id));
-  const corps = new URLSearchParams({ formule, cgv: "oui", ia: "oui" });
+  const corps = new URLSearchParams({ formule, cgv: "oui", ia: "oui", pro: "oui", entreprise: "Société Test SARL" }); // offre réservée aux professionnels
   const r = await fetch(`${BASE}/api/checkout`, { method: "POST", body: corps, redirect: "manual" });
   const c = commandes().find((x) => !avant.has(x.id));
   return { c, redirection: r.headers.get("location"), statut: r.status };
@@ -149,7 +149,7 @@ await cap(page, "03-brief");
 // Brief : validation des champs, dépôt de fichiers
 await page.click('form.formulaire button[type="submit"]');
 await page.waitForSelector(".champ-erreur");
-verifier("Brief incomplet refusé avec messages d'erreur", (await page.locator(".champ-erreur").count()) >= 6);
+verifier("Brief incomplet refusé avec messages d'erreur (le nom à facturer est déjà rempli depuis la commande)", (await page.locator(".champ-erreur").count()) >= 5);
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 await page.setInputFiles("#depot", [{ name: "produit-face.png", mimeType: "image/png", buffer: png }, { name: "logo.png", mimeType: "image/png", buffer: png }]);
 await page.waitForFunction(() => document.querySelectorAll(".depots li").length === 2);
@@ -791,7 +791,7 @@ await admin.waitForSelector(".avis-ok:has-text('E-mail envoyé')");
 
 // ───────────── 8. Divers ─────────────
 console.log("\n— Pages et liens —");
-verifier("Commande sans cases cochées refusée côté serveur", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "essai" }), redirect: "manual" })).headers.get("location").includes("erreur=conditions"));
+verifier("Commande sans aucune case cochée refusée côté serveur (déclaration « professionnel » d'abord, puis conditions)", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "essai" }), redirect: "manual" })).headers.get("location").includes("erreur=pro") && (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "essai", pro: "oui", entreprise: "Société Test" }), redirect: "manual" })).headers.get("location").includes("erreur=conditions"));
 verifier("Formule inconnue → retour à l'accueil", (await fetch(`${BASE}/api/checkout`, { method: "POST", body: new URLSearchParams({ formule: "gratuit", cgv: "oui", ia: "oui" }), redirect: "manual" })).headers.get("location").endsWith("/#formules"));
 verifier("Jeton de commande inconnu → 404", (await fetch(`${BASE}/commande/${"b".repeat(48)}`)).status === 404);
 const liens = new Set();
