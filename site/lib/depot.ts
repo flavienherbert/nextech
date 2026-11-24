@@ -348,7 +348,7 @@ export const stockageS3Configure = () => {
 function depotMixte(documents: Depot, fichiers: Depot): Depot {
   const estDocument = (cle: string) => cle.endsWith(".json");
   const pour = (cle: string) => (estDocument(cle) ? documents : fichiers);
-  const prefixesFichiers = ["fichiers", "factures", "medias"];
+  const prefixesFichiers = ["fichiers", "factures", "medias", "bibliotheque"];
   return {
     nom: `postgres+${fichiers.nom as "disque" | "s3"}`,
     lire: (c) => pour(c).lire(c),

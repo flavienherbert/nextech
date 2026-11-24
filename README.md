@@ -32,7 +32,7 @@ Objectif : une première vente réelle sous 30 jours après la mise en ligne des
 | `commercial/ACCROCHES.md` | Trois accroches pour chacun des 8 prospects prioritaires |
 | `commercial/MESSAGES.md` | Huit messages personnalisés prêts à envoyer |
 | `ADMIN.md` | Vérification du nom, dossier micro-entreprise, e-mail |
-| `site/` | Site de vente et de gestion des commandes (voir `site/README.md`) ; `site/MODE-EMPLOI.md` au quotidien, `site/MEDIAS.md` pour remplacer images et vidéos |
+| `site/` | Site de vente et de gestion des commandes (voir `site/README.md`) ; `site/MODE-EMPLOI.md` au quotidien, `site/MEDIAS.md` pour remplacer images et vidéos, `site/BIBLIOTHEQUE.md` pour la bibliothèque de publicités, les avatars et le portfolio |
 | `archive/` | Anciens projets (ebooks nextech, Fruit Studio), conservés pour référence |
 
 ## Tester le site

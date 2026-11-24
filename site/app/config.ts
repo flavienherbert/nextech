@@ -221,3 +221,6 @@ export const temps = [
   { numero: "03", titre: "Le bénéfice", texte: "Un gros plan, une seule promesse." },
   { numero: "04", titre: "L'offre", texte: "Le produit seul, le prix, où cliquer." },
 ];
+
+// Mention affichée sous chaque réalisation de la bibliothèque de publicités (accueil et page « Réalisations »).
+export const MENTION_IA = "Création de démonstration réalisée avec l'IA — marque et produit fictifs.";

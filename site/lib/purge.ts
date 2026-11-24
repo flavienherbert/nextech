@@ -3,17 +3,20 @@
 //  - commandes jamais payées : supprimées après 30 jours.
 //  - fichiers orphelins (envoyés mais jamais rattachés à une commande) : supprimés après 24 heures ;
 //  - médias du site remplacés ou retirés (plus référencés par le registre) : supprimés après 24 heures ;
+//  - fichiers de la bibliothèque de publicités (bibliotheque/) qu'aucune fiche ne référence plus : 24 heures ;
 //  - compteurs d'essais : 24 heures ; événements Stripe déjà traités : 14 jours ; e-mails archivés : 12 mois.
 // Les données de commande et les factures sont conservées (obligation comptable).
 import { depot } from "./depot";
 import { VERSION_MEDIA } from "./emplacements";
 import { versionsReferencees } from "./medias";
+import { fichiersReferences } from "./bibliotheque";
+import { VERSION_BIBLIOTHEQUE } from "./bibliotheque-fichiers";
 import { store, journal, maintenant } from "./store";
 
 const JOUR = 86_400_000;
 export const CONSERVATION_FICHIERS_JOURS = 90;
 
-export type BilanPurge = { fichiers: number; commandes: number; orphelins: number; limites: number; evenements: number; courriels: number; medias: number };
+export type BilanPurge = { fichiers: number; commandes: number; orphelins: number; limites: number; evenements: number; courriels: number; medias: number; bibliotheque: number };
 
 export async function purger(force = false, maintenantMs = Date.now()): Promise<BilanPurge | null> {
   const marque = await depot().lire("systeme/purge.json");
@@ -43,10 +46,11 @@ export async function purger(force = false, maintenantMs = Date.now()): Promise<
   }
   const orphelins = await purgerOrphelins(maintenantMs);
   const medias = await purgerMedias(maintenantMs);
+  const bibliotheque = await purgerBibliotheque(maintenantMs);
   const limites = await purgerAnciens("limites", 1, maintenantMs);
   const evenements = await purgerAnciens("evenements", 14, maintenantMs);
   const courriels = await purgerAnciens("courriels", 365, maintenantMs);
-  return { fichiers, commandes, orphelins, limites, evenements, courriels, medias };
+  return { fichiers, commandes, orphelins, limites, evenements, courriels, medias, bibliotheque };
 }
 
 // Supprime les documents d'un préfixe plus vieux que `jours` jours.
@@ -94,6 +98,25 @@ async function purgerMedias(maintenantMs: number): Promise<number> {
   for (const x of await depot().inventaire("medias")) {
     const v = x.cle.slice("medias/".length);
     if (VERSION_MEDIA.test(v) && !utilises.has(v) && x.modifieLe > 0 && maintenantMs - x.modifieLe > JOUR) { await depot().supprimer(x.cle); n++; }
+  }
+  return n;
+}
+
+// Fichiers de la bibliothèque de publicités (bibliotheque/) qu'aucune fiche ne référence (fiche supprimée, fichier remplacé ou retiré,
+// envoi jamais enregistré), plus vieux que 24 heures. Ce dossier est volontairement distinct de medias/ : les deux nettoyages s'ignorent.
+// Garde-fou : si une seule fiche (publicité ou avatar) est illisible, rien n'est supprimé, comme pour les commandes.
+async function purgerBibliotheque(maintenantMs: number): Promise<number> {
+  let utilises: Set<string>;
+  try {
+    utilises = await fichiersReferences();
+  } catch (e) {
+    console.error("[purge] bibliothèque illisible, nettoyage annulé :", (e as Error).message);
+    return 0;
+  }
+  let n = 0;
+  for (const x of await depot().inventaire("bibliotheque")) {
+    const v = x.cle.slice("bibliotheque/".length);
+    if (VERSION_BIBLIOTHEQUE.test(v) && !utilises.has(v) && x.modifieLe > 0 && maintenantMs - x.modifieLe > JOUR) { await depot().supprimer(x.cle); n++; }
   }
   return n;
 }

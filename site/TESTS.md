@@ -7,6 +7,7 @@ Aucune dépendance Python n'est stockée dans le dépôt (des fichiers `.whl` y 
 | `npx tsc --noEmit` | Le typage de tout le site |
 | `npm run test:unitaires` | Les modules (stockage, e-mails, alertes, suivi, secrets…) |
 | `npm run test:e2e` | Le parcours complet dans un navigateur (nécessite le site lancé, le simulateur Stripe `scripts/mock-stripe.mjs` et les faux services `scripts/faux-services.mjs` ; variables dans `scripts/env-test.sh`) |
+| `node scripts/e2e-bibliotheque.mjs` | Bibliothèque de publicités : création de fiches, envoi de vidéo et de miniature, fichier inaccessible tant que la fiche est privée, accessible après publication, de nouveau inaccessible après dépublication, portfolio et filtres, accueil (à la une), avatars, duplication, suppression, contrôles du serveur (site lancé ; **ffmpeg** requis) |
 | `node scripts/e2e-medias.mjs` | Images et vidéos du site : envoi, contrôles, route publique, lecture par plages, cache, section Exemples, retour à l'origine (site lancé ; **ffmpeg** requis pour fabriquer les fichiers de test) |
 | `npm run test:csp`, `npm run test:affichage` | Politique de sécurité du contenu et affichage réel des sections |
 | `npm run test:postgres` | Le pilote PostgreSQL (base de **test** uniquement) |

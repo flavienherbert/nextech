@@ -1,6 +1,6 @@
 // Envoi d'un fichier en trois temps, identique pour le client et l'administrateur :
 // 1. demande d'autorisation, 2. envoi (au serveur ou directement au stockage), 3. confirmation.
-export async function envoyerFichier(base: string, f: File): Promise<{ id?: string; nom?: string; taille?: number; erreur?: string }> {
+export async function envoyerFichier(base: string, f: File): Promise<{ id?: string; nom?: string; taille?: number; type?: string; ajouteLe?: string; erreur?: string }> {
   try {
     const r1 = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nom: f.name, type: f.type, taille: f.size }) });
     const d1 = await r1.json();

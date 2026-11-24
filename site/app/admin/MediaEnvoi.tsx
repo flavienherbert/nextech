@@ -3,61 +3,10 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { envoyerFichier } from "../components/envoi";
+import { lireImage, lireVideo, libelleRatio, optimiser } from "./controles-fichier";
 import { DUREE_MAX_SECONDES } from "@/lib/formules";
 
 type Props = { slot: string; genre: "image" | "video"; ratio: number; largeurMax?: number; maxMo: number; remplace: boolean };
-
-const SEUIL_LOURD = 1_200_000; // au-delà, une image est réduite avant l'envoi (la page d'accueil doit rester rapide)
-
-// Dimensions d'une image, lues dans le navigateur sans adresse temporaire (la politique de sécurité n'autorise pas « blob: » pour les images).
-async function lireImage(f: File): Promise<{ w: number; h: number } | null> {
-  try {
-    const b = await createImageBitmap(f);
-    const d = { w: b.width, h: b.height };
-    b.close();
-    return d;
-  } catch {
-    return null;
-  }
-}
-
-function lireVideo(f: File): Promise<{ w: number; h: number; duree: number } | null> {
-  return new Promise((ok) => {
-    const u = URL.createObjectURL(f);
-    const v = document.createElement("video");
-    v.preload = "metadata";
-    v.onloadedmetadata = () => { URL.revokeObjectURL(u); ok({ w: v.videoWidth, h: v.videoHeight, duree: v.duration }); };
-    v.onerror = () => { URL.revokeObjectURL(u); ok(null); };
-    v.src = u;
-  });
-}
-
-// Réduit et recompresse une image trop grande ou trop lourde (WebP si le navigateur sait l'écrire, sinon JPEG).
-// L'original est conservé si le résultat n'est pas plus léger ou si le navigateur ne sait pas faire.
-async function optimiser(f: File, largeurMax: number): Promise<File> {
-  try {
-    const bmp = await createImageBitmap(f);
-    const echelle = Math.min(1, largeurMax / bmp.width);
-    if (echelle === 1 && f.size <= SEUIL_LOURD) { bmp.close(); return f; }
-    const c = document.createElement("canvas");
-    c.width = Math.round(bmp.width * echelle);
-    c.height = Math.round(bmp.height * echelle);
-    c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height);
-    bmp.close();
-    for (const type of ["image/webp", "image/jpeg"]) {
-      const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, type, 0.86));
-      if (blob && blob.type === type) {
-        if (blob.size >= f.size) return f;
-        return new File([blob], f.name.replace(/\.[^.]+$/, "") + (type === "image/webp" ? ".webp" : ".jpg"), { type });
-      }
-    }
-  } catch {
-    /* navigateur trop ancien : on envoie le fichier tel quel */
-  }
-  return f;
-}
-
-const libelleRatio = (r: number) => (Math.abs(r - 9 / 16) < 0.02 ? "vertical 9:16" : Math.abs(r - 3 / 2) < 0.02 ? "horizontal 3:2" : r > 1 ? "horizontal" : "vertical");
 
 export default function MediaEnvoi({ slot, genre, ratio, largeurMax, maxMo, remplace }: Props) {
   const router = useRouter();

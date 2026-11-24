@@ -84,6 +84,9 @@ export default function config(phase) {
         { source: "/api/:path*", headers: prive },
         // Fichiers du vendeur servis tels quels (images, vidéos) : aucun script ni cadre possible si l'adresse est ouverte directement.
         { source: "/m/:path*", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; sandbox" }] },
+        // Fichiers publics de la bibliothèque de publicités (/b/…) et leur lecture privée par l'administrateur : même règle.
+        { source: "/b/:path*", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; sandbox" }] },
+        { source: "/api/admin/bibliotheque/fichier/:path*", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; sandbox" }] },
       ];
     },
   };

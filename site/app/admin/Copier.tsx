@@ -2,12 +2,36 @@
 
 import { useState } from "react";
 
-// Texte prêt à copier d'un clic (fiche de production).
-export default function Copier({ texte }: { texte: string }) {
+// Texte prêt à copier d'un clic (fiche de production d'une commande ; script et prompt d'une publicité).
+// Sans `onChange` : texte en lecture seule. Avec `onChange` : champ modifiable ; la copie prend alors le texte courant.
+export default function Copier({
+  texte,
+  libelle = "Fiche de production",
+  bouton = "Copier la fiche",
+  rows,
+  maxLength,
+  onChange,
+}: {
+  texte: string;
+  libelle?: string;
+  bouton?: string;
+  rows?: number;
+  maxLength?: number;
+  onChange?: (valeur: string) => void;
+}) {
   const [etat, setEtat] = useState("");
   return (
     <div className="formulaire">
-      <textarea readOnly rows={Math.min(24, texte.split("\n").length + 1)} value={texte} aria-label="Fiche de production" onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", font: "13px/1.5 ui-monospace, monospace" }} />
+      <textarea
+        readOnly={!onChange}
+        rows={rows ?? Math.min(24, texte.split("\n").length + 1)}
+        value={texte}
+        maxLength={maxLength}
+        aria-label={libelle}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        onFocus={onChange ? undefined : (e) => e.currentTarget.select()}
+        style={{ width: "100%", font: "13px/1.5 ui-monospace, monospace" }}
+      />
       <button
         type="button"
         className="bouton bouton-petit bouton-fantome"
@@ -20,7 +44,7 @@ export default function Copier({ texte }: { texte: string }) {
           }
         }}
       >
-        Copier la fiche
+        {bouton}
       </button>
       <span className="aide" role="status"> {etat}</span>
     </div>

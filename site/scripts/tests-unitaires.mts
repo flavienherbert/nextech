@@ -6,6 +6,8 @@ import { store, maintenant, nouveauNumero, nouveauToken, type Commande } from ".
 import { obstaclesFacture, emettreFacture } from "../lib/factures";
 import { confirmer, lireReservation, reserver, signatureConforme } from "../lib/fichiers";
 import { cleMedia, TYPES_MEDIA } from "../lib/emplacements";
+import { chargerPortfolio, chargerVitrine, compterPublicites, creerAvatar, creerPublicite, definirALaUne, definirPublication, dupliquerPublicite, enregistrerPublicite, fichierPublic, filtrerPublicites, lireAvatar, lirePublicite, listerAvatars, listerPublicites, modifierAvatar, supprimerAvatar, supprimerPublicite } from "../lib/bibliotheque";
+import { cleBibliotheque } from "../lib/bibliotheque-fichiers";
 import { chargerMedias, definirMedia, definirTexte, retirerMedia } from "../lib/medias";
 import { A_FAIRE_SOI_MEME, basculerManuel, controlerLancement, lireManuel } from "../lib/lancement";
 import { purger } from "../lib/purge";
@@ -206,6 +208,219 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Médias : une clé de stockage hors du dossier des médias est impossible à construire", refuse);
 }
 
+// 7 sexies. Bibliothèque de publicités : numérotation, règles de publication, avatars, textes, fichiers, nettoyage du dossier bibliotheque/
+{
+  const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.from([0x20, 0, 0, 0]), Buffer.from("WEBP"), Buffer.alloc(32)]);
+  const MP4 = Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from("ftypisom"), Buffer.alloc(16)]);
+  const WEBM = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.alloc(28)]);
+  const deposer = async (corps: Buffer, type: string, nomFichier: string) => {
+    const r = await reserver("bibliotheque", "bibliotheque", { nom: nomFichier, type, taille: corps.length });
+    if ("erreur" in r) return r;
+    const res = lireReservation(r.jeton)!;
+    await depot().ecrire(cleBibliotheque(`${res.f}.${TYPES_MEDIA[type].ext}`), corps); // ce que fait le navigateur (ou la route de dépôt)
+    return confirmer(r.jeton, "bibliotheque", "bibliotheque");
+  };
+  const champs = (s: Record<string, unknown> = {}) => ({ nom: "Crème éclat", produit: "Sérum", categorie: "Beauté", avatarId: "", style: "UGC présentateur", dureeSecondes: 15, format: "9:16", script: "Ligne 1\nLigne 2", prompt: "Prompt secret", statut: "en_cours", ...s });
+  const nouvelle = async (s: Record<string, unknown> = {}, fichiers: { video?: unknown; miniature?: unknown } = {}) => {
+    const r = await creerPublicite(champs(s), fichiers);
+    if (!("publicite" in r)) throw new Error("création impossible : " + r.erreur);
+    return r.publicite;
+  };
+  const video = async () => { const v = await deposer(MP4, "video/mp4", "pub.mp4"); if (!("fichier" in v)) throw new Error("vidéo refusée : " + JSON.stringify(v)); return v.fichier; };
+  const image = async () => { const v = await deposer(WEBP, "image/webp", "mini.webp"); if (!("fichier" in v)) throw new Error("image refusée : " + JSON.stringify(v)); return v.fichier; };
+
+  // Numérotation : aucun doublon, même avec des créations simultanées ; un numéro supprimé n'est jamais réattribué
+  const crees = await Promise.all(Array.from({ length: 25 }, () => creerPublicite(champs())));
+  const idsCrees = crees.map((r) => ("publicite" in r ? r.publicite.id : "?"));
+  verifier("Bibliothèque : 25 créations simultanées → 25 numéros distincts et consécutifs (PUB-001 à PUB-025)", new Set(idsCrees).size === 25 && [...idsCrees].sort().join() === Array.from({ length: 25 }, (_, i) => `PUB-${String(i + 1).padStart(3, "0")}`).join(), idsCrees.join(","));
+  await supprimerPublicite("PUB-025");
+  const suivante = await nouvelle();
+  verifier("Bibliothèque : un numéro supprimé n'est jamais réattribué (PUB-025 supprimée → la suivante est PUB-026)", suivante.id === "PUB-026", suivante.id);
+  verifier("Bibliothèque : une fiche est privée par défaut, ni publiée ni à la une, en cours", !suivante.publiee && !suivante.aLaUne && suivante.statut === "en_cours");
+  verifier("Bibliothèque : le même numéro n'est pas accepté deux fois (création conditionnelle : jamais d'écrasement)", !(await depot().ecrire("publicites/PUB-026.json", "{}", { siAbsent: true })));
+  for (const id of idsCrees.filter((x) => x !== "?")) await supprimerPublicite(id);
+  await supprimerPublicite("PUB-026");
+
+  // Nettoyage et limites des textes
+  const sale = await nouvelle({ nom: "A\u0007\nB" + "x".repeat(100), produit: "p\u0000q", script: "ligne 1\r\n\r\n\r\n\r\nligne 2\u0007" + "y".repeat(2100), prompt: "z".repeat(8100) });
+  verifier("Bibliothèque : nom nettoyé (contrôle et saut de ligne remplacés) et limité à 80 caractères", sale.nom.startsWith("A B") && !/[\u0000-\u001f]/.test(sale.nom) && sale.nom.length === 80, JSON.stringify(sale.nom));
+  verifier("Bibliothèque : script limité à 2 000 caractères, retours à la ligne conservés (3 sauts consécutifs au plus 2), prompt limité à 8 000", sale.script.length === 2000 && sale.script.startsWith("ligne 1\n\nligne 2") && !sale.script.includes("\u0007") && sale.prompt.length === 8000, String(sale.script.slice(0, 30)));
+  verifier("Bibliothèque : caractères de contrôle retirés du produit", sale.produit === "p q", JSON.stringify(sale.produit));
+  const refus = await Promise.all([
+    creerPublicite(champs({ nom: "   " })), creerPublicite(champs({ categorie: "Voyage" })), creerPublicite(champs({ style: "Inconnu" })), creerPublicite(champs({ format: "3:2" })),
+    creerPublicite(champs({ statut: "publiee" })), creerPublicite(champs({ dureeSecondes: 61 })), creerPublicite(champs({ dureeSecondes: 0 })), creerPublicite(champs({ dureeSecondes: 12.5 })), creerPublicite(champs({ avatarId: "inconnu-99" })),
+  ]);
+  verifier("Bibliothèque : nom vide, catégorie, style, format, statut inconnus, durée hors de 1 à 60 s, avatar inconnu → tous refusés", refus.every((r) => "erreur" in r), refus.map((r) => ("erreur" in r ? "x" : "o")).join(""));
+  await supprimerPublicite(sale.id);
+
+  // Une catégorie retirée de la liste reste lisible et modifiable sans être imposée à une autre fiche
+  const ancienne = await nouvelle();
+  await depot().ecrire(`publicites/${ancienne.id}.json`, JSON.stringify({ ...ancienne, categorie: "Voyage", style: "Ancien style" }));
+  const relue = await lirePublicite(ancienne.id);
+  verifier("Bibliothèque : une fiche dont la catégorie et le style n'existent plus reste lisible", relue?.categorie === "Voyage" && relue?.style === "Ancien style");
+  const garde = await enregistrerPublicite(ancienne.id, champs({ categorie: "Voyage", style: "Ancien style", nom: "Renommée" }));
+  verifier("Bibliothèque : elle peut être enregistrée en gardant son ancienne catégorie", "publicite" in garde && garde.publicite.categorie === "Voyage" && garde.publicite.nom === "Renommée");
+  verifier("Bibliothèque : mais une autre fiche ne peut pas prendre cette catégorie disparue", "erreur" in (await creerPublicite(champs({ categorie: "Voyage" }))));
+  await supprimerPublicite(ancienne.id);
+
+  // Règles de publication
+  const p1 = await nouvelle({ statut: "en_cours" });
+  verifier("Publication : une publicité sans vidéo ni statut « validée » ne peut pas être publiée", "erreur" in (await definirPublication(p1.id, true)));
+  const sansVideo = await enregistrerPublicite(p1.id, champs({ statut: "validee" }));
+  verifier("Publication : « validée » mais sans vidéo, la publication reste refusée", "publicite" in sansVideo && "erreur" in (await definirPublication(p1.id, true)));
+  const v1 = await video();
+  const avecVideo = await enregistrerPublicite(p1.id, champs({ statut: "terminee" }), { video: v1 });
+  verifier("Publication : une vidéo mais un statut « terminée » → toujours refusée", "publicite" in avecVideo && "erreur" in (await definirPublication(p1.id, true)));
+  await enregistrerPublicite(p1.id, champs({ statut: "validee" }));
+  const publiee = await definirPublication(p1.id, true);
+  verifier("Publication : validée + vidéo → publiée", "publicite" in publiee && publiee.publicite.publiee === true);
+  verifier("À la une : une publicité publiée peut être mise à la une", "publicite" in (await definirALaUne(p1.id, true)) && (await lirePublicite(p1.id))?.aLaUne === true);
+  await enregistrerPublicite(p1.id, champs({ statut: "refusee" }));
+  const apresStatut = await lirePublicite(p1.id);
+  verifier("Publication : si le statut change, la publicité est dépubliée automatiquement (et retirée de la une)", apresStatut?.publiee === false && apresStatut?.aLaUne === false, JSON.stringify(apresStatut));
+  await enregistrerPublicite(p1.id, champs({ statut: "validee" }));
+  await definirPublication(p1.id, true);
+  const sansSaVideo = await enregistrerPublicite(p1.id, champs({ statut: "validee" }), { video: null });
+  verifier("Publication : si sa vidéo est retirée, la publicité est dépubliée automatiquement", "publicite" in sansSaVideo && sansSaVideo.publicite.publiee === false && !sansSaVideo.publicite.video);
+  verifier("À la une : une publicité non publiée ne peut pas être mise à la une", "erreur" in (await definirALaUne(p1.id, true)));
+  verifier("Bibliothèque : un fichier annoncé mais jamais envoyé, ou un fichier du mauvais genre, est refusé", "erreur" in (await enregistrerPublicite(p1.id, champs(), { video: { id: `${"b".repeat(32)}.mp4`, nom: "x.mp4", taille: 1, type: "video/mp4", ajouteLe: "x" } })) && "erreur" in (await enregistrerPublicite(p1.id, champs(), { video: await image() })) && "erreur" in (await enregistrerPublicite(p1.id, champs(), { miniature: await video() })));
+
+  // Limite de six publicités à la une
+  const sept: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const p = await nouvelle({ nom: `Une ${i + 1}`, statut: "validee", ordre: 10 - i }, { video: await video() });
+    await definirPublication(p.id, true);
+    sept.push(p.id);
+  }
+  const unes = [];
+  for (const id of sept) unes.push(await definirALaUne(id, true));
+  verifier("À la une : six publicités à la une au maximum, la septième est refusée avec un message clair", unes.slice(0, 6).every((r) => "publicite" in r) && "erreur" in unes[6] && /6 publicités à la une au maximum/.test(unes[6].erreur), JSON.stringify(unes[6]));
+  verifier("À la une : retirer l'une d'elles libère une place", "publicite" in (await definirALaUne(sept[0], false)) && "publicite" in (await definirALaUne(sept[6], true)));
+  const vitrine = await chargerVitrine();
+  verifier("Accueil : six publicités à la une au plus, triées par ordre croissant, nombre de publicités publiées correct", vitrine.aLaUne.length === 6 && vitrine.aLaUne.map((v) => v.nom).join() === "Une 7,Une 6,Une 5,Une 4,Une 3,Une 2" && vitrine.nbPubliees === 7, JSON.stringify(vitrine.aLaUne.map((v) => v.nom)));
+  const portfolio = await chargerPortfolio();
+  const exposees = JSON.stringify(vitrine.aLaUne) + JSON.stringify(portfolio.publiees);
+  verifier("Public : aucun prompt, script, avatar ni statut n'est exposé (seuls nom, catégorie, style, durée, format et adresses des fichiers)", portfolio.publiees.length === 7 && !exposees.includes("Prompt secret") && !exposees.includes("Ligne 1") && !/avatar|statut|script|prompt|publiee/i.test(exposees) && portfolio.publiees.every((v) => Object.keys(v).every((k) => ["id", "nom", "categorie", "style", "dureeSecondes", "format", "video", "affiche"].includes(k))), exposees.slice(0, 200));
+  const d = depot();
+  const lireTousOrigine = d.lireTous;
+  d.lireTous = async () => { throw new Error("stockage indisponible"); };
+  const vitrineHs = await chargerVitrine();
+  d.lireTous = lireTousOrigine;
+  verifier("Accueil : bibliothèque illisible → aucune publicité, pas d'exception (la page s'affiche avec ses emplacements habituels)", vitrineHs.aLaUne.length === 0 && vitrineHs.nbPubliees === 0);
+
+  // Plan du site : « Réalisations » n'y figure que s'il existe une publicité publiée (et seulement en production)
+  const planDuSite = async () => {
+    const sauve = { site: process.env.SITE_ENV, url: process.env.SITE_URL };
+    process.env.SITE_ENV = "production";
+    process.env.SITE_URL = "https://exemple.fr";
+    try {
+      return (await (await import("../app/sitemap")).default()).map((x) => x.url);
+    } finally {
+      if (sauve.site === undefined) delete process.env.SITE_ENV; else process.env.SITE_ENV = sauve.site;
+      if (sauve.url === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = sauve.url;
+    }
+  };
+  verifier("Plan du site : « Réalisations » y figure dès qu'une publicité est publiée", (await planDuSite()).includes("https://exemple.fr/realisations") && (await planDuSite()).includes("https://exemple.fr/"));
+
+  // Fichiers servis au public : seulement ceux d'une publicité publiée
+  const mini = await image();
+  const pf = await nouvelle({ statut: "validee" }, { video: await video(), miniature: mini });
+  const vf = (await lirePublicite(pf.id))!.video!;
+  verifier("Public : un fichier d'une publicité non publiée n'est pas servi", (await fichierPublic(vf.id, pf.id)) === null && (await fichierPublic(mini.id, pf.id)) === null);
+  await definirPublication(pf.id, true);
+  const servi = await fichierPublic(vf.id, pf.id);
+  const serviMini = await fichierPublic(mini.id, pf.id);
+  verifier("Public : après publication, la vidéo et la miniature sont servies, avec leur type", servi?.type === "video/mp4" && servi.genre === "video" && serviMini?.type === "image/webp" && serviMini.genre === "image" && servi.cle === `bibliotheque/${vf.id}`);
+  verifier("Public : le fichier d'une autre publicité, un identifiant mal formé ou un chemin détourné ne sont jamais servis", (await fichierPublic(vf.id, sept[0])) === null && (await fichierPublic("../fichiers/x", pf.id)) === null && (await fichierPublic(vf.id, "PUB-9999999")) === null && (await fichierPublic(`${"0".repeat(32)}.mp4`, pf.id)) === null && (await fichierPublic(vf.id, "../publicites/PUB-001")) === null);
+  await definirPublication(pf.id, false);
+  verifier("Public : après dépublication, le fichier n'est plus servi", (await fichierPublic(vf.id, pf.id)) === null);
+
+  // Contrôle des envois : formats et poids du rôle « bibliotheque »
+  const demandes = await Promise.all([
+    reserver("bibliotheque", "bibliotheque", { nom: "a.mp4", type: "video/mp4", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.webm", type: "video/webm", taille: 100 }),
+    reserver("bibliotheque", "bibliotheque", { nom: "a.jpg", type: "image/jpeg", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.png", type: "image/png", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.webp", type: "image/webp", taille: 100 }),
+    reserver("bibliotheque", "bibliotheque", { nom: "a.heic", type: "image/heic", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.mov", type: "video/quicktime", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.pdf", type: "application/pdf", taille: 100 }),
+    reserver("bibliotheque", "bibliotheque", { nom: "a.svg", type: "image/svg+xml", taille: 100 }), reserver("bibliotheque", "bibliotheque", { nom: "a.png", type: "image/webp", taille: 100 }),
+    reserver("bibliotheque", "bibliotheque", { nom: "a.mp4", type: "video/mp4", taille: 41 * 1048576 }), reserver("pub-1", "bibliotheque", { nom: "a.mp4", type: "video/mp4", taille: 100 }),
+  ]);
+  const st = demandes.map((x) => ("erreur" in x ? x.statut : 0)).join(",");
+  verifier("Bibliothèque : MP4, WebM, JPG, PNG, WebP acceptés ; HEIC, MOV, PDF, SVG, extension trompeuse, plus de 40 Mo, destination inconnue refusés", st === "0,0,0,0,0,415,415,415,415,415,413,404", st);
+  const faux = await deposer(Buffer.from("ceci est du texte, pas une vidéo"), "video/mp4", "faux.mp4");
+  verifier("Bibliothèque : un faux fichier (contenu qui ne correspond pas au format) est refusé et supprimé du stockage", "erreur" in faux && faux.statut === 415);
+  const webm = await deposer(WEBM, "video/webm", "pub.webm");
+  verifier("Bibliothèque : un WebM valide est accepté, rangé dans bibliotheque/ (jamais dans medias/)", "fichier" in webm && (await depot().taille(cleBibliotheque(webm.fichier.id))) !== null && (await depot().inventaire("medias")).length === 0);
+  verifier("Bibliothèque : le jeton d'un média du site ne sert pas pour la bibliothèque, et inversement", "erreur" in (await confirmer((await reserver("cloture", "media", { nom: "a.webp", type: "image/webp", taille: 40 }) as { jeton: string }).jeton, "bibliotheque", "bibliotheque")));
+  let refuse = false;
+  try { cleBibliotheque("../medias/abc.jpg"); } catch { refuse = true; }
+  verifier("Bibliothèque : une clé hors du dossier bibliotheque/ est impossible à construire", refuse);
+
+  // Filtres et compteurs
+  const f1 = await nouvelle({ nom: "Gourde Étoile", produit: "Bouteille", categorie: "Sport", statut: "validee", style: "Unboxing" });
+  const f2 = await nouvelle({ nom: "Laisse chien", produit: "Collier", categorie: "Animaux", statut: "terminee", avatarId: "femme-01", script: "Un joli collier" });
+  const toutes = await listerPublicites();
+  const ids = (l: { id: string }[]) => l.map((x) => x.id).sort().join();
+  verifier("Filtres : recherche sans accent ni majuscule (nom, produit, script, numéro)", ids(filtrerPublicites(toutes, { q: "ETOILE" })) === f1.id && ids(filtrerPublicites(toutes, { q: "collier" })) === f2.id && ids(filtrerPublicites(toutes, { q: f2.id.toLowerCase() })) === f2.id);
+  verifier("Filtres : catégorie, avatar, style, statut, publiée oui/non", ids(filtrerPublicites(toutes, { categorie: "Sport" })) === f1.id && ids(filtrerPublicites(toutes, { avatar: "femme-01" })) === f2.id && ids(filtrerPublicites(toutes, { style: "Unboxing" })) === f1.id && ids(filtrerPublicites(toutes, { statut: "terminee" })) === f2.id && filtrerPublicites(toutes, { publiee: "oui" }).every((x) => x.publiee) && filtrerPublicites(toutes, { publiee: "non" }).every((x) => !x.publiee));
+  const n = compterPublicites(toutes);
+  verifier("Compteurs : total, par statut, publiées et à la une", n.total === toutes.length && Object.values(n.parStatut).reduce((a, b) => a + b, 0) === n.total && n.publiees === toutes.filter((x) => x.publiee).length && n.aLaUne <= 6);
+  verifier("Liste : les fiches les plus récentes d'abord", toutes.every((x, i) => i === 0 || toutes[i - 1].creeLe >= x.creeLe));
+
+  // Duplication : nouvel identifiant, mêmes champs, sans fichiers, privée
+  const copie = await dupliquerPublicite(pf.id);
+  verifier("Duplication : nouvelle fiche, nouvel identifiant, sans vidéo ni miniature, en cours, privée", "publicite" in copie && copie.publicite.id !== pf.id && !copie.publicite.video && !copie.publicite.miniature && copie.publicite.statut === "en_cours" && !copie.publicite.publiee && copie.publicite.script === pf.script);
+
+  // Avatars
+  const avatars = await listerAvatars();
+  verifier("Avatars : les quatre avatars de base sont créés automatiquement", ["femme-01", "femme-02", "homme-01", "homme-02"].every((id) => avatars.some((a) => a.id === id)) && avatars.slice(0, 4).map((a) => a.nom).join() === "Femme 01,Femme 02,Homme 01,Homme 02", avatars.map((a) => a.id).join());
+  const modifie = await modifierAvatar("femme-01", { nom: "Femme 01", genre: "femme", description: "Brune, ton chaleureux", reference: "Higgsfield · Soul ID 12" });
+  await listerAvatars();
+  verifier("Avatars : un avatar existant n'est jamais écrasé par la création des avatars de base", "avatar" in modifie && (await lireAvatar("femme-01"))?.description === "Brune, ton chaleureux");
+  const lie = await supprimerAvatar("femme-01");
+  verifier("Avatars : un avatar lié à une publicité ne peut pas être supprimé ; les publicités concernées sont listées", "erreur" in lie && "liees" in lie && lie.liees?.some((x) => x.id === f2.id) === true && (await lireAvatar("femme-01")) !== null, JSON.stringify(lie).slice(0, 160));
+  await supprimerPublicite(f2.id);
+  verifier("Avatars : une fois la publicité supprimée, l'avatar peut l'être, et il n'est pas recréé ensuite", "ok" in (await supprimerAvatar("femme-01")) && (await listerAvatars()).every((a) => a.id !== "femme-01"));
+  const nv = await creerAvatar({ nom: "Léa Été", genre: "femme" });
+  verifier("Avatars : un avatar libre reçoit un identifiant en minuscules, sans accent (léa-été → lea-ete)", "avatar" in nv && nv.avatar.id === "lea-ete", JSON.stringify(nv));
+  verifier("Avatars : identifiant déjà pris, invalide ou nom vide refusés", "erreur" in (await creerAvatar({ nom: "Autre", id: "lea-ete", genre: "femme" })) && "erreur" in (await creerAvatar({ nom: "Autre", id: "Majuscules_Et espaces", genre: "femme" })) && "erreur" in (await creerAvatar({ nom: " ", genre: "femme" })) && "erreur" in (await creerAvatar({ nom: "x", genre: "robot" })));
+  const photoAvatar = await image();
+  const avecPhoto = await modifierAvatar("lea-ete", { nom: "Léa Été", genre: "femme", description: "d" }, photoAvatar);
+  verifier("Avatars : une photo peut être rattachée, puis retirée", "avatar" in avecPhoto && avecPhoto.avatar.photo?.id === photoAvatar.id && "avatar" in (await modifierAvatar("lea-ete", { nom: "Léa Été", genre: "femme" }, null)) && !(await lireAvatar("lea-ete"))?.photo);
+  await supprimerAvatar("lea-ete");
+
+  // Nettoyage du dossier bibliotheque/ (24 h, fiches référencées conservées) ; medias/ et bibliotheque/ s'ignorent
+  const encore = (id: string) => depot().taille(cleBibliotheque(id));
+  const orphelin = await video();
+  const vReferencee = (await lirePublicite(pf.id))!.video!.id;
+  await purger(true);
+  verifier("Nettoyage : un fichier non référencé de moins de 24 h est conservé", (await encore(orphelin.id)) !== null && (await encore(vReferencee)) !== null);
+  const media = await definirMedia("temps-1", await (async () => { const r = await reserver("temps-1", "media", { nom: "m.webp", type: "image/webp", taille: WEBP.length }); const res = lireReservation((r as { jeton: string }).jeton)!; await depot().ecrire(cleMedia(`${res.f}.webp`), WEBP); const c = await confirmer((r as { jeton: string }).jeton, "temps-1", "media"); return (c as { fichier: { id: string; nom: string; taille: number; type: string; ajouteLe: string } }).fichier; })());
+  const mediaOrphelin = `${"c".repeat(32)}.webp`;
+  await depot().ecrire(cleMedia(mediaOrphelin), WEBP);
+  const mediaRef = (await chargerMedias()).envoye("temps-1")!.id;
+  const bilan = await purger(true, Date.now() + 2 * 86_400_000);
+  verifier("Nettoyage : après 24 h, le fichier non référencé de bibliotheque/ est supprimé, ceux des fiches sont conservés", (await encore(orphelin.id)) === null && (await encore(vReferencee)) !== null && (await encore(mini.id)) !== null && (bilan?.bibliotheque ?? 0) >= 1, JSON.stringify(bilan));
+  verifier("Nettoyage : le nettoyage de medias/ ne touche pas bibliotheque/, et inversement (média référencé conservé, média orphelin supprimé)", media && (await depot().taille(cleMedia(mediaRef))) !== null && (await depot().taille(cleMedia(mediaOrphelin))) === null && (await encore(vReferencee)) !== null);
+  await retirerMedia("temps-1");
+  // Une fiche illisible : rien n'est supprimé
+  const encoreOrphelin = await video();
+  await depot().ecrire("publicites/PUB-777.json", depot().nom.startsWith("postgres") ? "[]" : "pas du json");
+  const bilanIllisible = await purger(true, Date.now() + 4 * 86_400_000);
+  verifier("Nettoyage : si une seule fiche est illisible, aucun fichier de la bibliothèque n'est supprimé", (await encore(encoreOrphelin.id)) !== null && (await encore(vReferencee)) !== null && (bilanIllisible?.bibliotheque ?? 0) === 0, JSON.stringify(bilanIllisible));
+  await depot().supprimer("publicites/PUB-777.json");
+  await purger(true, Date.now() + 6 * 86_400_000);
+  verifier("Nettoyage : la fiche réparée, l'orphelin est supprimé à son tour", (await encore(encoreOrphelin.id)) === null);
+  // Une fiche supprimée : ses fichiers disparaissent au nettoyage suivant (après 24 h)
+  await supprimerPublicite(pf.id);
+  verifier("Suppression : la fiche supprimée ne peut plus être lue ; ses fichiers restent 24 h puis sont nettoyés", (await lirePublicite(pf.id)) === null && (await encore(vReferencee)) !== null);
+  for (const p of await listerPublicites()) await supprimerPublicite(p.id);
+  verifier("Plan du site : sans publicité publiée, « Réalisations » n'y figure plus", !(await planDuSite()).some((u) => u.endsWith("/realisations")));
+  await purger(true, Date.now() + 8 * 86_400_000);
+  verifier("Nettoyage : sans fiche, le dossier bibliotheque/ est vidé (au bout de 24 h) et medias/ n'a pas été touché", (await depot().inventaire("bibliotheque")).length === 0);
+  for (const a of await listerAvatars()) await depot().supprimer(`avatars/${a.id}.json`);
+  await depot().supprimer("systeme/avatars-initialises.json");
+  await depot().supprimer("compteurs/publicites.json");
+}
+
 // 7 quinquies. Liste de lancement : contrôles automatiques et cases à cocher
 {
   const etat = async (id: string) => (await controlerLancement()).groupes.flatMap((g) => g.controles).find((x) => x.id === id)?.etat;
@@ -257,7 +472,7 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Aucun prix, aucune durée et aucun nombre de retouches écrits à la main hors de lib/formules.ts", fautifs.length === 0, fautifs.join(", "));
   // Textes visibles par les clients (hors administration et API) : ni délai, ni durée, ni format, ni ancien nom de formule écrits à la main
   const interditClient = /\b(48|72) ?(h|heures)\b|\b[2-9] jours\b|[Qq]uinze secondes|\b15 ?(s|secondes)\b|Pack Test|Le plus utile|\b9:16\b|\b1:1\b|\b[Tt]rois photos\b/;
-  const fautifsClient = sources.filter((f) => !/lib[\\/]formules\.ts$/.test(f) && !/app[\\/](admin|api)[\\/]/.test(f) && !/lib[\\/](veille|emplacements|auth|lancement|diagnostic|rattrapage|delais|echeances|suivi)\.ts$/.test(f) && !/app[\\/]components[\\/]HeroTelephone/.test(f)).filter((f) => interditClient.test(sansCommentaires(fs.readFileSync(f, "utf8"))));
+  const fautifsClient = sources.filter((f) => !/lib[\\/]formules\.ts$/.test(f) && !/app[\\/](admin|api)[\\/]/.test(f) && !/lib[\\/](veille|emplacements|auth|lancement|diagnostic|rattrapage|delais|echeances|suivi|bibliotheque)\.ts$/.test(f) && !/app[\\/]components[\\/]HeroTelephone/.test(f)).filter((f) => interditClient.test(sansCommentaires(fs.readFileSync(f, "utf8"))));
   verifier("Aucun délai, aucune durée, aucun format ni ancien nom de formule écrits à la main dans les pages, les e-mails et les factures", fautifsClient.length === 0, fautifsClient.join(", "));
   // Configuration du site : contact, images, réglages, bandeau, indexation
   const config = await import("../app/config");
@@ -304,12 +519,12 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
     process.env.SITE_URL = "https://exemple.fr";
     const regles = (r: ReturnType<typeof robots>) => JSON.stringify(r.rules);
     delete process.env.SITE_ENV;
-    verifier("Indexation : variable SITE_ENV absente → tout est bloqué (jamais d'indexation par oubli), sans bandeau", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && !robots().sitemap && sitemap().length === 0 && !env.enProduction() && !env.enPreproduction());
+    verifier("Indexation : variable SITE_ENV absente → tout est bloqué (jamais d'indexation par oubli), sans bandeau", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && !robots().sitemap && (await sitemap()).length === 0 && !env.enProduction() && !env.enPreproduction());
     process.env.SITE_ENV = "preprod";
-    verifier("Indexation : préproduction (SITE_ENV=preprod) → tout est bloqué, bandeau de préproduction actif", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && sitemap().length === 0 && env.enPreproduction() && !env.enProduction());
+    verifier("Indexation : préproduction (SITE_ENV=preprod) → tout est bloqué, bandeau de préproduction actif", regles(robots()) === JSON.stringify([{ userAgent: "*", disallow: "/" }]) && (await sitemap()).length === 0 && env.enPreproduction() && !env.enProduction());
     process.env.SITE_ENV = " Production ";
     const r = robots();
-    verifier("Indexation : production (SITE_ENV=production) → pages publiques autorisées, administration, commandes et API exclues, plan du site publié sur l'adresse du site", env.enProduction() && !env.enPreproduction() && regles(r).includes('"allow":"/"') && ["/admin", "/commande/", "/commander/", "/api/"].every((d) => regles(r).includes(d)) && r.sitemap === "https://exemple.fr/sitemap.xml" && sitemap().map((x) => x.url).join() === "https://exemple.fr/,https://exemple.fr/mentions-legales,https://exemple.fr/cgv,https://exemple.fr/confidentialite", regles(r));
+    verifier("Indexation : production (SITE_ENV=production) → pages publiques autorisées, administration, commandes et API exclues, plan du site publié sur l'adresse du site", env.enProduction() && !env.enPreproduction() && regles(r).includes('"allow":"/"') && ["/admin", "/commande/", "/commander/", "/api/"].every((d) => regles(r).includes(d)) && r.sitemap === "https://exemple.fr/sitemap.xml" && (await sitemap()).map((x) => x.url).join() === "https://exemple.fr/,https://exemple.fr/mentions-legales,https://exemple.fr/cgv,https://exemple.fr/confidentialite", regles(r));
     if (sauve.site === undefined) delete process.env.SITE_ENV; else process.env.SITE_ENV = sauve.site;
     if (sauve.url === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = sauve.url;
   }

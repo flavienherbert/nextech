@@ -104,7 +104,7 @@ export async function retirerMedia(slot: string): Promise<boolean> {
 }
 
 // Titre et légende d'un exemple vidéo (texte brut, longueur limitée).
-const propre = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+export const propre = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 export async function definirTexte(slot: string, titre: unknown, legende: unknown): Promise<boolean> {
   if (!emplacement(slot)?.id.startsWith("exemple-") || emplacement(slot)?.genre !== "video") return false;
   const t = { titre: propre(titre, 60), legende: propre(legende, 160) };

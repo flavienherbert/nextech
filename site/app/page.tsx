@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "./components/Reveal";
 import { BandeauMode, Pied } from "./components/Cadre";
+import CarteRealisation from "./components/CarteRealisation";
 import DemoVideo from "./components/DemoVideo";
 import HeroTelephone from "./components/HeroTelephone";
 import { angles, demonstration, engagements, etapes, faq, images, raisons, SHOW_EXAMPLE_VIDEO, site, temps } from "./config";
 import { delaiCourt, delaiTexte, DUREE_TEXTE, enLettres, euros, FORMULE_ESSAI, formules } from "@/lib/formules";
+import { chargerVitrine } from "@/lib/bibliotheque";
 import { chargerMedias } from "@/lib/medias";
 
 // Page servie depuis le cache et renouvelée au plus toutes les 15 minutes (et tout de suite quand le vendeur change un média) :
@@ -31,6 +33,9 @@ const NB_EXEMPLES = 6;
 
 export default async function Accueil() {
   const m = await chargerMedias();
+  // Bibliothèque de publicités : publicités « à la une » (six au plus) et nombre de publicités publiées (menu « Réalisations »).
+  // Si elle est illisible, la page s'affiche quand même avec ses emplacements habituels (l'erreur est journalisée).
+  const { aLaUne, nbPubliees } = await chargerVitrine();
 
   // Vidéo d'exemple : la section n'existe QUE si SHOW_EXAMPLE_VIDEO vaut true (app/config.ts). Sinon, aucun texte de remplacement.
   // La vidéo envoyée dans Administration → Images et vidéos est prioritaire sur le fichier public/videos/exemple.mp4.
@@ -55,7 +60,8 @@ export default async function Accueil() {
           </a>
           <nav className="navigation" aria-label="Navigation principale">
             {demoVisible && <a href="#demonstration">Exemple</a>}
-            {exemples.length > 0 && <a href="#exemples">Exemples</a>}
+            {(aLaUne.length > 0 || exemples.length > 0) && <a href="#exemples">Exemples</a>}
+            {nbPubliees > 0 && <Link href="/realisations">Réalisations</Link>}
             <a href="#anatomie">La méthode</a>
             <a href="#formules">Formules</a>
             <a href="#questions">Questions</a>
@@ -159,8 +165,35 @@ export default async function Accueil() {
           </section>
         )}
 
-        {/* ——— Exemples de vidéos livrées (visible dès qu'une vidéo est envoyée dans Administration → Médias) ——— */}
-        {exemples.length > 0 && (
+        {/* ——— Exemples : publicités « à la une » de la bibliothèque ; à défaut, les vidéos envoyées dans Administration → Images et vidéos ——— */}
+        {aLaUne.length > 0 && (
+          <section className="section section-bord" id="exemples">
+            <div className="conteneur">
+              <Reveal className="tete-section">
+                <p className="surtitre">Exemples</p>
+                <h2>
+                  Des vidéos <em>réalisées par le studio.</em>
+                </h2>
+                <p className="intro">
+                  Exemples réalisés par Studio Accroche, avec un présentateur généré par intelligence artificielle.
+                </p>
+              </Reveal>
+              <div className="exemples-grille">
+                {aLaUne.map((r, i) => (
+                  <Reveal key={r.id} delay={i * 80}>
+                    <CarteRealisation r={r} />
+                  </Reveal>
+                ))}
+              </div>
+              <div className="realisations-lien">
+                <Link className="bouton bouton-fantome" href="/realisations">
+                  Voir toutes les réalisations
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+        {aLaUne.length === 0 && exemples.length > 0 && (
           <section className="section section-bord" id="exemples">
             <div className="conteneur">
               <Reveal className="tete-section">
