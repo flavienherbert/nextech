@@ -71,7 +71,7 @@ export default async function Aide() {
         <section className="bloc">
           <h2>Bibliothèque de publicités et portfolio</h2>
           <ol className="aide-etapes">
-            <li>Ouvrez <Link href="/admin/publicites">Publicités</Link> puis « Nouvelle publicité » : nom, produit, catégorie, avatar, style, durée, format, script, prompt, vidéo (60 secondes et 40 Mo au plus) et miniature. Sans miniature, « Capturer la miniature » prend une image de la vidéo.</li>
+            <li>Ouvrez <Link href="/admin/publicites">Publicités</Link> puis « Nouvelle publicité » : nom, produit, catégorie, avatar, style, durée, format, script, prompt, vidéo (15 secondes et 40 Mo au plus) et miniature. Sans miniature, « Capturer la miniature » prend une image de la vidéo.</li>
             <li>Passez le statut à <strong>« Validée »</strong> et enregistrez : seule une publicité validée qui a une vidéo peut être publiée. Elle est <strong>privée par défaut</strong>.</li>
             <li><strong>« Publier »</strong> l&apos;ajoute à la page « Réalisations » ; <strong>« Mettre à la une »</strong> l&apos;affiche aussi sur l&apos;accueil (six au plus). Si le statut change ou si la vidéo est retirée, elle est dépubliée toute seule.</li>
             <li>Les présentateurs sont dans <Link href="/admin/avatars">Avatars</Link> : un avatar lié à une publicité ne peut pas être supprimé.</li>

@@ -51,7 +51,7 @@ export const AVATARS_DE_BASE: { id: string; nom: string; genre: GenreAvatar }[] 
 ];
 
 export const MAX_A_LA_UNE = 6;
-export const DUREE_MAX_PUB = 60;
+export const DUREE_MAX_PUB = 15; // la durée vendue par le site : une démonstration plus longue serait trompeuse
 
 export const LIMITES = { nom: 80, produit: 80, script: 2000, prompt: 8000, description: 1000, reference: 200, notes: 1000 } as const;
 

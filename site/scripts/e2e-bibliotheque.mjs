@@ -75,7 +75,7 @@ await admin.waitForSelector(".pub-fichiers .avis-erreur");
 verifier("Fichier qui n'est pas une vidéo : refusé avec un message clair", (await admin.locator(".pub-fichiers .avis-erreur").first().innerText()).includes("pas une vidéo lisible"));
 await admin.setInputFiles("#envoi-video", longue);
 await admin.waitForSelector('.pub-fichiers .avis-erreur:has-text("65 secondes")', { timeout: 15000 });
-verifier("Vidéo de plus de 60 secondes : refusée", (await admin.locator(".pub-fichiers .avis-erreur").first().innerText()).includes("65 secondes"));
+verifier("Vidéo de plus de 15 secondes : refusée", (await admin.locator(".pub-fichiers .avis-erreur").first().innerText()).includes("65 secondes"));
 await admin.setInputFiles("#envoi-video", paysage);
 await admin.waitForSelector(".pub-fichiers .pub-envoi-apercu video", { timeout: 20000 });
 verifier("Vidéo 16:9 alors que le format choisi est 9:16 : alerte (sans blocage), durée remplie depuis la vidéo", (await admin.locator(".pub-fichiers .avis").first().innerText()).includes("format choisi") && (await admin.locator('[name="dureeSecondes"]').inputValue()) === "3", await admin.locator('[name="dureeSecondes"]').inputValue());

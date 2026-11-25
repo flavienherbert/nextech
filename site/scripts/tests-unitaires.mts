@@ -248,9 +248,9 @@ verifier("Purge : commande récente intacte", (await store.commande(c6.id))?.sta
   verifier("Bibliothèque : caractères de contrôle retirés du produit", sale.produit === "p q", JSON.stringify(sale.produit));
   const refus = await Promise.all([
     creerPublicite(champs({ nom: "   " })), creerPublicite(champs({ categorie: "Voyage" })), creerPublicite(champs({ style: "Inconnu" })), creerPublicite(champs({ format: "3:2" })),
-    creerPublicite(champs({ statut: "publiee" })), creerPublicite(champs({ dureeSecondes: 61 })), creerPublicite(champs({ dureeSecondes: 0 })), creerPublicite(champs({ dureeSecondes: 12.5 })), creerPublicite(champs({ avatarId: "inconnu-99" })),
+    creerPublicite(champs({ statut: "publiee" })), creerPublicite(champs({ dureeSecondes: 16 })), creerPublicite(champs({ dureeSecondes: 0 })), creerPublicite(champs({ dureeSecondes: 12.5 })), creerPublicite(champs({ avatarId: "inconnu-99" })),
   ]);
-  verifier("Bibliothèque : nom vide, catégorie, style, format, statut inconnus, durée hors de 1 à 60 s, avatar inconnu → tous refusés", refus.every((r) => "erreur" in r), refus.map((r) => ("erreur" in r ? "x" : "o")).join(""));
+  verifier("Bibliothèque : nom vide, catégorie, style, format, statut inconnus, durée hors de 1 à 15 s, avatar inconnu → tous refusés", refus.every((r) => "erreur" in r), refus.map((r) => ("erreur" in r ? "x" : "o")).join(""));
   await supprimerPublicite(sale.id);
 
   // Une catégorie retirée de la liste reste lisible et modifiable sans être imposée à une autre fiche

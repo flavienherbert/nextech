@@ -7,7 +7,7 @@ Ce que c'est : un classeur de vos publicités (PUB-001, PUB-002…) avec leur vi
 ## En cinq gestes
 
 1. **Nouvelle publicité** : nom, produit, catégorie, avatar, style, durée, format, script, prompt ; vidéo et miniature (facultatives tant que la fiche est « En cours »). Le numéro est attribué à l'enregistrement.
-2. **Vidéo** : MP4 (H.264) ou WebM, 60 secondes et 40 Mo au plus. Le navigateur contrôle le fichier avant l'envoi et vous prévient si le format de la vidéo ne correspond pas au format de la fiche. Sans miniature, « Capturer la miniature » prend une image de la vidéo, dans votre navigateur.
+2. **Vidéo** : MP4 (H.264) ou WebM, 15 secondes (la durée vendue) et 40 Mo au plus. Le navigateur contrôle le fichier avant l'envoi et vous prévient si le format de la vidéo ne correspond pas au format de la fiche. Sans miniature, « Capturer la miniature » prend une image de la vidéo, dans votre navigateur.
 3. **Statut** : En cours → Terminée → **Validée** (ou Refusée). Seule une publicité *Validée* qui a une vidéo peut être publiée.
 4. **Publier / Dépublier** : la publicité entre dans (ou sort de) la page Réalisations. **Mettre à la une** l'affiche aussi sur l'accueil (six au plus).
 5. **Dupliquer** pour décliner une publicité (nouvelle fiche, sans fichiers, privée) ; **Supprimer** en retapant son numéro.
@@ -18,7 +18,7 @@ Ce que c'est : un classeur de vos publicités (PUB-001, PUB-002…) avec leur vi
 - « À la une » exige « Publiée » ; six publicités à la une au plus (message clair au-delà).
 - Les enregistrements des boutons Publier / À la une / Dupliquer / Supprimer portent sur la fiche **enregistrée** : enregistrez d'abord vos modifications.
 - Portfolio et accueil : tri par **ordre** croissant (champ « Ordre d'affichage », 0 partout = les plus récentes d'abord), puis par date.
-- Une démonstration de plus de 15 secondes peut être gardée dans la bibliothèque (jusqu'à 60 s) ; la fiche vous prévient qu'elle dépasse la durée vendue par le site. À vous de ne pas la publier : le portfolio affiche la durée de chaque vidéo.
+- Une vidéo de plus de 15 secondes (la durée vendue par le site) est refusée à l'envoi, avec une tolérance d'une demi-seconde pour les exports qui dépassent de quelques images.
 
 ## Ce qui est public, ce qui ne l'est jamais
 
